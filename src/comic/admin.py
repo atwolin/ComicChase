@@ -15,10 +15,9 @@ class ComicAdmin(admin.ModelAdmin):
         'title_jp',
         'author_jp',
         'author_tw',
-        'status_jp',
-        'publisher_jp'
+        'status_jp'
     )
-    list_filter = ('status_jp', 'publisher_jp')
+    list_filter = ('status_jp',)
     search_fields = (
         'title_jp',
         'title_tw',
