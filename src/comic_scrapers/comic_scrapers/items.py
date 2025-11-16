@@ -1,8 +1,3 @@
-# Define here the models for your scraped items
-#
-# See documentation in:
-# https://docs.scrapy.org/en/latest/topics/items.html
-
 import scrapy
 
 
@@ -19,10 +14,10 @@ class OrphanVolumeItem(scrapy.Item):
     # Anchor point field
     isbn_tw = scrapy.Field()
 
-    volume_number = scrapy.Field()
-    release_date_tw = scrapy.Field()
-    publisher_tw = scrapy.Field()
-    source_url = scrapy.Field()
+    # volume_number = scrapy.Field()
+    # release_date_tw = scrapy.Field()
+    # publisher_tw = scrapy.Field()
+    # source_url = scrapy.Field()
 
 
 class OrphanMapItem(scrapy.Item):
@@ -34,6 +29,11 @@ class OrphanMapItem(scrapy.Item):
         title_jp: The title of the comic in Japanese
         title_tw: The title of the comic in Taiwan
         author_tw: The author of the comic in Taiwan
+        volume_number: The volume number of the volume
+        release_date_tw: The release date of the volume in Taiwan
+        publisher_tw: The publisher of the volume in Taiwan
+        search_url: The URL of the search results page
+        detail_url: The URL of the book detail page
     """
     # Anchor point for volume
     isbn_tw = scrapy.Field()
@@ -41,8 +41,16 @@ class OrphanMapItem(scrapy.Item):
     # Anchor point for comic
     title_jp = scrapy.Field()
 
+    # Comic fields
     title_tw = scrapy.Field()
     author_tw = scrapy.Field()
+
+    # Volume fields
+    volume_number = scrapy.Field()
+    release_date_tw = scrapy.Field()
+    publisher_tw = scrapy.Field()
+    search_url = scrapy.Field()
+    detail_url = scrapy.Field()
 
 
 class JpComicItem(scrapy.Item):
