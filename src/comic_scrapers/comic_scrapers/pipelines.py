@@ -13,12 +13,11 @@ from comic_scrapers.items import (
 from comic.models import Publisher, Comic, Volume
 
 class ComicScrapersPipeline:
-    async def process_item(self, item, spider):
+    def process_item(self, item, spider):
         if isinstance(item, OrphanVolumeItem):
-            return await self._process_orphan_volume_item(item, spider)
+            return self._process_orphan_volume_item(item, spider)
         return item
 
-    @sync_to_async
     def _process_orphan_volume_item(self, item: OrphanVolumeItem, spider):
         """
         Process OrphanVolumeItem by ISBN to create new Volume entry in the database
@@ -32,7 +31,7 @@ class ComicScrapersPipeline:
             return
 
         # Create Volume entry in Volume Table
-        Volume.objects.create(
+        Volume.objects.aget_or_create(
             isbn_tw=adapter.get('isbn_tw')
         )
         spider.logger.info(f"Created Orphan Volume with ISBN {adapter.get('isbn_tw')}")
