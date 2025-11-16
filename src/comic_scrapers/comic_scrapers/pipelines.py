@@ -8,7 +8,7 @@ from comic_scrapers.items import (
     JpComicItem,
     JpVolumeItem
 )
-from src.comic.models import Publisher, Comic, Volume
+from comic.models import Publisher, Comic, Volume
 
 class ComicScrapersPipeline:
     def process_item(self, item, spider):
@@ -28,5 +28,6 @@ class ComicScrapersPipeline:
         Volume.objects.create(
             isbn_tw=item.get('isbn_tw')
         )
+        spider.logger.info(f"Created Orphan Volume with ISBN {item.get('isbn_tw')}")
 
         return item

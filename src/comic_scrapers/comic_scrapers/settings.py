@@ -92,7 +92,7 @@ FEED_EXPORT_ENCODING = "utf-8"
 
 # Django settings integration
 sys.path.append(os.path.dirname(os.path.abspath('.')))
-os.environ['DJANGO_SETTINGS_MODULE'] = 'comic_chase.settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings'
 
 import django
 django.setup()
