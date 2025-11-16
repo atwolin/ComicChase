@@ -5,6 +5,7 @@ from scrapy.http import Request, Response
 
 from comic_scrapers.items import OrphanVolumeItem
 
+
 class BooksTWSpider(scrapy.Spider):
     name = "books_tw"
     allowed_domains = ["books.com.tw"]
@@ -18,11 +19,7 @@ class BooksTWSpider(scrapy.Spider):
         """
         links = response.xpath("//div[@class='type02_bd-a']/h4/a/@href").getall()
         self.logger.info(f"Found {len(links)} book links on the page.")
-        # yield from response.follow_all(links, self.parse_volume_info)
-        for i, link in enumerate(links):
-            yield response.follow(link, self.parse_volume_info)
-            if i == 5:  # Limit to first 100 for testing
-                break
+        yield from response.follow_all(links, self.parse_volume_info)
 
     def parse_volume_info(self, response: Response):
         """
@@ -36,17 +33,7 @@ class BooksTWSpider(scrapy.Spider):
             isbn_tw = response.xpath("//div[@class='bd']/ul/li[contains(text(), 'ISBN：')]/text()").get()
             isbn_tw = isbn_tw.replace('ISBN：', '').strip() if isbn_tw else None
 
-            # volume_number = response.xpath("//div[@class='mod type02_p002 clearfix']/h1/text()").get()
-
-            # release_date_tw = response.xpath("//div[@class='type02_p003 clearfix']/ul/li[contains(text(), '出版日期：')]/text()").get()
-
-            # publisher_tw = response.xpath("//div[@class='type02_p003 clearfix']/ul/li[contains(text(), '出版社：')]")
-            # publisher_tw = publisher_tw.xpath("./a[1]/span/text()").get() if publisher_tw else None
-
             item['isbn_tw'] = isbn_tw
-            # item['volume_number'] = volume_number
-            # item['release_date_tw'] = release_date_tw
-            # item['publisher_tw'] = publisher_tw
 
             self.logger.info(f"Successfully parsed volume ISBN from {response.url}")
 

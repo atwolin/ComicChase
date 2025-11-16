@@ -14,9 +14,6 @@ class OrphanVolumeItem(scrapy.Item):
     # Anchor point field
     isbn_tw = scrapy.Field()
 
-    # volume_number = scrapy.Field()
-    # release_date_tw = scrapy.Field()
-    # publisher_tw = scrapy.Field()
     source_url = scrapy.Field()
 
 
