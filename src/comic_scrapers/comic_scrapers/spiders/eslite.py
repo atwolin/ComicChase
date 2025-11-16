@@ -4,6 +4,7 @@ import scrapy
 from scrapy.http import Request, Response
 
 from comic_scrapers.items import OrphanVolumeItem, OrphanMapItem
+from comic.models import Volume
 
 class EsliteSpider(scrapy.Spider):
     name = "eslite"
@@ -15,14 +16,14 @@ class EsliteSpider(scrapy.Spider):
         Obtain ISBN by appending isbn_tw to start parsing eslite search results page
         """
         url = self.start_urls[0]
-        data = json.load(open("orphan_test2.json", "r"))
+        # data = json.load(open("orphan_test2.json", "r"))
+        data = Volume.objects.filter(comic__isnull=True).values('isbn_tw')
         isbn_list = [item['isbn_tw'].strip('ISBN：') for item in data if item['isbn_tw']]
         # yield from (Request(url + isbn, callback=self.parse) for isbn in isbn_list)
         for i, isbn in enumerate(isbn_list):
             yield Request(url + isbn, callback=self.parse)
             if i == 5:  # Limit to first 5 for testing
                 break
-
 
     def parse(self, response: Response):
         """
