@@ -17,7 +17,7 @@ class OrphanVolumeItem(scrapy.Item):
     # volume_number = scrapy.Field()
     # release_date_tw = scrapy.Field()
     # publisher_tw = scrapy.Field()
-    # source_url = scrapy.Field()
+    source_url = scrapy.Field()
 
 
 class OrphanMapItem(scrapy.Item):
