@@ -54,16 +54,6 @@ class Comic(models.Model):
         default=JapanStatus.ONGOING
     )
 
-    publisher_japan_original = models.ForeignKey(
-        Publisher,
-        verbose_name=_("日本連載出版社"),
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="original_comics",
-        limit_choices_to={'region': 'JP'} # 限制只能選日本出版社
-    )
-
     class Meta:
         verbose_name = _("漫畫作品")
         verbose_name_plural = _("漫畫作品")
@@ -82,7 +72,9 @@ class Volume(models.Model):
         Comic,
         verbose_name=_("關聯漫畫"),
         on_delete=models.CASCADE,
-        related_name="volumes"
+        related_name="volumes",
+        blank=True,
+        null=True
     )
     volume_number = models.PositiveIntegerField(_("卷數"))
 
@@ -101,7 +93,7 @@ class Volume(models.Model):
 
     #台灣出版資訊
     release_date_tw = models.DateField(_("台灣發售日期"), null=True, blank=True)
-    isbn_tw = models.CharField(_("台灣 ISBN"), max_length=13, null=True, blank=True)
+    isbn_tw = models.CharField(_("台灣 ISBN"), max_length=13, null=True)
     publisher_tw = models.ForeignKey(
         Publisher,
         verbose_name=_("台灣代理出版社"),
@@ -115,6 +107,9 @@ class Volume(models.Model):
     class Meta:
         verbose_name = _("單行本")
         verbose_name_plural = _("單行本")
+        indexes = [
+            models.Index(fields=['isbn_tw'])
+        ]
         unique_together = ('comic', 'volume_number')
         ordering = ['comic', 'volume_number']
 

@@ -1,3 +1,6 @@
+# Git
+.git
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -127,10 +130,6 @@ ipython_config.py
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
 
-# Databases
-data/
-dbs/
-
 # Celery stuff
 celerybeat-schedule
 celerybeat.pid
@@ -221,3 +220,6 @@ __marimo__/
 
 # Test output
 *.json
+
+# data
+data/db
