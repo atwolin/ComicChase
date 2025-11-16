@@ -24,3 +24,16 @@ services:
       - ./.env
     depends_on:
       - db
+
+  scrapy:
+    build: .
+    working_dir: /code/src/comic_scrapers
+    command: ["/code/wait-for-it.sh", "db:5432", "--", "tail", "-f", "/dev/null"]
+    volumes:
+      - .:/code
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+    stdin_open: true
+    tty: true
