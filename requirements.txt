@@ -1,5 +1,7 @@
+asgiref==3.10.0
 Django==5.2.8
 itemadapter==0.12.2
 python-decouple==3.8
-scrapy==2.13.3
 psycopg2-binary==2.9.11
+selenium==4.38.0
+scrapy==2.13.3
