@@ -2,7 +2,7 @@
 services:
   db:
     image: postgres:16.2
-    # restart: always
+    restart: no
     volumes:
       - ./data/db:/var/lib/postgresql/data
     environment:
@@ -15,7 +15,7 @@ services:
   web:
     build: .
     command: ["/code/wait-for-it.sh", "db:5432", "--", "python", "/code/src/manage.py", "runserver", "0.0.0.0:8000"]
-    # restart: always
+    restart: no
     volumes:
       - .:/code
     ports:
@@ -27,7 +27,7 @@ services:
 
   selenium:
     image: selenium/standalone-chrome:latest
-    # restart: always
+    restart: no
     hostname: selenium
     ports:
       - "4444:4444"
