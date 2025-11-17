@@ -2,7 +2,7 @@
 services:
   db:
     image: postgres:16.2
-    restart: always
+    # restart: always
     volumes:
       - ./data/db:/var/lib/postgresql/data
     environment:
@@ -15,7 +15,7 @@ services:
   web:
     build: .
     command: ["/code/wait-for-it.sh", "db:5432", "--", "python", "/code/src/manage.py", "runserver", "0.0.0.0:8000"]
-    restart: always
+    # restart: always
     volumes:
       - .:/code
     ports:
@@ -25,15 +25,25 @@ services:
     depends_on:
       - db
 
+  selenium:
+    image: selenium/standalone-chrome:latest
+    # restart: always
+    hostname: selenium
+    ports:
+      - "4444:4444"
+    volumes:
+      - /dev/shm:/dev/shm
+
   scrapy:
     build: .
     working_dir: /code/src/comic_scrapers
     command: ["/code/wait-for-it.sh", "db:5432", "--", "tail", "-f", "/dev/null"]
-    volumes:
-      - .:/code
     env_file:
       - ./.env
     depends_on:
       - db
+      - selenium
     stdin_open: true
     tty: true
+    volumes:
+      - .:/code
