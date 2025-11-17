@@ -48,6 +48,7 @@ class OrphanMapItem(scrapy.Item):
     publisher_tw = scrapy.Field()
     search_url = scrapy.Field()
     detail_url = scrapy.Field()
+    product_desc = scrapy.Field()
 
 
 class JpComicItem(scrapy.Item):
@@ -64,6 +65,11 @@ class JpComicItem(scrapy.Item):
 
     author_jp = scrapy.Field()
     status_jp = scrapy.Field()
+
+    volume_number = scrapy.Field()
+    release_date_jp = scrapy.Field()
+    isbn_jp = scrapy.Field()
+    publisher_jp = scrapy.Field()
 
 
 class JpVolumeItem(scrapy.Item):
