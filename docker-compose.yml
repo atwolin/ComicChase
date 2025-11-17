@@ -6,6 +6,7 @@ services:
     command: python /wait_for_db.py
     volumes:
       - ./src:/app  
+      - ./comic_scrapers:/scrapers      
     ports:
       - "8000:8000"
     env_file:
