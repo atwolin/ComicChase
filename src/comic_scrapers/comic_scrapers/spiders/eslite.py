@@ -147,7 +147,7 @@ class EsliteSpider(scrapy.Spider):
             next_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, next_button_xpath)))
             next_button.click()
             time.sleep(2)
-            self.parse_search_results(topic_item, prev_url)
+            yield from self.parse_search_results(topic_item, prev_url)
         except selenium.common.exceptions.TimeoutException as e:
             self.logger.error(f"parse_search_results(): Timeout because no next button found for {self.topic} {topic_item}: {e}")
 
