@@ -127,6 +127,10 @@ ipython_config.py
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
 
+# Databases
+data/
+dbs/
+
 # Celery stuff
 celerybeat-schedule
 celerybeat.pid
@@ -221,3 +225,4 @@ __marimo__/
 # VS Code 歷史暫存
 .history/
 
+run.sh
