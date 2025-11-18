@@ -36,7 +36,7 @@ class EsliteSpider(scrapy.Spider):
             command_executor='http://selenium:4444/wd/hub',
             options=chrome_options
         )
-        self.wait = WebDriverWait(self.driver, 20)
+        self.wait = WebDriverWait(self.driver, 15)
         self.topic = ""
         self.topic_list = []
         self.target_info = ""
@@ -159,11 +159,14 @@ class EsliteSpider(scrapy.Spider):
         self.logger.debug(f"parse_detail_info(): Parsing comic info from {self.driver.current_url}")
 
         product_desc = None
+        topic_prevent = None
         try:
             link.click()
             topic_prevent_xpath = self.target_info
             topic_prevent_webelement = self.wait.until(EC.presence_of_element_located((By.XPATH, topic_prevent_xpath)))
             topic_prevent = topic_prevent_webelement.get_attribute('innerHTML')
+            category_xpath = "//a[@title='動漫畫／圖文']"
+            category_webelement = self.wait.until(EC.presence_of_element_located((By.XPATH, category_xpath)))
             product_desc_xpath = "//div[@class='product-description-schema']"
             product_desc_webelement = self.wait.until(EC.presence_of_element_located((By.XPATH, product_desc_xpath)))
             product_desc = product_desc_webelement.get_attribute('innerHTML')
@@ -172,9 +175,14 @@ class EsliteSpider(scrapy.Spider):
                 yield item
                 return
         except selenium.common.exceptions.TimeoutException as e:
-            self.logger.error(f"parse_detail_info(): Timeout while checking detail page for {self.topic} {item[f'{self.topic}']}: {e}")
+            self.logger.error(f"""
+                parse_detail_info(): Timeout while checking detail page for {self.topic} {item[f'{self.topic}']}\n
+                topic_prevent:       {topic_prevent}\n
+                product_desc:        {product_desc}\n
+                error:               {e}
+                """)
             self.driver.back()
-            yield item
+            # yield item
             return
 
         item['detail_url'] = self.driver.current_url
@@ -244,6 +252,7 @@ class EsliteTitleTwSpider(EsliteSpider):
         # self.topic_list = list(Comic.objects
         #                     .filter(isnull=True, title_tw__isnull=False)
         #                     .values_list('title_tw', flat=True))
-        self.topic_list = ["迴天的阿爾帕斯"]
+        # self.topic_list = ["迴天的阿爾帕斯"]
+        self.topic_list = ["藍色時期"]
         self.target_info = "//h1[@class='sans-font-semi-bold']"
         self.logger.info(f"EsliteTitleTWSpider: Loaded {len(self.topic_list)} Taiwanese titles to process.")
