@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
                 ('author_jp', models.CharField(max_length=100, verbose_name='日文原名作者')),
                 ('author_tw', models.CharField(blank=True, max_length=100, null=True, verbose_name='台灣譯名作者')),
                 ('status_jp', models.CharField(choices=[('ongoing', '連載中'), ('completed', '已完結'), ('hiatus', '休刊中')], default='ongoing', max_length=10, verbose_name='日本出版狀態')),
-                ('publisher_japan_original', models.ForeignKey(blank=True, limit_choices_to={'region': 'JP'}, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='original_comics', to='comic.publisher', verbose_name='日本連載出版社')),
+                ('publisher_jp', models.ForeignKey(blank=True, limit_choices_to={'region': 'JP'}, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='original_comics', to='comic.publisher', verbose_name='日本連載出版社')),
             ],
             options={
                 'verbose_name': '漫畫作品',
