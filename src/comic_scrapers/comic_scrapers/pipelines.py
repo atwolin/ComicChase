@@ -90,7 +90,6 @@ class ComicScrapersPipeline:
 
         return title_tw, volume_number, is_final_volume, latest_volume_tw
 
-
     def _process_orphan_map_item(self, item: OrphanMapItem, spider):
         """
         Process OrphanMapItem to link existing Comics with Volumes in the database
@@ -98,6 +97,8 @@ class ComicScrapersPipeline:
         adapter = ItemAdapter(item)
         isbn_tw = adapter.get('isbn_tw')
         title_jp = adapter.get('title_jp')
+        if not title_jp:
+            raise DropItem(f"No further information in OrphanMapItem: \n{adapter.items()}\n{'-' * 50}")
 
         # Process Volume title and volume number
         title_tw, volume_number, is_final_volume, latest_volume_tw = self._process_book_title_tw(
