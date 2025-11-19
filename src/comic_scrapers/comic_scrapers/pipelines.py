@@ -16,6 +16,10 @@ class ComicScrapersPipeline:
         # Process data from books.com.tw
         if isinstance(item, OrphanVolumeItem):
             return deferToThread(self._process_orphan_volume_item, item, spider)
+
+        # Process data from eslite.com
+        elif isinstance(item, OrphanMapItem):
+            return deferToThread(self._process_orphan_map_item, item, spider)
         return item
 
     def _process_orphan_volume_item(self, item: OrphanVolumeItem, spider):
@@ -39,4 +43,104 @@ class ComicScrapersPipeline:
         else:
             spider.logger.info(f"Found existing Volume with ISBN {isbn_tw}")
 
+        return item
+
+    def _process_book_title_tw(self, book_title: str):
+        """
+        Process book_title_tw to extract title and volume number
+        Example formats:
+            "最後一場閃爍的盛夏 (全)"
+            "愚者之夜 9"
+            "貓咪好夥伴小圓圓和小八 6 (特裝版)"
+            "神速零零壹 2 (完)"
+            "藍色時期 16 (首刷限定版)"
+            "如果30歲還是處男, 似乎就能成為魔法師 15"
+        """
+        parts = book_title.split(' ')
+        # Comic field
+        title_tw = None
+        latest_volume_tw = None
+        is_final_volume = False
+        # Volume field
+        volume_number = None
+
+        # Volume is special edition if "(特裝版)" found
+        if parts[-1] in ["(特裝版)", "(首刷限定版)"]:
+            title_tw = ' ' + parts[-1].strip()
+            parts = parts[:-1]
+        # Volume is final if "(完)" or "(全)" found
+        elif parts[-1] == "(完)":
+            is_final_volume = True
+            parts = parts[:-1]
+        elif parts[-1] == "(全)":
+            is_final_volume = True
+
+        # Volume number == 1 if "1" or "(全)" found
+        if parts[-1] in ["(全)", "1"]:
+            volume_number = 1
+        else:
+            volume_number = int(parts[-1])
+
+        # Update title_tw
+        title_tw = ' '.join(parts[:-1]).strip()
+
+        # Update latest_volume_tw if is final volume
+        if is_final_volume:
+            latest_volume_tw = volume_number
+
+        return title_tw, volume_number, is_final_volume, latest_volume_tw
+
+
+    def _process_orphan_map_item(self, item: OrphanMapItem, spider):
+        """
+        Process OrphanMapItem to link existing Comics with Volumes in the database
+        """
+        adapter = ItemAdapter(item)
+        isbn_tw = adapter.get('isbn_tw')
+        title_jp = adapter.get('title_jp')
+
+        # Process Volume title and volume number
+        title_tw, volume_number, is_final_volume, latest_volume_tw = self._process_book_title_tw(
+            adapter.get('title_tw')
+        )
+        author_tw = adapter.get('author_tw').rsplit('\n', 1)[-1].strip()
+
+        release_date_tw = adapter.get('release_date_tw').rsplit('：', 1)[-1].strip().replace('/', '-')
+        publisher_tw = adapter.get('publisher_tw').rsplit('\n', 1)[-1].strip()
+
+        # Start storing data into database
+        # 1. Get or create Publisher
+        publisher, created_pub = Publisher.objects.get_or_create(
+            name=publisher_tw,
+            region='TW'
+        )
+        if created_pub:
+            spider.logger.info(f"Created new Publisher: {publisher}")
+
+        # 2. Get or create Comic
+        comic, created_comic = Comic.objects.get_or_create(
+            title_jp=title_jp,
+            defaults={
+                'title_tw': title_tw,
+                'author_tw': author_tw,
+            }
+        )
+        if created_comic:
+            spider.logger.info(f"Created new Comic: {comic}")
+
+        # 3. Update Volume
+        volume = Volume.objects.filter(isbn_tw=isbn_tw).first()
+        if volume:
+            volume.comic = comic
+            volume.volume_number = volume_number
+            volume.release_date_tw = release_date_tw
+            volume.publisher_tw = publisher
+            volume.save()
+            spider.logger.info(f"Updated Volume: {volume}")
+        else:
+            spider.logger.warning(f"Volume with ISBN {isbn_tw} not found to update.")
+
+        # Update comic's latest_volume_tw if needed
+        # if is_final_volume or volume_number > (comic.latest_volume_tw or None):
+        #     comic.latest_volume_tw = volume
         return item
