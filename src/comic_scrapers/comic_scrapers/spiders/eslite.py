@@ -66,6 +66,9 @@ class EsliteSpider(scrapy.Spider):
         input_xpath = "//input[@name='query']"
 
         for i, topic_item in enumerate(self.topic_list):
+            # TESTING: Stop after processing first 3 items
+            if i == 6:
+                break
             self.logger.debug(f"parse(): Processing {self.topic} {topic_item} ({i + 1}/{len(self.topic_list)})")
 
             search_box = self.driver.find_element(By.XPATH, input_xpath)
@@ -87,9 +90,6 @@ class EsliteSpider(scrapy.Spider):
             time.sleep(2)
 
             self.logger.debug(f"parse(): Completed processing item {topic_item} ({i + 1}/{len(self.topic_list)})")
-            # TESTING: Stop after processing first 3 items
-            if i == 3:
-                break
 
     def parse_search_results(self, topic_item, prev_url=None):
         """
@@ -150,7 +150,6 @@ class EsliteSpider(scrapy.Spider):
             yield from self.parse_search_results(topic_item, prev_url)
         except selenium.common.exceptions.TimeoutException as e:
             self.logger.error(f"parse_search_results(): Timeout because no next button found for {self.topic} {topic_item}: {e}")
-
 
     def parse_detail_info(self, link, item: OrphanMapItem):
         """
