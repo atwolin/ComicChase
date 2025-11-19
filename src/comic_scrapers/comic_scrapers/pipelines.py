@@ -2,24 +2,22 @@ import os
 import django
 from itemadapter import ItemAdapter
 from scrapy.exceptions import DropItem
-from asgiref.sync import sync_to_async
+from twisted.internet.threads import deferToThread
 
 from comic_scrapers.items import (
     OrphanVolumeItem,
     OrphanMapItem,
-    JpComicItem,
-    JpVolumeItem
+    JpComicItem
 )
 from comic.models import Publisher, Comic, Volume
 
 class ComicScrapersPipeline:
-    async def process_item(self, item, spider):
+    def process_item(self, item, spider):
         # Process data from books.com.tw
         if isinstance(item, OrphanVolumeItem):
-            return await self._process_orphan_volume_item(item, spider)
+            return deferToThread(self._process_orphan_volume_item, item, spider)
         return item
 
-    @sync_to_async
     def _process_orphan_volume_item(self, item: OrphanVolumeItem, spider):
         """
         Process OrphanVolumeItem by ISBN to create new Volume entry in the database
