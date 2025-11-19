@@ -14,6 +14,7 @@ from comic.models import Publisher, Comic, Volume
 
 class ComicScrapersPipeline:
     async def process_item(self, item, spider):
+        # Process data from books.com.tw
         if isinstance(item, OrphanVolumeItem):
             return await self._process_orphan_volume_item(item, spider)
         return item
@@ -25,16 +26,19 @@ class ComicScrapersPipeline:
         """
         spider.logger.info(f"Processing Orphan Volume with ISBN {item.get('isbn_tw')}")
         adapter = ItemAdapter(item)
+        isbn_tw = adapter.get('isbn_tw')
 
         # Protect against missing ISBN
-        if not adapter.get('isbn_tw'):
-            raise DropItem("Missing isbn_tw in OrphanVolumeItem")
-            return
+        if not isbn_tw:
+            raise DropItem(f"No isbn_tw in OrphanVolumeItem: \n{adapter.items()}\n{'-' * 50}")
 
         # Create Volume entry in Volume Table
-        Volume.objects.get_or_create(
-            isbn_tw=adapter.get('isbn_tw')
+        obj, created = Volume.objects.get_or_create(
+            isbn_tw=isbn_tw
         )
-        spider.logger.info(f"Created Orphan Volume with ISBN {adapter.get('isbn_tw')}")
+        if created:
+            spider.logger.info(f"Created Orphan Volume with ISBN {isbn_tw}")
+        else:
+            spider.logger.info(f"Found existing Volume with ISBN {isbn_tw}")
 
         return item
