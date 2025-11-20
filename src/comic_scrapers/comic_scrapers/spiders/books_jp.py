@@ -152,7 +152,6 @@ class BooksJpSpider(scrapy.Spider):
         except selenium.common.exceptions.TimeoutException as e:
             self.logger.error(f"parse_search_results(): Timeout because no next button found for {self.topic} {topic_item}: {e}")
 
-
     def parse_detail_info(self, link, item: JpComicItem):
         """
         Extract comic and volume information from the book URL
