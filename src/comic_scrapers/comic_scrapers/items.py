@@ -68,6 +68,7 @@ class JpComicItem(scrapy.Item):
     title_jp = scrapy.Field()
 
     # Comic fields
+    series_name = scrapy.Field()
     author_jp = scrapy.Field()
 
     # Volume fields
