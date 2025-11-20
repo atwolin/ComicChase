@@ -9,7 +9,8 @@ from comic_scrapers.items import (
     OrphanMapItem,
     JpComicItem
 )
-from comic.models import Publisher, Comic, Volume
+from comic.models import Publisher, Comic, Volume, VolumeJp, VolumeTw
+
 
 class ComicScrapersPipeline:
     def process_item(self, item, spider):
@@ -35,7 +36,7 @@ class ComicScrapersPipeline:
             raise DropItem(f"No isbn_tw in OrphanVolumeItem: \n{adapter.items()}\n{'-' * 50}")
 
         # Create Volume entry in Volume Table
-        obj, created = Volume.objects.get_or_create(
+        obj, created = VolumeTw.objects.get_or_create(
             isbn_tw=isbn_tw
         )
         if created:
