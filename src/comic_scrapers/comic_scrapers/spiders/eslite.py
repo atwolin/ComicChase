@@ -11,7 +11,7 @@ import scrapy
 from scrapy.http import HtmlResponse
 
 from comic_scrapers.items import OrphanMapItem
-from comic.models import Volume
+from comic.models import VolumeTw
 
 class EsliteSpider(scrapy.Spider):
     name = "eslite_base"
@@ -232,7 +232,7 @@ class EsliteESBNSpider(EsliteSpider):
         """
         super().__init__(*args, **kwargs)
         self.topic = "isbn_tw"
-        self.topic_list = list(Volume.objects
+        self.topic_list = list(VolumeTw.objects
                          .filter(comic__isnull=True, isbn_tw__isnull=False)
                          .values_list('isbn_tw', flat=True))
         self.target_info = "//div[@class='product-description-schema']"
