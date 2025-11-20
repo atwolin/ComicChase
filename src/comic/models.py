@@ -57,7 +57,7 @@ class Comic(models.Model):
     class Meta:
         verbose_name = _("漫畫作品")
         verbose_name_plural = _("漫畫作品")
-        ordering = ['title_tw', 'title_jp'] # 同步更新 ordering
+        ordering = ['title_tw', 'title_jp']
 
     def __str__(self):
         return self.title_tw or self.title_jp
@@ -107,11 +107,86 @@ class Volume(models.Model):
     class Meta:
         verbose_name = _("單行本")
         verbose_name_plural = _("單行本")
-        indexes = [
-            models.Index(fields=['isbn_tw'])
-        ]
         unique_together = ('comic', 'volume_number')
         ordering = ['comic', 'volume_number']
 
     def __str__(self):
-        return f"{self.comic} - Vol. {self.volume_number}"
+        comic_name = self.comic if self.comic else "(未關聯)"
+        return f"{comic_name} - Vol. {self.volume_number or '?'}"
+
+
+class VolumeJp(models.Model):
+    """
+    Model for Japanese Volumes
+    """
+    isbn_jp = models.CharField(_("日本 ISBN"), max_length=13, unique=True, null=True)
+
+    # Link to Comic Model
+    comic = models.ForeignKey(
+        Comic,
+        verbose_name=_("所屬系列"),
+        on_delete=models.CASCADE,
+        related_name="volumes_jp",
+        blank=True,
+        null=True
+    )
+    title_jp = models.CharField(_("日文原名"), max_length=255, blank=True, null=True)
+    volume_number = models.PositiveIntegerField(_("卷數"), blank=True, null=True)
+    release_date_jp = models.DateField(_("日本發售日期"), blank=True, null=True)
+
+    publisher_jp = models.ForeignKey(
+        Publisher,
+        verbose_name=_("日本出版社"),
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="volumes_jp",
+        limit_choices_to={'region': 'JP'}
+    )
+
+    class Meta:
+        verbose_name = _("日版單行本")
+        verbose_name_plural = _("日版單行本")
+        ordering = ['comic', 'volume_number']
+
+    def __str__(self):
+        title = self.comic.title_jp if self.comic else self.title_jp or "(未關聯)"
+        return f"{title} - Vol. {self.volume_number or '?'}"
+
+
+class VolumeTw(models.Model):
+    """
+    Model for Japanese Volumes
+    """
+    isbn_tw = models.CharField(_("台灣 ISBN"), max_length=13, unique=True, null=True)
+
+    # Link to Comic Model
+    comic = models.ForeignKey(
+        Comic,
+        verbose_name=_("所屬系列"),
+        on_delete=models.CASCADE,
+        related_name="volumes_tw",
+        blank=True,
+        null=True
+    )
+    title_tw = models.CharField(_("台灣譯名"), max_length=255, blank=True, null=True)
+    volume_number = models.PositiveIntegerField(_("卷數"), blank=True, null=True)
+    release_date_tw = models.DateField(_("台灣發售日期"), blank=True, null=True)
+    publisher_tw = models.ForeignKey(
+        Publisher,
+        verbose_name=_("台灣代理出版社"),
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="volumes_tw",
+        limit_choices_to={'region': 'TW'}
+    )
+
+    class Meta:
+        verbose_name = _("台版單行本")
+        verbose_name_plural = _("台版單行本")
+        ordering = ['comic', 'volume_number']
+
+    def __str__(self):
+        title = self.comic.title_tw if self.comic else self.title_tw or "(未關聯)"
+        return f"{title} - Vol. {self.volume_number or '?'}"
