@@ -156,7 +156,7 @@ class VolumeJp(models.Model):
 
 class VolumeTw(models.Model):
     """
-    Model for Japanese Volumes
+    Model for Taiwanese Volumes
     """
     isbn_tw = models.CharField(_("台灣 ISBN"), max_length=13, unique=True, null=True)
 
