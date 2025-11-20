@@ -59,15 +59,14 @@ class ComicScrapersPipeline:
         """
         parts = book_title.split(' ')
         # Comic field
-        title_tw = None
+        series_name = None
         latest_volume_tw = None
         is_final_volume = False
         # Volume field
         volume_number = None
 
         # Volume is special edition if "(特裝版)" found
-        if parts[-1] in ["(特裝版)", "(首刷限定版)"]:
-            title_tw = ' ' + parts[-1].strip()
+        if "版)" in parts[-1]:
             parts = parts[:-1]
         # Volume is final if "(完)" or "(全)" found
         elif parts[-1] == "(完)":
@@ -83,13 +82,13 @@ class ComicScrapersPipeline:
             volume_number = int(parts[-1])
 
         # Update title_tw
-        title_tw = ' '.join(parts[:-1]).strip()
+        series_name = ' '.join(parts[:-1]).strip()
 
         # Update latest_volume_tw if is final volume
         if is_final_volume:
             latest_volume_tw = volume_number
 
-        return title_tw, volume_number, is_final_volume, latest_volume_tw
+        return series_name, volume_number, is_final_volume, latest_volume_tw
 
     def _process_orphan_map_item(self, item: OrphanMapItem, spider):
         """
@@ -102,7 +101,7 @@ class ComicScrapersPipeline:
             raise DropItem(f"No further information in OrphanMapItem: \n{adapter.items()}\n{'-' * 50}")
 
         # Process Volume title and volume number
-        title_tw, volume_number, is_final_volume, latest_volume_tw = self._get_book_title_tw(
+        series_name, volume_number, is_final_volume, latest_volume_tw = self._get_book_title_tw(
             adapter.get('title_tw')
         )
         author_tw = adapter.get('author_tw').rsplit('\n', 1)[-1].strip()
@@ -123,7 +122,7 @@ class ComicScrapersPipeline:
         comic, created_comic = Comic.objects.get_or_create(
             title_jp=title_jp,
             defaults={
-                'title_tw': title_tw,
+                'title_tw': series_name,
                 'author_tw': author_tw,
             }
         )
@@ -131,16 +130,17 @@ class ComicScrapersPipeline:
             spider.logger.info(f"Created new Comic: {comic}")
 
         # 3. Update Volume
-        volume = Volume.objects.filter(isbn_tw=isbn_tw).first()
+        volume = VolumeTw.objects.filter(isbn_tw=isbn_tw).first()
         if volume:
             volume.comic = comic
+            volume.title_tw = adapter.get('title_tw').strip()
             volume.volume_number = volume_number
             volume.release_date_tw = release_date_tw
             volume.publisher_tw = publisher
             volume.save()
-            spider.logger.info(f"Updated Volume: {volume}")
+            spider.logger.info(f"Updated VolumeTw: {volume}")
         else:
-            spider.logger.warning(f"Volume with ISBN {isbn_tw} not found to update.")
+            spider.logger.warning(f"VolumeTw with ISBN {isbn_tw} not found to update.")
 
         # Update comic's latest_volume_tw if needed
         # if is_final_volume or volume_number > (comic.latest_volume_tw or None):
