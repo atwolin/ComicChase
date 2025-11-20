@@ -46,7 +46,7 @@ class ComicScrapersPipeline:
 
         return item
 
-    def _process_book_title_tw(self, book_title: str):
+    def _get_book_title_tw(self, book_title: str):
         """
         Process book_title_tw to extract title and volume number
         Example formats:
@@ -102,7 +102,7 @@ class ComicScrapersPipeline:
             raise DropItem(f"No further information in OrphanMapItem: \n{adapter.items()}\n{'-' * 50}")
 
         # Process Volume title and volume number
-        title_tw, volume_number, is_final_volume, latest_volume_tw = self._process_book_title_tw(
+        title_tw, volume_number, is_final_volume, latest_volume_tw = self._get_book_title_tw(
             adapter.get('title_tw')
         )
         author_tw = adapter.get('author_tw').rsplit('\n', 1)[-1].strip()
