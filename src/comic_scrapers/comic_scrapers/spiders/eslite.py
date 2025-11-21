@@ -36,7 +36,7 @@ class EsliteSpider(scrapy.Spider):
             command_executor='http://selenium:4444/wd/hub',
             options=chrome_options
         )
-        self.wait = WebDriverWait(self.driver, 15)
+        self.wait = WebDriverWait(self.driver, 10)
         self.topic = ""
         self.topic_list = []
         self.target_info = ""
@@ -67,7 +67,7 @@ class EsliteSpider(scrapy.Spider):
 
         for i, topic_item in enumerate(self.topic_list):
             # TESTING: Stop after processing first 3 items
-            if i == 6:
+            if i == 2:
                 break
             self.logger.debug(f"parse(): Processing {self.topic} {topic_item} ({i + 1}/{len(self.topic_list)})")
 
