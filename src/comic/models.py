@@ -25,7 +25,7 @@ class Publisher(models.Model):
         return f"{self.name} ({self.get_region_display()})"
 
 
-class Comic(models.Model):
+class Series(models.Model):
     """
     漫畫作品 Model
     """
@@ -57,7 +57,7 @@ class Comic(models.Model):
     class Meta:
         verbose_name = _("漫畫作品")
         verbose_name_plural = _("漫畫作品")
-        ordering = ['title_tw', 'title_jp'] # 同步更新 ordering
+        ordering = ['title_tw', 'title_jp']
 
     def __str__(self):
         return self.title_tw or self.title_jp
@@ -68,8 +68,8 @@ class Volume(models.Model):
     單行本 Model
     """
     #關聯與卷數
-    comic = models.ForeignKey(
-        Comic,
+    series = models.ForeignKey(
+        Series,
         verbose_name=_("關聯漫畫"),
         on_delete=models.CASCADE,
         related_name="volumes",
@@ -107,11 +107,9 @@ class Volume(models.Model):
     class Meta:
         verbose_name = _("單行本")
         verbose_name_plural = _("單行本")
-        indexes = [
-            models.Index(fields=['isbn_tw'])
-        ]
-        unique_together = ('comic', 'volume_number')
-        ordering = ['comic', 'volume_number']
+        unique_together = ('series', 'volume_number')
+        ordering = ['series', 'volume_number']
 
     def __str__(self):
-        return f"{self.comic} - Vol. {self.volume_number}"
+        series_name = self.series if self.series else "(未關聯)"
+        return f"{series_name} - Vol. {self.volume_number or '?'}"
