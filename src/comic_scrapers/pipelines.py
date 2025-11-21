@@ -167,14 +167,14 @@ class ComicScrapersPipeline:
             "発売予定日：2025年12月18日\n"
             "発売日：2025年09月18日\n"
         """
-        match = self.DATE_REGEX.search(product_desc)
+        match = self.DATE_JP_REGEX.search(product_desc)
         if match:
             release_date = match.group(0)
-            return self.REPLACE_WITH_DASH_REGEX.sub('-', release_date)
+            return self.REPLACE_WITH_DASH_REGEX.sub('-', release_date).strip('-')
         return None
 
     VOLUME_NUMBER_JP_REGEX = re.compile(r'[0-9０-９]+')
-    def _get_volume_number_jp(self, book_title: str):
+    def _get_book_title_jp(self, book_title: str, series_name_jp: str):
         """
         Process title to extract volume number for Japanese comics
         Example formats:
@@ -185,8 +185,8 @@ class ComicScrapersPipeline:
         matches = self.VOLUME_NUMBER_JP_REGEX.findall(book_title)
         if matches:
             volume_number = int(matches[-1].strip())
-            title_jp = book_title.replace(matches[-1], '').strip()
-            return title_jp, volume_number
+            variant = book_title.replace(series_name_jp, '').strip()
+            return variant, volume_number
         return None
 
 
@@ -205,12 +205,11 @@ class ComicScrapersPipeline:
             raise DropItem(f"Invalid ISBN_JP in JpComicItem: \n{adapter.items()}\n{'-' * 50}")
 
         publisher_jp = adapter.get('publisher_jp').rsplit('出版社：', 1)[-1].strip()
-
+        series_name_jp = adapter.get('series_name')
         author_jp = adapter.get('author_jp')[2:]
         author_jp_str = '; '.join(author_jp) if author_jp else ''
-
         # status_jp = ""
-        title_jp, volume_number = self._get_volume_number_jp(adapter.get('title_jp'))
+        variant, volume_number = self._get_book_title_jp(adapter.get('title_jp'), series_name_jp)
         reslease_date_jp = self._get_book_description_jp(adapter.get('product_desc'))
 
         # Start storing data into database
@@ -224,7 +223,7 @@ class ComicScrapersPipeline:
 
         # 2. Get or create Series
         series, created_series = Series.objects.get_or_create(
-            title_jp=title_jp,
+            title_jp=series_name_jp,
             defaults={
                 'author_jp': author_jp_str,
                 # 'status_jp': status_jp,
@@ -249,5 +248,12 @@ class ComicScrapersPipeline:
             spider.logger.info(f"Created Volume: {volume}")
         else:
             spider.logger.info(f"Found existing Volume: {volume}")
+
+        # Update series's latest_volume_tw if needed
+        if (series.latest_volume_jp is None or
+            release_date_tw > series.latest_volume_jp.release_date):
+            series.latest_volume_tw = volume
+            series.save()
+            spider.logger.info(f"Updated Series latest_volume_jp: {series}")
 
         return item

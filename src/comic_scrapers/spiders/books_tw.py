@@ -19,7 +19,10 @@ class BooksTWSpider(scrapy.Spider):
         """
         links = response.xpath("//div[@class='type02_bd-a']/h4/a/@href").getall()
         self.logger.info(f"Found {len(links)} book links on the page.")
-        yield from response.follow_all(links, self.parse_volume_info)
+        # yield from response.follow_all(links, self.parse_volume_info)
+        # TESTING: limit to first 5 links only
+        for link in links[:5]:
+            yield response.follow(link, self.parse_volume_info)
 
     def parse_volume_info(self, response: Response):
         """
