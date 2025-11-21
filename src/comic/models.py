@@ -28,7 +28,7 @@ class Publisher(models.Model):
 
 class Series(models.Model):
     """
-    漫畫作品 Model
+    系列漫畫 Model
     """
     class JapanStatus(models.TextChoices):
         ONGOING = 'ongoing', _('連載中')
@@ -70,8 +70,8 @@ class Series(models.Model):
     )
 
     class Meta:
-        verbose_name = _("漫畫作品")
-        verbose_name_plural = _("漫畫作品")
+        verbose_name = _("系列漫畫")
+        verbose_name_plural = _("系列漫畫")
         ordering = ['title_tw', 'title_jp']
 
     def __str__(self):
@@ -92,17 +92,18 @@ class Volume(models.Model):
         Series,
         verbose_name=_("關聯漫畫"),
         on_delete=models.CASCADE,
-        related_name="volumes"
+        related_name="volumes",
+        null=True,
+        blank=True
     )
-
 
     publisher = models.ForeignKey(
         Publisher,
         verbose_name=_("出版社"),
         on_delete=models.SET_NULL,
+        related_name="published_volumes",
         null=True,
-        blank=True,
-        related_name="published_volumes"
+        blank=True
     )
 
     #基本資訊
