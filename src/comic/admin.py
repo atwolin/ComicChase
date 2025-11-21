@@ -6,6 +6,7 @@ class PublisherAdmin(admin.ModelAdmin):
     list_display = ('name', 'region')
     list_filter = ('region',)
     search_fields = ('name',)
+    ordering = ('name',)
 
 
 @admin.register(Series)
@@ -13,8 +14,8 @@ class ComicAdmin(admin.ModelAdmin):
     list_display = (
         'title_tw',
         'title_jp',
-        'author_jp',
-        'author_tw',
+        'latest_volume_number_jp',
+        'latest_volume_number_tw',
         'status_jp'
     )
     list_filter = ('status_jp',)
@@ -24,6 +25,12 @@ class ComicAdmin(admin.ModelAdmin):
         'author_jp',
         'author_tw'
     )
+    readonly_fields = (
+        'latest_volume_number_jp',
+        'latest_release_date_jp',
+        'latest_volume_number_tw',
+        'latest_release_date_tw',
+    )
 
 
 @admin.register(Volume)
@@ -32,9 +39,11 @@ class VolumeAdmin(admin.ModelAdmin):
     list_display = (
         'series',
         'volume_number',
-        'release_date_jp',
-        'release_date_tw',
-        'publisher_tw'
+        'region',
+        'variant',
+        'release_date',
+        'publisher',
+        'isbn'
     )
     list_filter = ('publisher_jp', 'publisher_tw')
     autocomplete_fields = ['series', 'publisher_jp', 'publisher_tw'] # 修正
