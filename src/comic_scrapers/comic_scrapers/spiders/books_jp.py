@@ -11,7 +11,7 @@ import scrapy
 from scrapy.http import HtmlResponse
 
 from comic_scrapers.items import JpComicItem
-from comic.models import Comic, Volume
+from comic.models import Comic
 
 class BooksJpSpider(scrapy.Spider):
     name = "books_jp"
@@ -122,6 +122,10 @@ class BooksJpSpider(scrapy.Spider):
         # Parse each result link
         n = len(links)
         for i in range(n):
+            # TESTING: Stop after processing first 2 links to test pagination
+            if i >= 2:
+                self.logger.debug(f"parse_search_results(): Stopping after {i+1} links for pagination test")
+                break
             self.logger.debug(f"parse_search_results(): Processing link {i + 1}/{n}")
 
             # Create a new item for each link
@@ -136,12 +140,9 @@ class BooksJpSpider(scrapy.Spider):
             links = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, links_xpath)))
             time.sleep(2)
 
-            # TESTING: Stop after processing first 2 links to test pagination
-            if i >= 2:
-                self.logger.debug(f"parse_search_results(): Stopping after {i+1} links for pagination test")
-                break
-
         # Go to next page
+        # TESTING: Stop after first page
+        page_num = 1
         next_button_xpath = "//button[@aria-label='1ページ後に進む']"
         try:
             next_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, next_button_xpath)))
@@ -149,6 +150,11 @@ class BooksJpSpider(scrapy.Spider):
             time.sleep(2)
             self.logger.debug(f"parse_search_results(): Navigated to next page of search results for {self.topic} {topic_item}")
             yield from self.parse_search_results(topic_item)
+            # TESTING: Stop after first page
+            page_num += 1
+            if page_num > 1:
+                self.logger.debug(f"parse_search_results(): Stopping after page {page_num} for testing")
+                return
         except selenium.common.exceptions.TimeoutException as e:
             self.logger.error(f"parse_search_results(): Timeout because no next button found for {self.topic} {topic_item}: {e}")
 
@@ -227,11 +233,11 @@ class BooksJpTitleTwSpider(BooksJpSpider):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.topic = "title_jp"
+        self.topic = "series_name"
         # self.topic_list = Comic.objects \
         #                   .filter(title_jp__isnull=False, author_jp__isnull=True) \
         #                   .values_list('title_jp', flat=True)
-        # self.topic_list = ["廻天のアルバス", "ブルーピリオド"]
-        self.topic_list = ["ブルーピリオド"]
+        self.topic_list = ["フールナイト", "九条の大罪", "ドッグスレッド", "恐竜はじめました"]
+        # self.topic_list = ["ブルーピリオド"]
         self.target_info = "//span[@class='bookdetail_title_text']"
         self.logger.info(f"BooksJpTitleTwSpider: Loaded {len(self.topic_list)} Japanese titles to process.")
