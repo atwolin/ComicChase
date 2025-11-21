@@ -115,7 +115,7 @@ class Volume(models.Model):
         db_index=True
     )
 
-    volume_number = models.PositiveIntegerField(_("卷數"), db_index=True)
+    volume_number = models.PositiveIntegerField(_("卷數"), db_index=True, blank=True, null=True)
 
     # 版本資訊
     variant = models.CharField(
@@ -134,12 +134,12 @@ class Volume(models.Model):
     class Meta:
         verbose_name = _("單行本")
         verbose_name_plural = _("單行本")
-        ordering = ['comic', 'volume_number', 'region', 'release_date']
+        ordering = ['series', 'volume_number', 'region', 'release_date']
 
         # 確保沒重複寫入
         constraints = [
             models.UniqueConstraint(
-                fields=['comic', 'volume_number', 'region', 'variant'],
+                fields=['series', 'volume_number', 'region', 'variant'],
                 name='unique_volume_variant'
             )
         ]
@@ -147,4 +147,4 @@ class Volume(models.Model):
     def __str__(self):
         region_str = self.get_region_display()
         variant_str = f" ({self.variant})" if self.variant else ""
-        return f"[{region_str}] {self.comic} - Vol. {self.volume_number}{variant_str}"
+        return f"[{region_str}] {self.series} - Vol. {self.volume_number}{variant_str}"
