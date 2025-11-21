@@ -36,7 +36,7 @@ class BooksJpSpider(scrapy.Spider):
             command_executor='http://selenium:4444/wd/hub',
             options=chrome_options
         )
-        self.wait = WebDriverWait(self.driver, 15)
+        self.wait = WebDriverWait(self.driver, 10)
         self.topic = ""
         self.topic_list = []
         self.target_info = ""
@@ -67,7 +67,7 @@ class BooksJpSpider(scrapy.Spider):
         search_buttom_xpath = "//button[@class='searchforbooks_search_button']"
 
         for i, topic_item in enumerate(self.topic_list):
-            self.logger.debug(f"parse(): Processing {self.topic} {topic_item} ({i + 1}/{len(self.topic_list)})")
+            self.logger.debug(f"parse(): Processing {self.topic}: {topic_item} ({i + 1}/{len(self.topic_list)})")
 
             search_box = self.driver.find_element(By.XPATH, input_xpath)
             search_box.click()
@@ -142,6 +142,11 @@ class BooksJpSpider(scrapy.Spider):
                 break
 
         # Go to next page
+        # TESTING: limit to first page only
+        page_limit = 0
+        if page_limit == 1:
+            self.logger.debug(f"parse_search_results(): Page limit reached, not proceeding to next page for {self.topic} {topic_item}")
+            return
         next_button_xpath = "//button[@aria-label='1ページ後に進む']"
         try:
             next_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, next_button_xpath)))
@@ -149,6 +154,8 @@ class BooksJpSpider(scrapy.Spider):
             time.sleep(2)
             self.logger.debug(f"parse_search_results(): Navigated to next page of search results for {self.topic} {topic_item}")
             yield from self.parse_search_results(topic_item)
+            # TESTING: Stop after first page
+            page_limit += 1
         except selenium.common.exceptions.TimeoutException as e:
             self.logger.error(f"parse_search_results(): Timeout because no next button found for {self.topic} {topic_item}: {e}")
 
@@ -223,15 +230,15 @@ class BooksJpTitleTwSpider(BooksJpSpider):
     """
     Spider for scraping Japanese comics using titles
     """
-    name = "booksjp_title_tw"
+    name = "booksjp_title"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.topic = "title_jp"
-        # self.topic_list = Series.objects \
-        #                   .filter(title_jp__isnull=False, author_jp__isnull=True) \
-        #                   .values_list('title_jp', flat=True)
+        self.topic = "series_name"
+        self.topic_list = Series.objects \
+                          .filter(title_jp__isnull=False, author_jp='') \
+                          .values_list('title_jp', flat=True)
         # self.topic_list = ["廻天のアルバス", "ブルーピリオド"]
-        self.topic_list = ["ブルーピリオド"]
+        # self.topic_list = ["ブルーピリオド"]
         self.target_info = "//span[@class='bookdetail_title_text']"
         self.logger.info(f"BooksJpTitleTwSpider: Loaded {len(self.topic_list)} Japanese titles to process.")

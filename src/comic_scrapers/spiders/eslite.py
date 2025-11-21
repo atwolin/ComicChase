@@ -226,7 +226,7 @@ class EsliteSpider(scrapy.Spider):
         self.logger.info("Selenium driver closed.")
 
 
-class EsliteESBNSpider(EsliteSpider):
+class EsliteISBNSpider(EsliteSpider):
     name = "eslite_isbn"
 
     def __init__(self, *args, **kwargs):
