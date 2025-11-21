@@ -10,7 +10,5 @@ RUN pip install --upgrade pip
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY ./wait-for-it.sh /code/wait-for-it.sh
-RUN chmod +x /code/wait-for-it.sh
-
 COPY ./src .
+RUN chmod +x /code/wait-for-it.sh
