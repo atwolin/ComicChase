@@ -55,18 +55,35 @@ class Series(models.Model):
         default=JapanStatus.ONGOING
     )
 
-    latest_volume_number_jp = models.PositiveIntegerField(
-        _("最新卷數 (日)"), null=True, blank=True, default=0
-    )
-    latest_release_date_jp = models.DateField(
-        _("最新發售日 (日)"), null=True, blank=True
-    )
+    # latest_volume_number_jp = models.PositiveIntegerField(
+    #     _("最新卷數 (日)"), null=True, blank=True, default=0
+    # )
+    # latest_release_date_jp = models.DateField(
+    #     _("最新發售日 (日)"), null=True, blank=True
+    # )
 
-    latest_volume_number_tw = models.PositiveIntegerField(
-        _("最新卷數 (台)"), null=True, blank=True, default=0
+    # latest_volume_number_tw = models.PositiveIntegerField(
+    #     _("最新卷數 (台)"), null=True, blank=True, default=0
+    # )
+    # latest_release_date_tw = models.DateField(
+    #     _("最新發售日 (台)"), null=True, blank=True
+    # )
+
+    latest_volume_jp = models.ForeignKey(
+        'Volume',
+        on_delete=models.SET_NULL,
+        related_name='series_latest_jp',
+        null=True,
+        blank=True,
+        verbose_name=_("最新單行本 (日)")
     )
-    latest_release_date_tw = models.DateField(
-        _("最新發售日 (台)"), null=True, blank=True
+    latest_volume_tw = models.ForeignKey(
+        'Volume',
+        on_delete=models.SET_NULL,
+        related_name='series_latest_tw',
+        null=True,
+        blank=True,
+        verbose_name=_("最新單行本 (台)")
     )
 
     class Meta:
