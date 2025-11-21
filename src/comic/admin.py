@@ -47,9 +47,19 @@ class VolumeAdmin(admin.ModelAdmin):
     )
     #依地區、出版社、發售日篩選
     list_filter = ('region', 'release_date', 'publisher')
-    autocomplete_fields = ['series', 'publisher_jp', 'publisher_tw']
+    autocomplete_fields = ['series', 'publisher']
     search_fields = (
         'series__title_jp',
         'series__title_tw',
         'isbn'
+    )
+
+    #頁面欄位配置
+    fieldsets = (
+        (None, {
+            'fields': ('comic', 'region', 'volume_number', 'variant')
+        }),
+        ('出版詳細資料', {
+            'fields': ('publisher', 'release_date', 'isbn')
+        }),
     )
