@@ -252,7 +252,7 @@ class ComicScrapersPipeline:
         # Update series's latest_volume_tw if needed
         if (series.latest_volume_jp is None or
             release_date_tw > series.latest_volume_jp.release_date):
-            series.latest_volume_tw = volume
+            series.latest_volume_jp = volume
             series.save()
             spider.logger.info(f"Updated Series latest_volume_jp: {series}")
 
