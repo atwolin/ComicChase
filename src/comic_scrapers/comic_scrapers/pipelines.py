@@ -1,4 +1,5 @@
 import os
+import re
 import django
 from itemadapter import ItemAdapter
 from scrapy.exceptions import DropItem
@@ -9,7 +10,7 @@ from comic_scrapers.items import (
     OrphanMapItem,
     JpComicItem
 )
-from comic.models import Publisher, Comic, Volume, VolumeJp, VolumeTw
+from comic.models import Publisher, Comic, VolumeJp, VolumeTw
 
 
 class ComicScrapersPipeline:
@@ -21,6 +22,11 @@ class ComicScrapersPipeline:
         # Process data from eslite.com
         elif isinstance(item, OrphanMapItem):
             return deferToThread(self._process_orphan_map_item, item, spider)
+
+        # Process data from books.or.jp
+        elif isinstance(item, JpComicItem):
+            return deferToThread(self._process_jp_comic_item, item, spider)
+
         return item
 
     def _process_orphan_volume_item(self, item: OrphanVolumeItem, spider):
@@ -129,7 +135,7 @@ class ComicScrapersPipeline:
         if created_comic:
             spider.logger.info(f"Created new Comic: {comic}")
 
-        # 3. Update Volume
+        # 3. Update VolumeTw
         volume = VolumeTw.objects.filter(isbn_tw=isbn_tw).first()
         if volume:
             volume.comic = comic
@@ -145,4 +151,96 @@ class ComicScrapersPipeline:
         # Update comic's latest_volume_tw if needed
         # if is_final_volume or volume_number > (comic.latest_volume_tw or None):
         #     comic.latest_volume_tw = volume
+        return item
+
+    DATE_JP_REGEX = re.compile(r'[0-9]{4}年[0-9]{1,2}月[0-9]{1,2}日')
+    REPLACE_WITH_DASH_REGEX = re.compile(r'[年月日]')
+    def _get_book_description_jp(self, product_desc: str):
+        """
+        Process product_desc to extract release date for Japanese comics
+        Example formats:
+            "発売予定日：2025年12月18日\n"
+            "発売日：2025年09月18日\n"
+        """
+        match = self.DATE_JP_REGEX.search(product_desc)
+        if match:
+            release_date = match.group(0)
+            return self.REPLACE_WITH_DASH_REGEX.sub('-', release_date).strip()
+        return None
+
+    VOLUME_NUMBER_JP_REGEX = re.compile(r'[(（]?([0-9０-９]+)[)）]?')
+    def _get_volume_number_jp(self, book_title: str):
+        """
+        Process title to extract volume number for Japanese comics
+        Example formats:
+            "廻天のアルバス ７"
+            "ブルーピリオド（18）"
+            "ブルーピリオド（1）実写映画化記念特装版"
+        """
+        matches = self.VOLUME_NUMBER_JP_REGEX.findall(book_title)
+        title_jp = book_title.translate(str.maketrans('０１２３４５６７８９', '0123456789')).strip()
+        if matches:
+            volume_number = int(matches[-1].strip())
+            return title_jp, volume_number
+        return None, None, None
+
+
+    ISBN_JP_REGEX = re.compile(r'([0-9]{13}')
+    def _process_jp_comic_item(self, item: JpComicItem, spider):
+        """
+        Process JpComicItem to update or create Comic and Volume entry in the database
+        """
+        adapter = ItemAdapter(item)
+        detail_url = adapter.get('detail_url')
+        if not detail_url:
+            raise DropItem(f"No further information in JpComicItem: \n{adapter.items()}\n{'-' * 50}")
+        isbn_jp = detail_url.rsplit('/', 1)[-1].strip()
+        if self.ISBN_JP_REGEX.match(isbn_jp) is None:
+            # One episode, not a full volume
+            raise DropItem(f"Invalid ISBN_JP in JpComicItem: \n{adapter.items()}\n{'-' * 50}")
+
+        publisher_jp = adapter.get('publisher_jp').rsplit('出版社：', 1)[-1].strip()
+        author_jp = adapter.get('author_jp')[2:]
+        author_jp_str = '; '.join(author_jp) if author_jp else ''
+        # status_jp = ""
+        title_jp, volume_number = self._get_volume_number_jp(adapter.get('title_jp'))
+        reslease_date_jp = self._get_book_description_jp(adapter.get('product_desc'))
+
+        # Start storing data into database
+        # 1. Get or create Publisher
+        publisher, created_pub = Publisher.objects.get_or_create(
+            name=publisher_jp,
+            region='JP'
+        )
+        if created_pub:
+            spider.logger.info(f"Created new Publisher: {publisher}")
+
+        # 2. Find Comic by series_name
+        comic = Comic.objects.filter(title_jp__in=[adapter.get('series_name')]).first()
+
+        if not comic:
+            raise DropItem(f"No matching Comic found for title_jp: {title_jp}")
+
+        # Update author if available
+        if author_jp_str:
+            comic.author_jp = author_jp_str
+            comic.save()
+            spider.logger.info(f"Updated Comic author: {comic}")
+
+        # 3. Update Volume
+        volume = VolumeJp.objects.get_or_create(
+            isbn_jp=isbn_jp,
+            defaults={
+                'comic': comic,
+                'title_jp': title_jp,
+                'volume_number': volume_number,
+                'release_date_jp': reslease_date_jp,
+                'publisher_jp': publisher,
+            }
+        )
+        if volume:
+            spider.logger.info(f"Updated Volume: {volume}")
+        else:
+            spider.logger.warning(f"Volume with ISBN {isbn_jp} not found to update.")
+
         return item
