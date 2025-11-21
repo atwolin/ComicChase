@@ -11,7 +11,7 @@ import scrapy
 from scrapy.http import HtmlResponse
 
 from comic_scrapers.items import JpComicItem
-from comic.models import Comic, Volume
+from comic.models import Series, Volume
 
 class BooksJpSpider(scrapy.Spider):
     name = "books_jp"
@@ -186,7 +186,7 @@ class BooksJpSpider(scrapy.Spider):
 
         item['detail_url'] = self.driver.current_url
         try:
-            # Comic fields
+            # Series fields
             title_jp = self.driver.find_element(By.XPATH, "//span[@class='bookdetail_title_text']").text
             author_jp = self.driver.find_elements(By.XPATH, "//div[@class='bookdetail_author']")
 
@@ -228,7 +228,7 @@ class BooksJpTitleTwSpider(BooksJpSpider):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.topic = "title_jp"
-        # self.topic_list = Comic.objects \
+        # self.topic_list = Series.objects \
         #                   .filter(title_jp__isnull=False, author_jp__isnull=True) \
         #                   .values_list('title_jp', flat=True)
         # self.topic_list = ["廻天のアルバス", "ブルーピリオド"]
