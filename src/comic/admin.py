@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Publisher, Comic, Volume
+from .models import Publisher, Series, Volume
 
 @admin.register(Publisher)
 class PublisherAdmin(admin.ModelAdmin):
@@ -9,7 +9,7 @@ class PublisherAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
 
-@admin.register(Comic)
+@admin.register(Series)
 class ComicAdmin(admin.ModelAdmin):
     list_display = (
         'title_tw',
@@ -27,8 +27,8 @@ class ComicAdmin(admin.ModelAdmin):
     )
     readonly_fields = (
         'latest_volume_number_jp',
-        'latest_release_date_jp', 
-        'latest_volume_number_tw', 
+        'latest_release_date_jp',
+        'latest_volume_number_tw',
         'latest_release_date_tw',
     )
 
@@ -37,7 +37,7 @@ class ComicAdmin(admin.ModelAdmin):
 class VolumeAdmin(admin.ModelAdmin):
 
     list_display = (
-        'comic',
+        'series',
         'volume_number',
         'region',
         'variant',
@@ -45,18 +45,15 @@ class VolumeAdmin(admin.ModelAdmin):
         'publisher',
         'isbn'
     )
-
     #依地區、出版社、發售日篩選
     list_filter = ('region', 'release_date', 'publisher')
-
-    autocomplete_fields = ['comic', 'publisher'] 
-
+    autocomplete_fields = ['series', 'publisher']
     search_fields = (
-        'comic__title_jp',
-        'comic__title_tw',
+        'series__title_jp',
+        'series__title_tw',
         'isbn'
     )
-    
+
     #頁面欄位配置
     fieldsets = (
         (None, {

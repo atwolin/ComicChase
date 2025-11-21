@@ -14,7 +14,7 @@ class Publisher(models.Model):
         _("地區"),
         max_length=2,
         choices=Region.choices,
-        default=Region.JAPAN, 
+        default=Region.JAPAN,
         help_text="JP (日本) 或 TW (台灣)"
     )
 
@@ -26,9 +26,9 @@ class Publisher(models.Model):
         return f"{self.name} ({self.get_region_display()})"
 
 
-class Comic(models.Model):
+class Series(models.Model):
     """
-    漫畫作品 Model
+    系列漫畫 Model
     """
     class JapanStatus(models.TextChoices):
         ONGOING = 'ongoing', _('連載中')
@@ -61,7 +61,7 @@ class Comic(models.Model):
     latest_release_date_jp = models.DateField(
         _("最新發售日 (日)"), null=True, blank=True
     )
-    
+
     latest_volume_number_tw = models.PositiveIntegerField(
         _("最新卷數 (台)"), null=True, blank=True, default=0
     )
@@ -70,8 +70,8 @@ class Comic(models.Model):
     )
 
     class Meta:
-        verbose_name = _("漫畫作品")
-        verbose_name_plural = _("漫畫作品")
+        verbose_name = _("系列漫畫")
+        verbose_name_plural = _("系列漫畫")
         ordering = ['title_tw', 'title_jp']
 
     def __str__(self):
@@ -87,21 +87,23 @@ class Volume(models.Model):
         JAPAN = 'JP', _('Japan')
         TAIWAN = 'TW', _('Taiwan')
 
-    # 關聯
-    comic = models.ForeignKey(
-        Comic,
+    #關聯與卷數
+    series = models.ForeignKey(
+        Series,
         verbose_name=_("關聯漫畫"),
         on_delete=models.CASCADE,
-        related_name="volumes" 
+        related_name="volumes",
+        null=True,
+        blank=True
     )
-    
+
     publisher = models.ForeignKey(
         Publisher,
         verbose_name=_("出版社"),
         on_delete=models.SET_NULL,
+        related_name="published_volumes",
         null=True,
-        blank=True,
-        related_name="published_volumes"
+        blank=True
     )
 
     #基本資訊
@@ -113,7 +115,7 @@ class Volume(models.Model):
         db_index=True
     )
 
-    volume_number = models.PositiveIntegerField(_("卷數"), db_index=True)
+    volume_number = models.PositiveIntegerField(_("卷數"), db_index=True, blank=True, null=True)
 
     # 版本資訊
     variant = models.CharField(
@@ -132,12 +134,12 @@ class Volume(models.Model):
     class Meta:
         verbose_name = _("單行本")
         verbose_name_plural = _("單行本")
-        ordering = ['comic', 'volume_number', 'region', 'release_date']
-        
+        ordering = ['series', 'volume_number', 'region', 'release_date']
+
         # 確保沒重複寫入
         constraints = [
             models.UniqueConstraint(
-                fields=['comic', 'volume_number', 'region', 'variant'],
+                fields=['series', 'volume_number', 'region', 'variant'],
                 name='unique_volume_variant'
             )
         ]
@@ -145,5 +147,4 @@ class Volume(models.Model):
     def __str__(self):
         region_str = self.get_region_display()
         variant_str = f" ({self.variant})" if self.variant else ""
-        return f"[{region_str}] {self.comic} - Vol. {self.volume_number}{variant_str}"
-
+        return f"[{region_str}] {self.series} - Vol. {self.volume_number}{variant_str}"
