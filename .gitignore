@@ -222,3 +222,4 @@ __marimo__/
 # Test output
 *.json
 run.sh
+logs/
