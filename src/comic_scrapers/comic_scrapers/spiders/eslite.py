@@ -11,7 +11,7 @@ import scrapy
 from scrapy.http import HtmlResponse
 
 from comic_scrapers.items import OrphanMapItem
-from comic.models import Volume
+from comic.models import Series, Volume
 
 class EsliteSpider(scrapy.Spider):
     name = "eslite_base"
@@ -104,9 +104,12 @@ class EsliteSpider(scrapy.Spider):
         time.sleep(2)
         # Only click category filter on the first page (when prev_url is None)
         if prev_url is None:
-            category_tw = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@title='中文書']")))
-            category_tw.click()
-            time.sleep(2)
+            try:
+                category_tw = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@title='中文書']")))
+                category_tw.click()
+                time.sleep(2)
+            except selenium.common.exceptions.TimeoutException as e:
+                self.logger.error(f"parse_search_results(): Timeout while applying category filter for {self.topic} {topic_item}: {e}")
 
         # Get book detail links
         links_xpath = "//a[@class='item-image-link']"
@@ -153,9 +156,9 @@ class EsliteSpider(scrapy.Spider):
 
     def parse_detail_info(self, link, item: OrphanMapItem):
         """
-        Extract comic and volume information from the book URL
+        Extract series and volume information from the book URL
         """
-        self.logger.debug(f"parse_detail_info(): Parsing comic info from {self.driver.current_url}")
+        self.logger.debug(f"parse_detail_info(): Parsing series info from {self.driver.current_url}")
 
         product_desc = None
         topic_prevent = None
@@ -186,7 +189,7 @@ class EsliteSpider(scrapy.Spider):
 
         item['detail_url'] = self.driver.current_url
         try:
-            # Comic fields
+            # Series fields
             title_jp = self.driver.find_element(By.XPATH, "//h4[@class='local-fw-normal font-normal text-gray-400']").text
             title_tw = self.driver.find_element(By.XPATH, "//h1[@class='sans-font-semi-bold']").text
             author_tw = self.driver.find_element(By.XPATH, "//div[@class='author flex mb-1']").text
@@ -202,10 +205,10 @@ class EsliteSpider(scrapy.Spider):
             item['publisher_tw'] = publisher_tw.strip()
             item['product_desc'] = product_desc.strip()
 
-            self.logger.info(f"parse_detail_info(): Successfully parsed comic info from {self.driver.current_url}")
+            self.logger.info(f"parse_detail_info(): Successfully parsed series info from {self.driver.current_url}")
 
         except AttributeError as e:
-            self.logger.error(f"parse_detail_info(): Error parsing comic info from {self.driver.current_url}: {e}")
+            self.logger.error(f"parse_detail_info(): Error parsing series info from {self.driver.current_url}: {e}")
 
         finally:
             time.sleep(20)
@@ -233,8 +236,8 @@ class EsliteESBNSpider(EsliteSpider):
         super().__init__(*args, **kwargs)
         self.topic = "isbn_tw"
         self.topic_list = list(Volume.objects
-                         .filter(comic__isnull=True, isbn_tw__isnull=False)
-                         .values_list('isbn_tw', flat=True))
+                         .filter(series__isnull=True, isbn__isnull=False, region='TW')
+                         .values_list('isbn', flat=True))
         self.target_info = "//div[@class='product-description-schema']"
         self.logger.info(f"EsliteESBNSpider: Loaded {len(self.topic_list)} ISBNs to process.")
 
@@ -248,7 +251,7 @@ class EsliteTitleTwSpider(EsliteSpider):
         """
         super().__init__(*args, **kwargs)
         self.topic = "title_tw"
-        # self.topic_list = list(Comic.objects
+        # self.topic_list = list(Series.objects
         #                     .filter(isnull=True, title_tw__isnull=False)
         #                     .values_list('title_tw', flat=True))
         # self.topic_list = ["迴天的阿爾帕斯"]
