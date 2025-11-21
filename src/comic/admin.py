@@ -14,8 +14,6 @@ class ComicAdmin(admin.ModelAdmin):
     list_display = (
         'title_tw',
         'title_jp',
-        'latest_volume_number_jp',
-        'latest_volume_number_tw',
         'status_jp'
     )
     list_filter = ('status_jp',)
@@ -25,12 +23,7 @@ class ComicAdmin(admin.ModelAdmin):
         'author_jp',
         'author_tw'
     )
-    readonly_fields = (
-        'latest_volume_number_jp',
-        'latest_release_date_jp',
-        'latest_volume_number_tw',
-        'latest_release_date_tw',
-    )
+    autocomplete_fields = ['latest_volume_jp', 'latest_volume_tw']
 
 
 @admin.register(Volume)
