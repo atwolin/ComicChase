@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Publisher, Series, Volume, VolumeJp, VolumeTw
+from .models import Publisher, Series, Volume
 
 @admin.register(Publisher)
 class PublisherAdmin(admin.ModelAdmin):
@@ -45,41 +45,11 @@ class VolumeAdmin(admin.ModelAdmin):
         'publisher',
         'isbn'
     )
-    list_filter = ('publisher_jp', 'publisher_tw')
-    autocomplete_fields = ['series', 'publisher_jp', 'publisher_tw'] # 修正
+    #依地區、出版社、發售日篩選
+    list_filter = ('region', 'release_date', 'publisher')
+    autocomplete_fields = ['series', 'publisher_jp', 'publisher_tw']
     search_fields = (
         'series__title_jp',
-        'series__title_tw'
-    )
-
-@admin.register(VolumeJp)
-class VolumeJpAdmin(admin.ModelAdmin):
-    list_display = (
-        'title_jp',
-        'volume_number',
-        'isbn_jp',
-        'release_date_jp',
-        'publisher_jp',
-        'series'
-    )
-    list_filter = ('publisher_jp',)
-    autocomplete_fields = ['series', 'publisher_jp']
-    search_fields = (
-        'series__title_jp',
-    )
-
-@admin.register(VolumeTw)
-class VolumeTwAdmin(admin.ModelAdmin):
-    list_display = (
-        'title_tw',
-        'volume_number',
-        'isbn_tw',
-        'release_date_tw',
-        'publisher_tw',
-        'series'
-    )
-    list_filter = ('publisher_tw',)
-    autocomplete_fields = ['series', 'publisher_tw']
-    search_fields = (
         'series__title_tw',
+        'isbn'
     )
