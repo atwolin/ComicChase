@@ -42,7 +42,10 @@ class ComicScrapersPipeline:
         # Create Volume entry in Volume Table
         obj, created = Volume.objects.get_or_create(
             isbn=isbn_tw,
-            region='TW'
+            defaults={
+                'region': 'TW',
+                'variant': '',
+            }
         )
         if created:
             spider.logger.info(f"Created Orphan Volume with ISBN {isbn_tw}")
@@ -51,7 +54,7 @@ class ComicScrapersPipeline:
 
         return item
 
-    def _process_book_title_tw(self, book_title: str):
+    def _get_book_title_tw(self, book_title: str):
         """
         Process book_title_tw to extract title and volume number
         Example formats:
@@ -73,7 +76,7 @@ class ComicScrapersPipeline:
 
         # Volume is special edition if "(特裝版)" found
         if parts[-1] in ["(特裝版)", "(首刷限定版)"]:
-            variant = parts[-1].strip()
+            variant = parts[-1].strip('()')
             parts = parts[:-1]
         # Volume is final if "(完)" or "(全)" found
         elif parts[-1] == "(完)":
@@ -108,11 +111,10 @@ class ComicScrapersPipeline:
             raise DropItem(f"No further information in OrphanMapItem: \n{adapter.items()}\n{'-' * 50}")
 
         # Process Volume title and volume number
-        series_name_tw, variant, volume_number, is_final_volume, latest_volume_tw = self._process_book_title_tw(
+        series_name_tw, variant, volume_number, is_final_volume, latest_volume_tw = self._get_book_title_tw(
             adapter.get('title_tw')
         )
         author_tw = adapter.get('author_tw').rsplit('\n', 1)[-1].strip()
-
         release_date_tw = adapter.get('release_date_tw').rsplit('：', 1)[-1].strip().replace('/', '-')
         publisher_tw = adapter.get('publisher_tw').rsplit('\n', 1)[-1].strip()
 
@@ -126,9 +128,7 @@ class ComicScrapersPipeline:
             spider.logger.info(f"Created new Publisher: {publisher}")
 
         # 2. Get or create Series
-        series, created_series = Series.objects.get_or_create(
-            title_jp=title_jp,
-        )
+        series, created_series = Series.objects.get_or_create(title_jp=title_jp)
         if created_series:
             spider.logger.info(f"Created new Series: {series}")
         # Update Series fields
@@ -136,20 +136,26 @@ class ComicScrapersPipeline:
         series.author_tw = author_tw
 
         # 3. Update Volume
-        volume = Volume.objects.filter(isbn_tw=isbn_tw).first()
+        volume = Volume.objects.filter(isbn=isbn_tw).first()
         if volume:
             volume.series = series
+            volume.publisher = publisher
+            volume.region = 'TW'
             volume.volume_number = volume_number
-            volume.release_date_tw = release_date_tw
-            volume.publisher_tw = publisher
+            volume.variant = variant or ''
+            volume.release_date = release_date_tw
             volume.save()
             spider.logger.info(f"Updated Volume: {volume}")
         else:
             spider.logger.warning(f"Volume with ISBN {isbn_tw} not found to update.")
 
         # Update series's latest_volume_tw if needed
-        # if is_final_volume or volume_number > (series.latest_volume_tw or None):
-        #     series.latest_volume_tw = volume
+        if (is_final_volume or series.latest_volume_tw is None or
+            release_date_tw > series.latest_volume_tw.release_date):
+            series.latest_volume_tw = volume
+            series.save()
+            spider.logger.info(f"Updated Series latest_volume_tw: {series}")
+
         return item
 
     DATE_JP_REGEX = re.compile(r'[0-9]{4}年[0-9]{1,2}月[0-9]{1,2}日')
@@ -228,18 +234,20 @@ class ComicScrapersPipeline:
             spider.logger.info(f"Created new Series: {series}")
 
         # 3. Update Volume
-        volume = Volume.objects.get_or_create(
-            isbn_jp=isbn_jp,
+        volume, created_volume = Volume.objects.get_or_create(
+            isbn=isbn_jp,
             defaults={
                 'series': series,
+                'region': 'JP',
                 'volume_number': volume_number,
-                'release_date_jp': reslease_date_jp,
-                'publisher_jp': publisher,
+                'release_date': reslease_date_jp,
+                'publisher': publisher,
+                'variant': '',
             }
         )
-        if volume:
-            spider.logger.info(f"Updated Volume: {volume}")
+        if created_volume:
+            spider.logger.info(f"Created Volume: {volume}")
         else:
-            spider.logger.warning(f"Volume with ISBN {isbn_jp} not found to update.")
+            spider.logger.info(f"Found existing Volume: {volume}")
 
         return item
