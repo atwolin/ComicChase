@@ -57,7 +57,7 @@ class VolumeAdmin(admin.ModelAdmin):
     #頁面欄位配置
     fieldsets = (
         (None, {
-            'fields': ('comic', 'region', 'volume_number', 'variant')
+            'fields': ('series', 'region', 'volume_number', 'variant')
         }),
         ('出版詳細資料', {
             'fields': ('publisher', 'release_date', 'isbn')

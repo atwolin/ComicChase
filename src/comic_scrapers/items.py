@@ -74,5 +74,6 @@ class JpComicItem(scrapy.Item):
     publisher_jp = scrapy.Field()
 
     # Metadata fields
+    series_name = scrapy.Field()
     detail_url = scrapy.Field()
     product_desc = scrapy.Field()

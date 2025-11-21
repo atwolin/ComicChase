@@ -10,13 +10,13 @@ from selenium.webdriver.support import expected_conditions as EC
 import scrapy
 from scrapy.http import HtmlResponse
 
-from comic_scrapers.items import OrphanMapItem
-from comic.models import Volume
+from comic_scrapers.items import JpComicItem
+from comic.models import Series, Volume
 
-class EsliteSpider(scrapy.Spider):
-    name = "eslite_base"
-    allowed_domains = ["eslite.com"]
-    start_urls = ["https://www.eslite.com"]
+class BooksJpSpider(scrapy.Spider):
+    name = "books_jp"
+    allowed_domains = ["books.or.jp"]
+    start_urls = ["https://www.books.or.jp/"]
 
     custom_settings = {
         'TWISTED_REACTOR': 'twisted.internet.selectreactor.SelectReactor',
@@ -36,7 +36,7 @@ class EsliteSpider(scrapy.Spider):
             command_executor='http://selenium:4444/wd/hub',
             options=chrome_options
         )
-        self.wait = WebDriverWait(self.driver, 15)
+        self.wait = WebDriverWait(self.driver, 10)
         self.topic = ""
         self.topic_list = []
         self.target_info = ""
@@ -63,13 +63,11 @@ class EsliteSpider(scrapy.Spider):
         """
         self.logger.debug(f"parse(): Start parsing from {response.url}")
 
-        input_xpath = "//input[@name='query']"
+        input_xpath = "//input[@id='searchforbooks_title']"
+        search_buttom_xpath = "//button[@class='searchforbooks_search_button']"
 
         for i, topic_item in enumerate(self.topic_list):
-            # TESTING: Stop after processing first 3 items
-            if i == 6:
-                break
-            self.logger.debug(f"parse(): Processing {self.topic} {topic_item} ({i + 1}/{len(self.topic_list)})")
+            self.logger.debug(f"parse(): Processing {self.topic}: {topic_item} ({i + 1}/{len(self.topic_list)})")
 
             search_box = self.driver.find_element(By.XPATH, input_xpath)
             search_box.click()
@@ -83,41 +81,40 @@ class EsliteSpider(scrapy.Spider):
             search_box.send_keys(topic_item)
             search_box.send_keys(Keys.RETURN)
 
+            # Click the search button
+            search_button = self.driver.find_element(By.XPATH, search_buttom_xpath)
+            search_button.click()
+
             # Wait for search results page to load before parsing
             time.sleep(3)
 
             yield from self.parse_search_results(topic_item)
             time.sleep(2)
 
-            self.logger.debug(f"parse(): Completed processing item {topic_item} ({i + 1}/{len(self.topic_list)})")
+            self.logger.debug(f"parse(): Completed processing {topic_item} ({i + 1}/{len(self.topic_list)})")
+            # TESTING: Stop after processing first 3 items
+            if i == 3:
+                break
 
-    def parse_search_results(self, topic_item, prev_url=None):
+    def parse_search_results(self, topic_item):
         """
         Obtain book URLs from the search results URL and
         find the only matching URL that contains the targeted topic item
         """
         self.logger.debug(f"parse_search_results(): Parsing search results from {self.driver.current_url}")
-        if prev_url == self.driver.current_url:
-            self.logger.info("No more pages to process")
-            return
 
         time.sleep(2)
-        # Only click category filter on the first page (when prev_url is None)
-        if prev_url is None:
-            category_tw = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@title='中文書']")))
-            category_tw.click()
-            time.sleep(2)
 
         # Get book detail links
-        links_xpath = "//a[@class='item-image-link']"
+        links_xpath = "//a[@class='result_list_button']"
+        links = None
         try:
             links = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, links_xpath)))
         except selenium.common.exceptions.TimeoutException as e:
             self.logger.error(f"parse_search_results(): Timeout while locating book links for {self.topic} {topic_item}: {e}")
             # Create and yield empty item to track failed search
-            item = OrphanMapItem()
+            item = JpComicItem()
             item[f'{self.topic}'] = topic_item
-            item['search_url'] = self.driver.current_url
             yield item
             return
         self.logger.debug(f"parse_search_results(): Found {len(links)} book links on the search results page.")
@@ -128,9 +125,8 @@ class EsliteSpider(scrapy.Spider):
             self.logger.debug(f"parse_search_results(): Processing link {i + 1}/{n}")
 
             # Create a new item for each link
-            item = OrphanMapItem()
+            item = JpComicItem()
             item[f'{self.topic}'] = topic_item
-            item['search_url'] = self.driver.current_url
 
             yield from self.parse_detail_info(links[i], item)
             time.sleep(2)
@@ -140,18 +136,30 @@ class EsliteSpider(scrapy.Spider):
             links = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, links_xpath)))
             time.sleep(2)
 
+            # TESTING: Stop after processing first 2 links to test pagination
+            if i >= 2:
+                self.logger.debug(f"parse_search_results(): Stopping after {i+1} links for pagination test")
+                break
+
         # Go to next page
-        prev_url = self.driver.current_url
-        next_button_xpath = "//div[@class='page-number']/div[@data-gid='pagination-next']"
+        # TESTING: limit to first page only
+        page_limit = 0
+        if page_limit == 1:
+            self.logger.debug(f"parse_search_results(): Page limit reached, not proceeding to next page for {self.topic} {topic_item}")
+            return
+        next_button_xpath = "//button[@aria-label='1ページ後に進む']"
         try:
             next_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, next_button_xpath)))
             next_button.click()
             time.sleep(2)
-            yield from self.parse_search_results(topic_item, prev_url)
+            self.logger.debug(f"parse_search_results(): Navigated to next page of search results for {self.topic} {topic_item}")
+            yield from self.parse_search_results(topic_item)
+            # TESTING: Stop after first page
+            page_limit += 1
         except selenium.common.exceptions.TimeoutException as e:
             self.logger.error(f"parse_search_results(): Timeout because no next button found for {self.topic} {topic_item}: {e}")
 
-    def parse_detail_info(self, link, item: OrphanMapItem):
+    def parse_detail_info(self, link, item: JpComicItem):
         """
         Extract comic and volume information from the book URL
         """
@@ -161,12 +169,11 @@ class EsliteSpider(scrapy.Spider):
         topic_prevent = None
         try:
             link.click()
+            # Check if the topic is present in the detail page or if it's a e-book
             topic_prevent_xpath = self.target_info
             topic_prevent_webelement = self.wait.until(EC.presence_of_element_located((By.XPATH, topic_prevent_xpath)))
             topic_prevent = topic_prevent_webelement.get_attribute('innerHTML')
-            category_xpath = "//a[@title='動漫畫／圖文']"
-            category_webelement = self.wait.until(EC.presence_of_element_located((By.XPATH, category_xpath)))
-            product_desc_xpath = "//div[@class='product-description-schema']"
+            product_desc_xpath = "//div[@class='otherdata']"
             product_desc_webelement = self.wait.until(EC.presence_of_element_located((By.XPATH, product_desc_xpath)))
             product_desc = product_desc_webelement.get_attribute('innerHTML')
             if not item[f'{self.topic}'] in topic_prevent or 'JP-eコード' in product_desc:
@@ -175,31 +182,27 @@ class EsliteSpider(scrapy.Spider):
                 return
         except selenium.common.exceptions.TimeoutException as e:
             self.logger.error(f"""
-                parse_detail_info(): Timeout while checking detail page for {self.topic} {item[f'{self.topic}']}\n
-                topic_prevent:       {topic_prevent}\n
-                product_desc:        {product_desc}\n
+                parse_detail_info(): Timeout while checking detail page for {self.topic} {item[f'{self.topic}']}, \n
+                topic_prevent:       {topic_prevent}, \n
+                product_desc:        {product_desc}, \n
                 error:               {e}
                 """)
             self.driver.back()
-            # yield item
+            yield item
             return
 
         item['detail_url'] = self.driver.current_url
         try:
-            # Comic fields
-            title_jp = self.driver.find_element(By.XPATH, "//h4[@class='local-fw-normal font-normal text-gray-400']").text
-            title_tw = self.driver.find_element(By.XPATH, "//h1[@class='sans-font-semi-bold']").text
-            author_tw = self.driver.find_element(By.XPATH, "//div[@class='author flex mb-1']").text
+            # Series fields
+            title_jp = self.driver.find_element(By.XPATH, "//span[@class='bookdetail_title_text']").text
+            author_jp = self.driver.find_elements(By.XPATH, "//div[@class='bookdetail_author']")
 
             # Volume fields
-            release_date_tw = self.driver.find_element(By.XPATH, "//div[@class='publicDate flex mb-1']").text
-            publisher_tw = self.driver.find_element(By.XPATH, "//div[@class='publisher flex mb-1']").text
+            publisher_jp = self.driver.find_element(By.XPATH, "//div[@class='bookdetail_publisher']").text
 
             item['title_jp'] = title_jp.strip()
-            item['title_tw'] = title_tw.strip()
-            item['author_tw'] = author_tw.strip()
-            item['release_date_tw'] = release_date_tw.strip()
-            item['publisher_tw'] = publisher_tw.strip()
+            item['author_jp'] = [element.get_attribute('innerHTML').strip() for element in author_jp]
+            item['publisher_jp'] = publisher_jp.strip()
             item['product_desc'] = product_desc.strip()
 
             self.logger.info(f"parse_detail_info(): Successfully parsed comic info from {self.driver.current_url}")
@@ -218,40 +221,24 @@ class EsliteSpider(scrapy.Spider):
         Close the Selenium driver when spider is closed
         """
         self.logger.info("Closing Selenium driver...")
-        if self.driver:
+        if hasattr(self, 'driver') and self.driver:
             self.driver.quit()
         self.logger.info("Selenium driver closed.")
 
 
-class EsliteESBNSpider(EsliteSpider):
-    name = "eslite_isbn"
+class BooksJpTitleTwSpider(BooksJpSpider):
+    """
+    Spider for scraping Japanese comics using titles
+    """
+    name = "booksjp_title"
 
     def __init__(self, *args, **kwargs):
-        """
-        Change default settings for Selenium
-        """
         super().__init__(*args, **kwargs)
-        self.topic = "isbn_tw"
-        self.topic_list = list(Volume.objects
-                         .filter(comic__isnull=True, isbn_tw__isnull=False)
-                         .values_list('isbn_tw', flat=True))
-        self.target_info = "//div[@class='product-description-schema']"
-        self.logger.info(f"EsliteESBNSpider: Loaded {len(self.topic_list)} ISBNs to process.")
-
-
-class EsliteTitleTwSpider(EsliteSpider):
-    name = "eslite_title_tw"
-
-    def __init__(self, *args, **kwargs):
-        """
-        Change default settings for Selenium
-        """
-        super().__init__(*args, **kwargs)
-        self.topic = "title_tw"
-        # self.topic_list = list(Comic.objects
-        #                     .filter(isnull=True, title_tw__isnull=False)
-        #                     .values_list('title_tw', flat=True))
-        # self.topic_list = ["迴天的阿爾帕斯"]
-        self.topic_list = ["藍色時期"]
-        self.target_info = "//h1[@class='sans-font-semi-bold']"
-        self.logger.info(f"EsliteTitleTWSpider: Loaded {len(self.topic_list)} Taiwanese titles to process.")
+        self.topic = "series_name"
+        self.topic_list = Series.objects \
+                          .filter(title_jp__isnull=False, author_jp='') \
+                          .values_list('title_jp', flat=True)
+        # self.topic_list = ["廻天のアルバス", "ブルーピリオド"]
+        # self.topic_list = ["ブルーピリオド"]
+        self.target_info = "//span[@class='bookdetail_title_text']"
+        self.logger.info(f"BooksJpTitleTwSpider: Loaded {len(self.topic_list)} Japanese titles to process.")
