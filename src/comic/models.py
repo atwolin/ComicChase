@@ -36,14 +36,14 @@ class Series(models.Model):
         HIATUS = 'hiatus', _('休刊中')
 
     title_jp = models.CharField(
-        _("日文原名"), max_length=255, db_index=True, unique=True
+        _("原名"), max_length=255, db_index=True, unique=True
     )
     title_tw = models.CharField(
-        _("台灣譯名"), max_length=255, db_index=True, null=True, blank=True
+        _("譯名"), max_length=255, db_index=True, null=True, blank=True
     )
-    author_jp = models.CharField(_("日文原名作者"), max_length=100)
+    author_jp = models.CharField(_("作者原名"), max_length=100)
     author_tw = models.CharField(
-        _("台灣譯名作者"),
+        _("作者譯名"),
         max_length=100,
         null=True,
         blank=True,
@@ -126,7 +126,7 @@ class Volume(models.Model):
         max_length=50,
         blank=True,
         default="",
-        help_text=_("如：特裝版、首刷限定。普通版請留空。")
+        help_text=_("如：特裝版、首刷限定。普通版留空。")
     )
 
     # 出版資訊
