@@ -128,6 +128,9 @@ class EsliteSpider(scrapy.Spider):
         # Parse each result link
         n = len(links)
         for i in range(n):
+            # TESTING: Stop after processing first 3 links
+            if i == 2:
+                break
             self.logger.debug(f"parse_search_results(): Processing link {i + 1}/{n}")
 
             # Create a new item for each link
@@ -144,6 +147,9 @@ class EsliteSpider(scrapy.Spider):
             time.sleep(2)
 
         # Go to next page
+        # TESTING: Stop after first page
+        return
+
         prev_url = self.driver.current_url
         next_button_xpath = "//div[@class='page-number']/div[@data-gid='pagination-next']"
         try:
