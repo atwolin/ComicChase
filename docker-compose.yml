@@ -4,7 +4,7 @@ services:
     image: postgres:16.2
     restart: no
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=comic_db
       - POSTGRES_USER=comic_user
@@ -14,10 +14,10 @@ services:
 
   web:
     build: .
-    command: ["/code/wait-for-it.sh", "db:5432", "--", "python", "/code/src/manage.py", "runserver", "0.0.0.0:8000"]
+    command: ["/code/wait-for-it.sh", "db:5432", "--", "python", "/code/manage.py", "runserver", "0.0.0.0:8000"]
     restart: no
     volumes:
-      - .:/code
+      - ./src:/code
     ports:
       - "8000:8000"
     env_file:
@@ -36,7 +36,7 @@ services:
 
   scrapy:
     build: .
-    working_dir: /code/src/comic_scrapers
+    working_dir: /code/comic_scrapers
     command: ["/code/wait-for-it.sh", "db:5432", "--", "tail", "-f", "/dev/null"]
     env_file:
       - ./.env
@@ -46,4 +46,7 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - .:/code
+      - ./src:/code
+
+volumes:
+  postgres_data:
