@@ -72,6 +72,40 @@ docker compose exec web python manage.py bookjp_title_crawl
 
 ---
 
+### 4. `eslite_title_crawl`
+Crawls eslite.com to search and extract volumes for specific series or all series by Taiwanese title.
+
+**Usage:**
+```bash
+# Crawl a specific series by name
+docker compose exec web python manage.py eslite_title_crawl --series-name "排球少年"
+
+# Crawl all series with Taiwanese titles in the database
+docker compose exec web python manage.py eslite_title_crawl
+```
+
+**What it does:**
+- Searches eslite.com using Taiwanese series titles
+- Extracts volume information for each series
+- Can target a specific series (with `--series-name` flag) or process all series from the database
+- Uses Selenium for dynamic page interaction and navigation
+- Filters results to Chinese books in the manga/graphic novel category
+
+**Spider:** `EsliteTitleTwSpider` in `spiders/eslite.py`
+
+**Options:**
+- `--series-name`: (Optional) Specific series name to crawl. If omitted, crawls all series with `title_tw` in the database.
+
+**Data extracted:**
+- Japanese title (`title_jp`)
+- Taiwanese title (`title_tw`)
+- Author (TW)
+- Publisher (TW)
+- Release date (TW)
+- Product description
+
+---
+
 ## Requirements
 
 These commands require:
