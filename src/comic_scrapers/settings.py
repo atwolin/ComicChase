@@ -96,3 +96,6 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings'
 
 import django
 django.setup()
+
+# Set log file
+LOG_FILE = os.path.join(os.path.dirname(__file__), 'logs', 'scrapy.log')
