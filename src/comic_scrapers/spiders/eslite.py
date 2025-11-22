@@ -257,10 +257,11 @@ class EsliteTitleTwSpider(EsliteSpider):
         """
         super().__init__(*args, **kwargs)
         self.topic = "title_tw"
-        # self.topic_list = list(Series.objects
-        #                     .filter(isnull=True, title_tw__isnull=False)
-        #                     .values_list('title_tw', flat=True))
-        # self.topic_list = ["迴天的阿爾帕斯"]
-        self.topic_list = ["藍色時期"]
+        if topic_list := kwargs.get('topic_list'):
+            self.topic_list = topic_list
+        else:
+            self.topic_list = list(Series.objects
+                                .filter(title_tw__isnull=False)
+                                .values_list('title_tw', flat=True))
         self.target_info = "//h1[@class='sans-font-semi-bold']"
         self.logger.info(f"EsliteTitleTWSpider: Loaded {len(self.topic_list)} Taiwanese titles to process.")
