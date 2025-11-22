@@ -1,20 +1,19 @@
 from django.contrib import admin
-from .models import Publisher, Comic, Volume
+from .models import Publisher, Series, Volume
 
 @admin.register(Publisher)
 class PublisherAdmin(admin.ModelAdmin):
     list_display = ('name', 'region')
     list_filter = ('region',)
     search_fields = ('name',)
+    ordering = ('name',)
 
 
-@admin.register(Comic)
+@admin.register(Series)
 class ComicAdmin(admin.ModelAdmin):
     list_display = (
         'title_tw',
         'title_jp',
-        'author_jp',
-        'author_tw',
         'status_jp'
     )
     list_filter = ('status_jp',)
@@ -24,21 +23,36 @@ class ComicAdmin(admin.ModelAdmin):
         'author_jp',
         'author_tw'
     )
+    autocomplete_fields = ['latest_volume_jp', 'latest_volume_tw']
 
 
 @admin.register(Volume)
 class VolumeAdmin(admin.ModelAdmin):
 
     list_display = (
-        'comic',
+        'series',
         'volume_number',
-        'release_date_jp',
-        'release_date_tw',
-        'publisher_tw'
+        'region',
+        'variant',
+        'release_date',
+        'publisher',
+        'isbn'
     )
-    list_filter = ('publisher_jp', 'publisher_tw')
-    autocomplete_fields = ['comic', 'publisher_jp', 'publisher_tw'] # 修正
+    #依地區、出版社、發售日篩選
+    list_filter = ('region', 'release_date', 'publisher')
+    autocomplete_fields = ['series', 'publisher']
     search_fields = (
-        'comic__title_jp',
-        'comic__title_tw'
+        'series__title_jp',
+        'series__title_tw',
+        'isbn'
+    )
+
+    #頁面欄位配置
+    fieldsets = (
+        (None, {
+            'fields': ('series', 'region', 'volume_number', 'variant')
+        }),
+        ('出版詳細資料', {
+            'fields': ('publisher', 'release_date', 'isbn')
+        }),
     )

@@ -226,3 +226,4 @@ __marimo__/
 .history/
 
 run.sh
+logs/
