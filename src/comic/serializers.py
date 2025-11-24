@@ -1,23 +1,34 @@
 from rest_framework import serializers
 from .models import Comic, Volume
 
+class PublisherSerializer(serializers.ModelSerializer):
+    """
+    出版社序列化器
+    """
+    class Meta:
+        model = Publisher
+        fields = ['id', 'name', 'region']
+
 class VolumeSerializer(serializers.ModelSerializer):
     """
-    Volume 序列化器
+    單行本序列化器
     """
-
-    release_date_japan = serializers.DateField(source='release_date_jp')
-    release_date_taiwan = serializers.DateField(source='release_date_tw')
-    
+    publisher_name = serializers.CharField(source='publisher.name', read_only=True)
+        
     class Meta:
         model = Volume
         fields = [
-            'volume_number', 
-            'release_date_japan', 
-            'release_date_taiwan'
+            'id',
+            'volume_number',
+            'region',
+            'variant',        
+            'release_date',
+            'isbn',
+            'publisher',      # 出版社 ID (寫入用)
+            'publisher_name'
         ]
 
-class ComicListSerializer(serializers.ModelSerializer):
+class SeriesListSerializer(serializers.ModelSerializer):
     """
     漫畫清單的序列化器
     """
@@ -29,7 +40,7 @@ class ComicListSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     
     class Meta:
-        model = Comic
+        model = Series
         fields = [
             'id', 
             'traditional_chinese_title', 
@@ -49,6 +60,13 @@ class ComicDetailSerializer(ComicListSerializer):
     # 巢狀引入 VolumeSerializer
     volumes = VolumeSerializer(many=True, read_only=True)
 
-    class Meta(ComicListSerializer.Meta):
+    latest_volume_jp_number = serializers.IntegerField(source='latest_volume_jp.volume_number', read_only=True, allow_null=True)
+    latest_volume_tw_number = serializers.IntegerField(source='latest_volume_tw.volume_number', read_only=True, allow_null=True)
+
+    class Meta(SeriesListSerializer.Meta):
         # 繼承 'fields' 並加上 'volumes'
-        fields = ComicListSerializer.Meta.fields + ['volumes']
+        fields = SeriesListSerializer.Meta.fields + [
+            'latest_volume_jp_number',
+            'latest_volume_tw_number',
+            'volumes'
+        ]
