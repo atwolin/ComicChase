@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Comic, Volume
+from .models import Series, Volume ,Publisher
 
 class PublisherSerializer(serializers.ModelSerializer):
     """
@@ -53,7 +53,7 @@ class SeriesListSerializer(serializers.ModelSerializer):
         return obj.author_tw or obj.author_jp
 
 
-class ComicDetailSerializer(ComicListSerializer):
+class SeriesDetailSerializer(SeriesListSerializer):
     """
     漫畫詳情的序列化器
     """
