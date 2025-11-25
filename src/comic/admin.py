@@ -8,13 +8,21 @@ class PublisherAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     ordering = ('name',)
 
+class VolumeInline(admin.TabularInline):
+    model = Volume
+    extra = 0
+    fields = ( 'volume_number', 'region', 'variant', 'release_date', 'publisher', 'isbn')
+    autocomplete_fields = ['publisher'] 
+    show_change_link = True
+
 
 @admin.register(Series)
-class ComicAdmin(admin.ModelAdmin):
+class SeriesAdmin(admin.ModelAdmin):
     list_display = (
         'title_tw',
         'title_jp',
-        'status_jp'
+        'status_jp',
+        'latest_volume_tw_display'
     )
     list_filter = ('status_jp',)
     search_fields = (
@@ -24,6 +32,11 @@ class ComicAdmin(admin.ModelAdmin):
         'author_tw'
     )
     autocomplete_fields = ['latest_volume_jp', 'latest_volume_tw']
+    inlines = [VolumeInline]
+    
+    @admin.display(description='最新單行本 (台)')
+    def latest_volume_tw_display(self, obj):
+        return obj.latest_volume_tw
 
 
 @admin.register(Volume)

@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter
 
-from .models import Comic
+from .models import Series
 from .serializers import ComicListSerializer, ComicDetailSerializer
 
 class ComicViewSet(viewsets.ReadOnlyModelViewSet):
@@ -9,7 +9,7 @@ class ComicViewSet(viewsets.ReadOnlyModelViewSet):
     提供漫畫列表和漫畫詳情
     """
     # 優化查詢
-    queryset = Comic.objects.all().prefetch_related('volumes') 
+    queryset = Series.objects.all().prefetch_related('volumes') 
 
     # 搜尋日文或中文標題
     filter_backends = [SearchFilter]
