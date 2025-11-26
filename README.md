@@ -49,7 +49,7 @@
 
 ### 專案結構
 
-```
+```tree
 ComicChase/
 ├── src/
 │   ├── comic/              # Django app - 漫畫模型和 API
@@ -63,7 +63,7 @@ ComicChase/
 ### Prerequisites
 
 - Docker >= 28.5.2 & Docker Compose >= v2.39.2
-- Python 3.12 >= 3.12
+- Python >= 3.12
 
 ### 使用 Docker 進行安裝
 
@@ -78,11 +78,23 @@ pre-commit install
 2. 設定環境變數
 
 ```bash
+# 建立 .env.example 檔案並寫入環境變數
+cat > .env.example << EOF
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+POSTGRES_DB=comic_db
+POSTGRES_USER=comic_user
+POSTGRES_PASSWORD=your-password
+DB_HOST=db
+DB_PORT=5432
+EOF
+
+# 複製為實際使用的 .env 檔案
 cp .env.example .env
-# 編輯 .env 檔案設定資料庫密碼和 Django SECRET_KEY
 ```
 
 3. 啟動 Docker
+
    > 啟動服務
    >
    > ```bash
@@ -103,9 +115,9 @@ cp .env.example .env
 
 ### 環境變數說明
 
-- `.env`:
+- `.env.example`:
 
-```
+```env
 SECRET_KEY=your-secret-key-here
 DEBUG=True
 POSTGRES_DB=comic_db
