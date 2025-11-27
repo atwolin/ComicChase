@@ -1,12 +1,18 @@
-import re
-from time import sleep
+import time
+
 import scrapy
-from scrapy.http import Request, Response
+from scrapy.http import Response
 
 from comic_scrapers.items import OrphanVolumeItem
 
 
 class BooksTWSpider(scrapy.Spider):
+    """Spider to scrape book information from books.com.tw Taiwan site.
+
+    This spider targets the new releases section to obtain book urls
+    and extracts volume information such as ISBN, release date, and publisher.
+    """
+
     name = "books_tw"
     allowed_domains = ["books.com.tw"]
     start_urls = [
@@ -14,35 +20,71 @@ class BooksTWSpider(scrapy.Spider):
     ]
 
     def parse(self, response: Response):
+        """Parse the new releases page to obtain book urls.
+
+        Args:
+            response (Response): Response object of the new releases page.
+
+        Yields:
+            OrphanVolumeItem: Item containing the extracted volume information.
+
+        Raises:
+            Exception: If any error occurs during parsing.
         """
-        Obtain 100 book links from the books.com.tw new releases page
-        """
-        links = response.xpath("//div[@class='type02_bd-a']/h4/a/@href").getall()
-        self.logger.info(f"Found {len(links)} book links on the page.")
-        # yield from response.follow_all(links, self.parse_volume_info)
-        # TESTING: limit to first 5 links only
-        for link in links[:5]:
-            yield response.follow(link, self.parse_volume_info)
+        try:
+            self.logger.info(f"Parsing Books.com.tw Taiwan page: {response.url}")
+            urls = response.xpath("//div[@class='type02_bd-a']/h4/a/@href").getall()
+            self.logger.info(f"Found {len(urls)} book urls on the page.")
+            # yield from response.follow_all(urls, self.parse_volume_info)
+
+            # TESTING: limit to first 5 urls only
+            for url in urls[:5]:
+                yield response.follow(url, self.parse_volume_info)
+            # END TESTING
+
+        except Exception as e:
+            self.logger.error(
+                f"Failed to parse: {response.url}, error: {str(e)}", exc_info=True
+            )
 
     def parse_volume_info(self, response: Response):
-        """
-        Extract volume information from the book link
-        Information includes volume_number, release_date_tw, isbn_tw, publisher_tw
+        """Parse the book volume page to extract volume ISBN.
+
+        Extracts the ISBN from the book detail page to create an OrphanVolumeItem,
+        which is then yielded for storing into the Volume database.
+
+        Args:
+            response (Response): Response object of the book volume page.
+
+        Yields:
+            OrphanVolumeItem: Item containing the extracted volume information.
+
+        Raises:
+            AttributeError: If expected HTML elements are not found during parsing.
+            Exception: If any other error occurs during parsing.
         """
         item = OrphanVolumeItem()
-        item['source_url'] = response.url
+        item["source_url"] = response.url
 
         try:
-            isbn_tw = response.xpath("//div[@class='bd']/ul/li[contains(text(), 'ISBN：')]/text()").get()
-            isbn_tw = isbn_tw.replace('ISBN：', '').strip() if isbn_tw else None
+            self.logger.info(f"Parsing volume info: {response.url}")
+            isbn_tw = response.xpath(
+                "//div[@class='bd']/ul/li[contains(text(), 'ISBN：')]/text()"
+            ).get()
+            isbn_tw = isbn_tw.replace("ISBN：", "").strip() if isbn_tw else None
 
-            item['isbn_tw'] = isbn_tw
+            item["isbn_tw"] = isbn_tw
 
             self.logger.info(f"Successfully parsed volume ISBN from {response.url}")
 
         except AttributeError as e:
             self.logger.error(f"Error parsing volume info from {response.url}: {e}")
+        except Exception as e:
+            self.logger.error(
+                f"Failed to parse volume: {response.url}," f"error: {str(e)}",
+                exc_info=True,
+            )
 
         finally:
-            sleep(20)
+            time.sleep(10)
             yield item
