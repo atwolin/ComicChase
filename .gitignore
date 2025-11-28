@@ -221,6 +221,7 @@ __marimo__/
 
 # Test output
 *.json
+tests/
 
 # VS Code 歷史暫存
 .history/
