@@ -49,7 +49,7 @@ class EsliteSpider(scrapy.Spider):
 
     DATE_REGEX = re.compile(r"([0-9]{4})年([0-9]{1,2})月([0-9]{1,2})日")
 
-    def _get_book_release_date(self, product_desc: str) -> str:
+    def _get_book_release_date(self, product_desc: str):
         """Process product_desc to extract release date for the current volume.
 
         Because the date format in eslite.com.tw is in Chinese,
@@ -108,10 +108,10 @@ class EsliteSpider(scrapy.Spider):
         input_xpath = "//input[@name='query']"
 
         for i, topic_item in enumerate(self.topic_list):
-            # TESTING: Stop after processing first 3 items
-            if i == 2:
-                break
-            # END TESTING
+            # # TESTING: Stop after processing first 3 items
+            # if i == 2:
+            #     break
+            # # END TESTING
 
             try:
                 self.logger.debug(
@@ -134,7 +134,7 @@ class EsliteSpider(scrapy.Spider):
                 # Wait for search results page to load before parsing
                 time.sleep(3)
 
-                yield from self.parse_search_results(topic_item, series_index=i)
+                yield from self.parse_search_results(topic_item, i)
                 time.sleep(2)
 
                 self.logger.debug(
@@ -159,7 +159,9 @@ class EsliteSpider(scrapy.Spider):
                     exc_info=True,
                 )
 
-    def parse_search_results(self, topic_item: str, prev_url=None, series_index=None):
+    def parse_search_results(
+        self, topic_item: str, series_index: int, prev_url: str = None
+    ):
         """Parse the search results page to extract book detail urls.
 
         Parse each search results page to find book detail urls and their release dates.
@@ -168,8 +170,8 @@ class EsliteSpider(scrapy.Spider):
 
         Args:
             topic_item (str): The current topic item being processed.
+            series_index (int): The index of the series in topic_list.
             prev_url (str, optional): The URL of the previous search results page.
-            series_index (int, optional): The index of the series in topic_list.
 
         Yields:
             OrphanMapItem: Item containing the extracted mapping information.
@@ -234,10 +236,10 @@ class EsliteSpider(scrapy.Spider):
         # Parse each book url
         n = len(urls)
         for i in range(n):
-            # TESTING: Stop after processing first 3 urls
-            if i == 2:
-                break
-            # END TESTING
+            # # TESTING: Stop after processing first 3 urls
+            # if i == 2:
+            #     break
+            # # END TESTING
 
             # Skip if we already have this or newer volume
             current_release_date = self._get_book_release_date(
@@ -278,9 +280,9 @@ class EsliteSpider(scrapy.Spider):
             time.sleep(2)
 
         # Go to next page
-        # TESTING: Stop after first page
-        return
-        # END TESTING
+        # # TESTING: Stop after first page
+        # return
+        # # END TESTING
 
         prev_url = self.driver.current_url
         next_button_xpath = (
@@ -292,9 +294,7 @@ class EsliteSpider(scrapy.Spider):
             )
             next_button.click()
             time.sleep(2)
-            yield from self.parse_search_results(
-                topic_item, prev_url, series_index=series_index
-            )
+            yield from self.parse_search_results(topic_item, series_index, prev_url)
         except selenium.common.exceptions.TimeoutException as e:
             self.logger.error(
                 f"parse_search_results(): Timeout because no next button found for"
