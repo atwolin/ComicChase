@@ -19,6 +19,11 @@ class BooksTWSpider(scrapy.Spider):
         "https://www.books.com.tw/web/sys_compub/books/16/?loc=P_0001_017",
     ]
 
+    # Custom settings for this spider
+    custom_settings = {
+        "RETRY_HTTP_CODES": [500, 502, 503, 504, 522, 524, 408, 429, 484],
+    }
+
     def parse(self, response: Response):
         """Parse the new releases page to obtain book urls.
 
@@ -35,12 +40,7 @@ class BooksTWSpider(scrapy.Spider):
             self.logger.info(f"Parsing Books.com.tw Taiwan page: {response.url}")
             urls = response.xpath("//div[@class='type02_bd-a']/h4/a/@href").getall()
             self.logger.info(f"Found {len(urls)} book urls on the page.")
-            # yield from response.follow_all(urls, self.parse_volume_info)
-
-            # TESTING: limit to first 5 urls only
-            for url in urls[:5]:
-                yield response.follow(url, self.parse_volume_info)
-            # END TESTING
+            yield from response.follow_all(urls, self.parse_volume_info)
 
         except Exception as e:
             self.logger.error(
@@ -67,15 +67,20 @@ class BooksTWSpider(scrapy.Spider):
         item["source_url"] = response.url
 
         try:
-            self.logger.info(f"Parsing volume info: {response.url}")
-            isbn_tw = response.xpath(
-                "//div[@class='bd']/ul/li[contains(text(), 'ISBN：')]/text()"
-            ).get()
-            isbn_tw = isbn_tw.replace("ISBN：", "").strip() if isbn_tw else None
+            if response.xpath(
+                "//div[@class='bd']/ul/li[contains(text(), 'EISBN：')]/text()"
+            ).get():
+                self.logger.info(f"Skipping EPUB volume: {response.url}")
+            else:
+                self.logger.info(f"Parsing volume info: {response.url}")
+                isbn_tw = response.xpath(
+                    "//div[@class='bd']/ul/li[contains(text(), 'ISBN：')]/text()"
+                ).get()
+                isbn_tw = isbn_tw.replace("ISBN：", "").strip() if isbn_tw else None
 
-            item["isbn_tw"] = isbn_tw
+                item["isbn_tw"] = isbn_tw
 
-            self.logger.info(f"Successfully parsed volume ISBN from {response.url}")
+                self.logger.info(f"Successfully parsed volume ISBN from {response.url}")
 
         except AttributeError as e:
             self.logger.error(f"Error parsing volume info from {response.url}: {e}")
@@ -86,5 +91,5 @@ class BooksTWSpider(scrapy.Spider):
             )
 
         finally:
-            time.sleep(10)
+            time.sleep(20)
             yield item
