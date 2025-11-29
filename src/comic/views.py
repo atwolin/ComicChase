@@ -39,7 +39,7 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_serializer_class(self):
         """
-        根據動作選擇對應的 Serializer
+        選擇 'list' (列表) or 'retrieve' (詳情)
         """
         if self.action == 'list':
             return SeriesListSerializer
