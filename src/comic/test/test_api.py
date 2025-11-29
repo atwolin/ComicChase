@@ -12,6 +12,7 @@ from comic.models import Publisher, Series, Volume
 class SeriesAPITests(APITestCase):
     @classmethod
     def setUpTestData(cls):
+        """在所有測試之前建立必要的測試資料"""
         cls.publisher = Publisher.objects.create(name="東立", region=Publisher.Region.TAIWAN)
         cls.series = Series.objects.create(
             title_jp="進撃の巨人",
@@ -30,6 +31,7 @@ class SeriesAPITests(APITestCase):
 
 
     def test_list_endpoint_returns_series(self):
+        """測試列出所有系列漫畫"""
         url = reverse("comics-list")
         response = self.client.get(url)
 
@@ -40,7 +42,8 @@ class SeriesAPITests(APITestCase):
 
 
     def test_pagination_respects_page_size(self):
-        for idx in range(12):
+        """測試分頁功能"""
+        for idx in range(12):  # 建立 12 筆資料觸發分頁
             Series.objects.create(
                 title_jp=f"テスト作品{idx}",
                 author_jp="作者",
@@ -50,11 +53,12 @@ class SeriesAPITests(APITestCase):
 
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["results"]), 10)
+        self.assertEqual(len(response.data["results"]), 10)  # 確保每頁只有 10 筆
         self.assertIsNotNone(response.data["next"])
 
 
     def test_search_filters_by_titles(self):
+        """測試搜尋功能可依標題過濾"""
         url = reverse("comics-list")
         response = self.client.get(url, {"search": "巨人"})
 
@@ -65,6 +69,7 @@ class SeriesAPITests(APITestCase):
 
 
     def test_search_can_return_empty_results(self):
+        """測試空結果的處理"""
         url = reverse("comics-list")
         response = self.client.get(url, {"search": "不存在"})
 
@@ -74,6 +79,7 @@ class SeriesAPITests(APITestCase):
 
 
     def test_detail_endpoint_includes_volumes(self):
+        """測試回傳詳細資訊及關聯單行本"""
         url = reverse("comics-detail", args=[self.series.id])
         response = self.client.get(url)
 
@@ -84,6 +90,7 @@ class SeriesAPITests(APITestCase):
 
 
     def test_detail_endpoint_returns_404_for_missing_series(self):
+        """測試不存在的 ID 回傳 404"""
         url = reverse("comics-detail", args=[9999])
         response = self.client.get(url)
 
@@ -92,6 +99,7 @@ class SeriesAPITests(APITestCase):
 
 
     def test_readonly_permission_allows_anonymous_get(self):
+        """測試未認證用戶可以唯讀"""
         url = reverse("comics-list")
         response = self.client.get(url)
 
@@ -100,6 +108,7 @@ class SeriesAPITests(APITestCase):
 
 
     def test_write_operation_denied_for_anonymous(self):
+        """測試未認證用戶無法進行寫入操作"""
         url = reverse("comics-list")
         payload = {
             "title_jp": "新作品",
