@@ -109,10 +109,10 @@ class BooksJpSpider(scrapy.Spider):
         search_buttom_xpath = "//button[@class='searchforbooks_search_button']"
 
         for i, topic_item in enumerate(self.topic_list):
-            # TESTING: Stop after processing first 3 items
-            if i == 2:
-                break
-            # END TESTING
+            # # TESTING: Stop after processing first 3 items
+            # if i == 2:
+            #     break
+            # # END TESTING
 
             try:
                 self.logger.debug(
@@ -139,7 +139,7 @@ class BooksJpSpider(scrapy.Spider):
                 # Wait for search results page to load before parsing
                 time.sleep(3)
 
-                yield from self.parse_search_results(topic_item, series_index=i)
+                yield from self.parse_search_results(topic_item, i)
                 time.sleep(2)
 
                 self.logger.debug(
@@ -165,7 +165,7 @@ class BooksJpSpider(scrapy.Spider):
                     exc_info=True,
                 )
 
-    def parse_search_results(self, topic_item: str, series_index=None):
+    def parse_search_results(self, topic_item: str, series_index: int):
         """Parse the search results page to extract book detail urls.
 
         Parse each search results page to find book detail urls and their release dates.
@@ -174,8 +174,7 @@ class BooksJpSpider(scrapy.Spider):
 
         Args:
             topic_item (str): The current topic item being processed.
-            series_index (int, optional): The index of the current series in
-                                          topic_list. Defaults to None.
+            series_index (int): The index of the current series in topic_list.
 
         Yields:
             JpComicItem: Item containing the extracted comic information.
@@ -226,10 +225,10 @@ class BooksJpSpider(scrapy.Spider):
         # Parse each result link
         n = len(links)
         for i in range(n):
-            # TESTING: Stop after processing first 3 links
-            if i == 2:
-                break
-            # END TESTING
+            # # TESTING: Stop after processing first 3 links
+            # if i == 2:
+            #     break
+            # # END TESTING
 
             # Skip if we already have this or newer volume
             current_release_date = self._get_book_release_date(
@@ -268,10 +267,10 @@ class BooksJpSpider(scrapy.Spider):
             )
             time.sleep(2)
 
-        # Go to next page
-        # TESTING: Stop after first page
-        return
-        # END TESTING
+        # # Go to next page
+        # # TESTING: Stop after first page
+        # return
+        # # END TESTING
 
         next_button_xpath = "//button[@aria-label='1ページ後に進む']"
         try:
@@ -284,7 +283,7 @@ class BooksJpSpider(scrapy.Spider):
                 "parse_search_results(): Navigated to next page of"
                 f"search results for {self.topic} {topic_item}"
             )
-            yield from self.parse_search_results(topic_item, series_index=series_index)
+            yield from self.parse_search_results(topic_item, series_index)
         except selenium.common.exceptions.TimeoutException as e:
             self.logger.error(
                 f"parse_search_results(): Timeout because"
