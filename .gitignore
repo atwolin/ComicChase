@@ -219,10 +219,6 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# Test output
-*.json
-tests/
-
 # VS Code 歷史暫存
 .history/
 
