@@ -325,7 +325,7 @@ class TestProcessJpComicItem(unittest.TestCase):
         mock_series.objects.get_or_create.assert_called_once_with(
             title_jp="廻天のアルバス"
         )
-        self.assertEqual(mock_series_obj.author_jp, "絵：箭坪 幹")
+        self.assertEqual(mock_series_obj.author_jp, "原案：牧 彰久; 絵：箭坪 幹")
         self.assertEqual(result, item)
 
     def test_process_jp_comic_item_raises_drop_item_on_missing_detail_url(self):
