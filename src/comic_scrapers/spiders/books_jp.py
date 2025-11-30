@@ -3,6 +3,7 @@ import time
 
 import scrapy
 import selenium
+from django.db import models
 from scrapy.http import HtmlResponse
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -429,7 +430,7 @@ class BooksJpTitleTwSpider(BooksJpSpider):
         self.last_release_dates = [
             date.strftime("%Y-%m-%d") if date else None
             for date in Series.objects.filter(title_jp__isnull=False, author_jp=None)
-            .annotate(last_date=("latest_volume_jp__release_date"))
+            .annotate(last_date=models.F("latest_volume_jp__release_date"))
             .values_list("last_date", flat=True)
         ]
         self.logger.info(
