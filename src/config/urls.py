@@ -6,7 +6,7 @@ from comic.views import SeriesViewSet
 
 # 建立 DRF router
 router = DefaultRouter()
-router.register(r'series', SeriesViewSet, basename='series') 
+router.register(r'series', SeriesViewSet, basename='comics') 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
