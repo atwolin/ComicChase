@@ -74,7 +74,7 @@ Tests for the **ComicScrapersPipeline** that processes scraped items and saves t
 
 ```bash
 # From project root
-docker-compose exec web python manage.py test comic_scrapers.tests
+docker compose exec web python manage.py test comic_scrapers.tests
 ```
 
 ### Run All Tests
