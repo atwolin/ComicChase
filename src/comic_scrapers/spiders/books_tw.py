@@ -31,7 +31,7 @@ class BooksTWSpider(scrapy.Spider):
             response (Response): Response object of the new releases page.
 
         Yields:
-            OrphanVolumeItem: Item containing the extracted volume information.
+            Request: Follow-up requests to parse individual volume pages.
 
         Raises:
             Exception: If any error occurs during parsing.
@@ -79,8 +79,12 @@ class BooksTWSpider(scrapy.Spider):
                 isbn_tw = isbn_tw.replace("ISBN：", "").strip() if isbn_tw else None
 
                 item["isbn_tw"] = isbn_tw
-
-                self.logger.info(f"Successfully parsed volume ISBN from {response.url}")
+                if isbn_tw:
+                    self.logger.info(
+                        f"Successfully parsed volume ISBN {isbn_tw} from {response.url}"
+                    )
+                else:
+                    self.logger.warning(f"No ISBN found on {response.url}")
 
         except AttributeError as e:
             self.logger.error(f"Error parsing volume info from {response.url}: {e}")
