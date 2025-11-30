@@ -64,7 +64,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Use SQLite for testing if PostgreSQL config is not available
+# Use separate database backends:
+# - SQLite for unit tests (faster, isolated)
+# - PostgreSQL for development and production
 import sys
 if 'test' in sys.argv or 'pytest' in sys.modules:
     DATABASES = {
