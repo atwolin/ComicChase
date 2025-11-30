@@ -112,9 +112,34 @@ class SeriesAPITests(APITestCase):
         url = reverse("comics-list")
         payload = {
             "title_jp": "新作品",
+            "title_tw": "新作品", 
             "author_jp": "作者",
+            "author_tw": "作者",
+            "status_jp": Series.JapanStatus.RUNNING,
         }
-        response = self.client.post(url, payload, format="json")
+        # --- 第一部分：測試匿名使用者 (Anonymous) ---
+        # 確保沒有登入
+        self.client.force_authenticate(user=None)
+        
+        response_anonymous = self.client.post(url, payload, format="json")
+        
+        # 驗證：應該被拒絕 (401 未授權 或 403 禁止)
+        self.assertIn(
+            response_anonymous.status_code, 
+            [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN],
+            f"匿名用戶應該被拒絕，但收到了: {response_anonymous.status_code}"
+        )
 
-
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        # --- 第二部分：測試已認證使用者 (Authenticated) ---
+        # 建立並登入一個測試帳號
+        user = get_user_model().objects.create_user(username='testuser', password='testpass')
+        self.client.force_authenticate(user=user)
+        
+        response_authenticated = self.client.post(url, payload, format="json")
+        
+        # 驗證：應該成功建立 (201 Created)
+        self.assertEqual(
+            response_authenticated.status_code, 
+            status.HTTP_201_CREATED,
+            f"已認證用戶應該能建立資料，但失敗了: {response_authenticated.data}"
+        )
