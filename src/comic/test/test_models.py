@@ -96,7 +96,7 @@ class VolumeModelTests(TestCase):
         self.series = Series.objects.create(title_jp="チェンソーマン", author_jp="藤本タツキ")
 
     def test_create_volume_for_both_regions(self):
-        """測試建立單行本及版本備註"""
+        """測試建立不同地區(JP/TW)的單行本"""
         jp_volume = Volume.objects.create(
             series=self.series,
             publisher=self.publisher_jp,
@@ -109,12 +109,24 @@ class VolumeModelTests(TestCase):
             publisher=self.publisher_jp,
             region=Volume.Region.TAIWAN,
             volume_number=13,
-            variant="特裝版",
             isbn="9781234567999",
         )
+
         self.assertEqual(jp_volume.region, Volume.Region.JAPAN)
         self.assertEqual(tw_volume.region, Volume.Region.TAIWAN)
-        self.assertEqual(tw_volume.variant, "特裝版")
+
+    def test_create_volume_variant(self):
+        """測試版本備註的功能"""
+        special_volume = Volume.objects.create(
+            series=self.series,
+            publisher=self.publisher_jp,
+            region=Volume.Region.TAIWAN,
+            volume_number=13,
+            variant="特裝版",
+            isbn="9781234567888",
+        )
+
+        self.assertEqual(special_volume.variant, "特裝版")
 
     def test_unique_volume_variant_constraint(self):
         """測試 UniqueConstraint (unique_volume_variant)"""
