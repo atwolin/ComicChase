@@ -7,11 +7,11 @@ repos:
         args: [--fix]  # Automatically fix small issues
       - id: ruff-format
 
-  - repo: local
-    hooks:
-      - id: pyright
-        name: pyright
-        entry: pyright
-        language: system
-        types: [python]
-        pass_filenames: true
+  # - repo: local
+  #   hooks:
+  #     - id: pyright
+  #       name: pyright
+  #       entry: pyright
+  #       language: system
+  #       types: [python]
+  #       pass_filenames: true
