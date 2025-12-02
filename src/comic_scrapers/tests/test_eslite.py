@@ -64,10 +64,16 @@ class TestEsliteSpiderParse(unittest.TestCase):
         # Mock search box element
         mock_search_box = MagicMock()
         self.spider.driver.find_element.return_value = mock_search_box
-        print(f"Mock search box: {mock_search_box}")
 
-        # Mock parse_search_results to avoid actual processing
-        with patch.object(self.spider, "parse_search_results", return_value=iter([])):
+        # Mock parse_search_results to return one item per call
+        mock_parse = MagicMock()
+        mock_parse.side_effect = [
+            iter([OrphanMapItem()]),  # First topic
+            iter([OrphanMapItem()]),  # Second topic
+            iter([OrphanMapItem()]),  # Third topic
+        ]
+
+        with patch.object(self.spider, "parse_search_results", mock_parse):
             url = "https://www.eslite.com"
             request = Request(url=url)
             response = HtmlResponse(
@@ -76,12 +82,14 @@ class TestEsliteSpiderParse(unittest.TestCase):
 
             results = list(self.spider.parse(response))
 
-            # Should process 3 items
+            # Should process 3 items and yield 3 results
             self.assertEqual(
                 len(results),
                 3,
                 "Should process all items in topic_list",
             )
+            # Verify parse_search_results was called 3 times
+            self.assertEqual(mock_parse.call_count, 3)
 
     def test_parse_handles_timeout_exception(self):
         """Test that parse() handles TimeoutException gracefully."""

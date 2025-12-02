@@ -3,6 +3,7 @@ import time
 
 import scrapy
 import selenium
+from django.db import models
 from scrapy.http import HtmlResponse
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -190,16 +191,16 @@ class BooksJpSpider(scrapy.Spider):
 
         time.sleep(2)
 
-        # Get book detail links
-        links_xpath = "//a[@class='result_list_button']"
-        links = None
+        # Get book detail urls
+        urls_xpath = "//a[@class='result_list_button']"
+        urls = None
         volume_release_date_xpath = (
             "//div[" "@class='result_list_discription_publishdate']"
         )
         volume_release_dates = None
         try:
-            links = self.wait.until(
-                EC.presence_of_all_elements_located((By.XPATH, links_xpath))
+            urls = self.wait.until(
+                EC.presence_of_all_elements_located((By.XPATH, urls_xpath))
             )
             volume_release_dates = self.wait.until(
                 EC.presence_of_all_elements_located(
@@ -209,7 +210,7 @@ class BooksJpSpider(scrapy.Spider):
         except selenium.common.exceptions.TimeoutException as e:
             self.logger.error(
                 f"parse_search_results(): "
-                f"Timeout while locating book links for "
+                f"Timeout while locating book urls for "
                 f"{self.topic} {topic_item}: {e}"
             )
             # Create and yield empty item to track failed search
@@ -218,14 +219,14 @@ class BooksJpSpider(scrapy.Spider):
             yield item
             return
         self.logger.debug(
-            f"parse_search_results(): Found {len(links)}"
-            "book links on the search results page."
+            f"parse_search_results(): Found {len(urls)}"
+            "book urls on the search results page."
         )
 
-        # Parse each result link
-        n = len(links)
+        # Parse each result url
+        n = len(urls)
         for i in range(n):
-            # # TESTING: Stop after processing first 3 links
+            # # TESTING: Stop after processing first 3 urls
             # if i == 2:
             #     break
             # # END TESTING
@@ -242,28 +243,28 @@ class BooksJpSpider(scrapy.Spider):
             ):
                 if current_release_date <= self.last_release_dates[series_index]:
                     self.logger.debug(
-                        "parse_search_results(): Skipping link"
+                        "parse_search_results(): Skipping url"
                         f"{i + 1}/{n} - already have this volume\n"
                         f"current_release_date: {current_release_date},"
                         f" last_release_date: {self.last_release_dates[series_index]}"
                     )
                     continue
 
-            self.logger.debug(f"parse_search_results(): Processing link {i + 1}/{n}")
+            self.logger.debug(f"parse_search_results(): Processing url {i + 1}/{n}")
 
-            # Create a new item for each link
+            # Create a new item for each url
             item = JpComicItem()
             item[f"{self.topic}"] = topic_item
 
-            yield from self.parse_detail_info(links[i], item)
+            yield from self.parse_detail_info(urls[i], item)
             time.sleep(2)
 
             self.logger.debug(
-                "parse_search_results(): Completed processing link" f"{i + 1}/{n}"
+                "parse_search_results(): Completed processing url" f"{i + 1}/{n}"
             )
-            # Refresh links list after navigating back to avoid stale element reference
-            links = self.wait.until(
-                EC.presence_of_all_elements_located((By.XPATH, links_xpath))
+            # Refresh urls list after navigating back to avoid stale element reference
+            urls = self.wait.until(
+                EC.presence_of_all_elements_located((By.XPATH, urls_xpath))
             )
             time.sleep(2)
 
@@ -291,14 +292,14 @@ class BooksJpSpider(scrapy.Spider):
                 f" {self.topic} {topic_item}: {e}"
             )
 
-    def parse_detail_info(self, link: str, item: JpComicItem):
+    def parse_detail_info(self, url, item: JpComicItem):
         """Extract series and volume information from the book URL.
 
         Retrieves the book detail page and extracts series author, book title,
         publisher, and product description, which including ISBN and release date.
 
         Args:
-            url (str): The URL of the book detail page.
+            url: The WebElement link to click to navigate to the detail page.
             item (JpComicItem): Item containing the extracted comic information.
 
         Yields:
@@ -318,7 +319,7 @@ class BooksJpSpider(scrapy.Spider):
         product_desc = None
         topic_prevent = None
         try:
-            link.click()
+            url.click()
             # Check if the topic is present in the detail page or if it's a e-book
             topic_prevent_xpath = self.target_info
             topic_prevent_webelement = self.wait.until(
@@ -399,7 +400,7 @@ class BooksJpSpider(scrapy.Spider):
             self.driver.back()
             yield item
 
-    def closed(self, resaon):
+    def closed(self, reason):
         """See base class."""
         self.logger.info("Closing Selenium driver...")
         if hasattr(self, "driver") and self.driver:
@@ -428,9 +429,9 @@ class BooksJpTitleTwSpider(BooksJpSpider):
         self.target_info = "//span[@class='bookdetail_title_text']"
         self.last_release_dates = [
             date.strftime("%Y-%m-%d") if date else None
-            for date in Series.objects.filter(
-                title_jp__isnull=False, author_jp=None
-            ).values_list("last_release_date", flat=True)
+            for date in Series.objects.filter(title_jp__isnull=False, author_jp=None)
+            .annotate(last_date=models.F("latest_volume_jp__release_date"))
+            .values_list("last_date", flat=True)
         ]
         self.logger.info(
             f"BooksJpTitleTwSpider: Loaded {len(self.topic_list)}"
