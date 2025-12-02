@@ -301,14 +301,14 @@ class EsliteSpider(scrapy.Spider):
                 f"{self.topic} {topic_item}: {e}"
             )
 
-    def parse_detail_info(self, url: str, item: OrphanMapItem):
+    def parse_detail_info(self, url, item: OrphanMapItem):
         """Extract series and volume information from the book URL.
 
         Retrieves the book detail page and extracts series author, book title,
         release date, publisher, and product description, which including ISBN.
 
         Args:
-            url (str): The URL of the book detail page.
+            url: The WebElement link to click to navigate to the detail page.
             item (OrphanMapItem): Item containing the extracted mapping information.
 
         Yields:
@@ -414,7 +414,7 @@ class EsliteSpider(scrapy.Spider):
             self.driver.back()
             yield item
 
-    def closed(self, resaon):
+    def closed(self, reason):
         """See base class."""
         self.logger.info("Closing Selenium driver...")
         if self.driver:
@@ -463,7 +463,7 @@ class EsliteTitleTwSpider(EsliteSpider):
             self.last_release_dates = [
                 date.strftime("%Y-%m-%d") if date else None
                 for date in Series.objects.filter(title_tw__isnull=False).values_list(
-                    "last_release_date", flat=True
+                    "latest_volume_tw__release_date", flat=True
                 )
             ]
         self.target_info = "//h1[@class='sans-font-semi-bold']"

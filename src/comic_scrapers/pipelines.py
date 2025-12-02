@@ -82,6 +82,8 @@ class ComicScrapersPipeline:
         except IntegrityError as e:
             spider.logger.warning(f"Duplicate data for ISBN {isbn_tw}: {str(e)}")
             raise DropItem(f"Duplicate Volume: {isbn_tw}")
+        except DropItem:
+            raise
         except Exception as e:
             spider.logger.error(
                 f"Failed to process Orphan Volume with ISBN {isbn_tw}, error: {str(e)}",
@@ -247,7 +249,10 @@ class ComicScrapersPipeline:
                 or series.latest_volume_tw is None
                 or (
                     release_date_tw_obj
-                    and release_date_tw_obj > series.latest_volume_tw.release_date
+                    and (
+                        series.latest_volume_tw.release_date is None
+                        or release_date_tw_obj > series.latest_volume_tw.release_date
+                    )
                 )
             ):
                 series.latest_volume_tw = volume
@@ -259,6 +264,8 @@ class ComicScrapersPipeline:
         except IntegrityError as e:
             spider.logger.warning(f"Duplicate data for {title_jp}: {str(e)}")
             raise DropItem(f"Duplicate data: {str(e)}")
+        except DropItem:
+            raise
         except Exception as e:
             spider.logger.error(
                 f"Failed to process Orphan Map Item for {title_jp}, error: {str(e)}",
@@ -414,7 +421,7 @@ class ComicScrapersPipeline:
                     "publisher": publisher,
                     "region": "JP",
                     "volume_number": volume_number,
-                    "variant": variant,
+                    "variant": variant or "",
                     "release_date": release_date_jp,
                 },
             )
@@ -433,7 +440,10 @@ class ComicScrapersPipeline:
             )
             if series.latest_volume_jp is None or (
                 release_date_jp_obj
-                and release_date_jp_obj > series.latest_volume_jp.release_date
+                and (
+                    series.latest_volume_jp.release_date is None
+                    or release_date_jp_obj > series.latest_volume_jp.release_date
+                )
             ):
                 series.latest_volume_jp = volume
                 series.save()
@@ -444,6 +454,8 @@ class ComicScrapersPipeline:
         except IntegrityError as e:
             spider.logger.warning(f"Duplicate data for {series_name_jp}: {str(e)}")
             raise DropItem(f"Duplicate Volume: {str(e)}")
+        except DropItem:
+            raise
         except Exception as e:
             spider.logger.error(
                 f"Failed to process JP Comic Item for"

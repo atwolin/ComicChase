@@ -19,9 +19,11 @@ ADDONS = {}
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 # USER_AGENT = "comic_scrapers (+http://www.yourdomain.com)"
-USER_AGENT = """Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)
-                AppleWebKit/537.36 (KHTML, like Gecko)
-                Chrome/102.0.0.0 Safari/537.36"""
+USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/102.0.0.0 Safari/537.36"
+)
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
@@ -29,7 +31,7 @@ ROBOTSTXT_OBEY = True
 # Concurrency and throttling settings
 # CONCURRENT_REQUESTS = 16
 CONCURRENT_REQUESTS_PER_DOMAIN = 1
-DOWNLOAD_DELAY = 1
+DOWNLOAD_DELAY = 2  # Base delay between requests
 
 # Disable cookies (enabled by default)
 # COOKIES_ENABLED = False
@@ -70,14 +72,14 @@ ITEM_PIPELINES = {
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
-# AUTOTHROTTLE_ENABLED = True
+AUTOTHROTTLE_ENABLED = True
 # The initial download delay
-# AUTOTHROTTLE_START_DELAY = 5
+AUTOTHROTTLE_START_DELAY = 2
 # The maximum download delay to be set in case of high latencies
-# AUTOTHROTTLE_MAX_DELAY = 60
+AUTOTHROTTLE_MAX_DELAY = 60
 # The average number of requests Scrapy should be sending in parallel to
 # each remote server
-# AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
+AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
 # Enable showing throttling stats for every response received:
 # AUTOTHROTTLE_DEBUG = False
 
@@ -93,7 +95,9 @@ ITEM_PIPELINES = {
 FEED_EXPORT_ENCODING = "utf-8"
 
 # Django settings integration
-sys.path.append(os.path.dirname(os.path.abspath(".")))
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings"
 
 import django  # noqa: E402

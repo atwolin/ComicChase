@@ -69,8 +69,15 @@ class TestBooksJpSpiderParse(unittest.TestCase):
 
         self.spider.driver.find_element.side_effect = mock_find_element
 
-        # Mock parse_search_results to avoid actual processing
-        with patch.object(self.spider, "parse_search_results", return_value=iter([])):
+        # Mock parse_search_results to return one item per call
+        mock_parse = MagicMock()
+        mock_parse.side_effect = [
+            iter([JpComicItem()]),  # First topic
+            iter([JpComicItem()]),  # Second topic
+            iter([JpComicItem()]),  # Third topic
+        ]
+
+        with patch.object(self.spider, "parse_search_results", mock_parse):
             url = "https://www.books.or.jp/"
             request = Request(url=url)
             response = HtmlResponse(
@@ -79,12 +86,14 @@ class TestBooksJpSpiderParse(unittest.TestCase):
 
             results = list(self.spider.parse(response))
 
-            # Should process all 3 items (test limit removed in current code)
-            self.assertGreaterEqual(
+            # Should process all 3 items and yield 3 results
+            self.assertEqual(
                 len(results),
                 3,
-                "Should attempt to process items",
+                "Should process all 3 items from topic_list",
             )
+            # Verify parse_search_results was called 3 times
+            self.assertEqual(mock_parse.call_count, 3)
 
     def test_parse_handles_timeout_exception(self):
         """Test that parse() handles TimeoutException gracefully."""
@@ -400,27 +409,19 @@ class TestBooksJpTitleTwSpiderIntegration(unittest.TestCase):
     @patch("comic_scrapers.spiders.books_jp.webdriver")
     def test_books_jp_title_spider_initialization(self, mock_webdriver, mock_series):
         """Test BooksJpTitleTwSpider initializes with correct topic & topic_list."""
-        # Mock Series.objects query
-        mock_queryset = MagicMock()
-        mock_series.objects.filter.return_value = mock_queryset
-        mock_queryset.values_list.side_effect = [
-            ["廻天のアルバス", "ブルーピリオド"],  # title_jp
-            ["2025-12-18", "2025-12-17"],  # last_release_date (as datetime objects)
-        ]
-
         # Mock datetime objects for dates
         from datetime import datetime
 
         mock_date1 = datetime(2025, 12, 18)
         mock_date2 = datetime(2025, 12, 17)
 
-        # Create a new mock for the second filter call
-        mock_queryset2 = MagicMock()
-        mock_series.objects.filter.return_value = mock_queryset2
-        mock_queryset2.values_list.side_effect = [
-            ["廻天のアルバス", "ブルーピリオド"],  # title_jp
-            [mock_date1, mock_date2],  # last_release_date as datetime objects
-        ]
+        # Mock Series.objects query - need to mock the full chain
+        mock_queryset = MagicMock()
+        mock_annotated = MagicMock()
+        mock_series.objects.filter.return_value = mock_queryset
+        mock_queryset.values_list.return_value = ["廻天のアルバス", "ブルーピリオド"]
+        mock_queryset.annotate.return_value = mock_annotated
+        mock_annotated.values_list.return_value = [mock_date1, mock_date2]
 
         spider = BooksJpTitleTwSpider()
 
@@ -433,9 +434,13 @@ class TestBooksJpTitleTwSpiderIntegration(unittest.TestCase):
     @patch("comic_scrapers.spiders.books_jp.webdriver")
     def test_books_jp_title_spider_target_info_xpath(self, mock_webdriver, mock_series):
         """Test that BooksJpTitleTwSpider sets correct target_info xpath."""
+        # Mock Series.objects query - need to mock the full chain
         mock_queryset = MagicMock()
+        mock_annotated = MagicMock()
         mock_series.objects.filter.return_value = mock_queryset
-        mock_queryset.values_list.side_effect = [[], []]
+        mock_queryset.values_list.return_value = []
+        mock_queryset.annotate.return_value = mock_annotated
+        mock_annotated.values_list.return_value = []
 
         spider = BooksJpTitleTwSpider()
 
@@ -449,9 +454,13 @@ class TestBooksJpTitleTwSpiderIntegration(unittest.TestCase):
     @patch("comic_scrapers.spiders.books_jp.webdriver")
     def test_books_jp_title_spider_empty_series_list(self, mock_webdriver, mock_series):
         """Test that BooksJpTitleTwSpider handles empty series list."""
+        # Mock Series.objects query - need to mock the full chain
         mock_queryset = MagicMock()
+        mock_annotated = MagicMock()
         mock_series.objects.filter.return_value = mock_queryset
-        mock_queryset.values_list.side_effect = [[], []]
+        mock_queryset.values_list.return_value = []
+        mock_queryset.annotate.return_value = mock_annotated
+        mock_annotated.values_list.return_value = []
 
         spider = BooksJpTitleTwSpider()
 
