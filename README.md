@@ -52,13 +52,25 @@
 
 ```tree
 ComicChase/
-├── src/
-│   ├── comic/              # Django app - 漫畫模型和 API
-│   ├── comic_scrapers/     # Scrapy 爬蟲
-│   └── config/             # Django 設定
-├── docker-compose.yml
-├── Dockerfile
-└── requirements.txt
+├── app/                        # 後端應用程式
+│   ├── src/
+│   │   ├── comic/              # Django app - 漫畫模型和 API
+│   │   ├── comic_scrapers/     # Scrapy 爬蟲
+│   │   ├── config/             # Django 設定
+│   │   ├── settings/           # Django 環境設定
+│   │   ├── manage.py           # Django 管理腳本
+│   │   ├── scrapy.cfg          # Scrapy 設定
+│   │   └── wait-for-it.sh      # 資料庫等待腳本
+│   ├── Dockerfile              # 後端 Docker 設定
+│   └── requirements.txt        # Python 依賴套件
+├── ui/                         # 前端應用程式
+│   ├── src/                    # 前端原始碼
+│   └── Dockerfile              # 前端 Docker 設定
+├── docs/                       # 文檔和 GitHub issues
+├── assets/                     # 專案資源（logo 等）
+├── src/                        # Scrapy 爬蟲獨立目錄
+├── docker-compose.yml          # Docker 服務編排
+└── pyproject.toml              # Python 專案設定
 ```
 
 ### Prerequisites
@@ -105,14 +117,20 @@ cp .env.example .env
    > 執行資料庫遷移
    >
    > ```bash
-   > docker compose exec web python manage.py migrate
+   > docker compose exec web python /code/manage.py migrate
    > ```
    >
    > 建立管理員帳號
    >
    > ```bash
-   > docker compose exec web python manage.py createsuperuser
+   > docker compose exec web python /code/manage.py createsuperuser
    > ```
+   >
+   > 存取應用程式
+   >
+   > - Django 後端: http://localhost:8000
+   > - Django Admin: http://localhost:8000/admin
+   > - Selenium Grid: http://localhost:4444
 
 ### 環境變數說明
 

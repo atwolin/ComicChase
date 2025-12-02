@@ -35,3 +35,15 @@ Dockerfile
 
 # Documentation
 README.md
+docs/
+
+# Assets
+assets/
+
+# Logs
+logs/
+*.log
+
+# Cache
+.ruff_cache/
+*.pyc

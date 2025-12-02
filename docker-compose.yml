@@ -13,11 +13,13 @@ services:
       - "5432:5432"
 
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: ./app/Dockerfile
     command: ["/code/wait-for-it.sh", "db:5432", "--", "python", "/code/manage.py", "runserver", "0.0.0.0:8000"]
     restart: no
     volumes:
-      - ./src:/code
+      - ./app/src:/code
     ports:
       - "8000:8000"
     env_file:
@@ -35,7 +37,9 @@ services:
       - /dev/shm:/dev/shm
 
   scrapy:
-    build: .
+    build:
+      context: .
+      dockerfile: ./app/Dockerfile
     working_dir: /code/comic_scrapers
     command: ["/code/wait-for-it.sh", "db:5432", "--", "tail", "-f", "/dev/null"]
     env_file:
@@ -46,7 +50,18 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ./src:/code
+      - ./app/src:/code
+
+  # Uncomment when frontend is ready
+  # ui:
+  #   build:
+  #     context: ./ui
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     - web
+  #   restart: no
 
 volumes:
   postgres_data:
