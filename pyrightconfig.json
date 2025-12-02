@@ -1,0 +1,69 @@
+{
+  "include": [
+    "app/src"
+  ],
+  "exclude": [
+    "**/__pycache__",
+    "**/node_modules",
+    "**/.venv",
+    "**/venv",
+    "**/.git",
+    "**/.ruff_cache",
+    "**/migrations",
+    "**/logs",
+    "**/.scrapy"
+  ],
+  "pythonVersion": "3.12",
+  "pythonPlatform": "All",
+  "typeCheckingMode": "basic",
+  "reportMissingImports": true,
+  "reportUnusedImport": true,
+  "reportUnusedVariable": true,
+  "reportUnusedFunction": true,
+  "reportUnusedClass": true,
+  "reportUndefinedVariable": true,
+  "reportArgumentType": true,
+  "reportReturnType": true,
+  "reportAssignmentType": true,
+  "reportAttributeAccessIssue": true,
+  "reportCallIssue": true,
+  "reportOperatorIssue": true,
+  "reportGeneralTypeIssues": true,
+  "reportOptionalMemberAccess": true,
+  "reportOptionalCall": true,
+  "reportOptionalIterable": true,
+  "reportOptionalContextManager": true,
+  "reportOptionalOperand": true,
+  "reportDuplicateImport": true,
+  "reportUnusedExpression": true,
+  "reportUnusedCoroutine": true,
+  "reportPrivateUsage": true,
+  "reportPrivateImportUsage": true,
+  "reportConstantRedefinition": true,
+  "reportIncompatibleVariableOverride": true,
+  "reportIncompatibleMethodOverride": true,
+  "reportMissingTypeArgument": true,
+  "reportInvalidTypeVarUse": true,
+  "reportUnusedExcept": true,
+  "reportFunctionMemberAccess": true,
+  "reportImportCycles": true,
+  "reportUnnecessaryTypeIgnoreComment": true,
+  "reportUnnecessaryComparison": true,
+  "reportUnnecessaryContains": true,
+  "reportUnnecessaryIsInstance": true,
+  "reportUnnecessaryCast": true,
+  "reportUnusedCallResult": true,
+  "reportMissingTypeStubs": false,
+  "reportImplicitStringConcatenation": false,
+  "reportSelfClsParameterName": false,
+  "executionEnvironments": [
+    {
+      "root": "app/src",
+      "pythonVersion": "3.12",
+      "pythonPlatform": "All",
+      "extraPaths": []
+    }
+  ]
+}
+
+
