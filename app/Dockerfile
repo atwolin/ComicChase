@@ -12,6 +12,10 @@ RUN pip install -r requirements.txt
 
 COPY ./app/src .
 
-# Fix Windows line endings issue for wait-for-it.sh
-RUN sed -i 's/\r$//' /code/wait-for-it.sh && \
-    chmod +x /code/wait-for-it.sh
+# Copy wait-for-it.sh to a location that won't be overridden by bind mounts
+RUN mkdir -p /scripts
+COPY ./app/src/wait-for-it.sh /scripts/wait-for-it.sh
+
+# Fix Windows line endings issue for wait-for-it.sh and ensure it's executable
+RUN sed -i 's/\r$//' /scripts/wait-for-it.sh && \
+    chmod +x /scripts/wait-for-it.sh
