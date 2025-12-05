@@ -17,11 +17,9 @@ services:
       context: .
       dockerfile: ./app/Dockerfile.prod
     restart: unless-stopped
-    command: [
-      "/code/wait-for-it.sh", "db:5432", "--",
-      "gunicorn", "--config", "config/gunicorn/gunicorn_config.py"]
     volumes:
-      - ./app/src:/code
+      - ./app/src:/code/app
+      - static_volume:/code/app/staticfiles
     expose:
       - "8000"
     env_file:
@@ -42,8 +40,7 @@ services:
     build:
       context: .
       dockerfile: ./app/Dockerfile.prod
-    working_dir: /code/comic_scrapers
-    command: ["/code/wait-for-it.sh", "db:5432", "--", "tail", "-f", "/dev/null"]
+    working_dir: /code/app/comic_scrapers
     env_file:
       - ./.env
     depends_on:
@@ -52,7 +49,7 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ./app/src:/code
+      - ./app/src:/code/app
 
   # Uncomment when frontend is ready
   # ui:
@@ -73,9 +70,10 @@ services:
       - "443:443"  # HTTPS
     volumes:
       - ./app/src/config/nginx:/etc/nginx/templates
-      - ./app/src/ssl:/code/ssl:ro
-      - ./app/src/static:/code/static:ro
+      - ./app/src/ssl:/code/app/ssl:ro
+      - static_volume:/code/app/staticfiles:ro
     depends_on:
       - web
 volumes:
   postgres_data:
+  static_volume:

@@ -16,8 +16,8 @@ server {
     http2                on;
 
     # TODO: apply trusted CA from https://letsencrypt.org/
-    ssl_certificate      /code/ssl/comicchase.crt;
-    ssl_certificate_key  /code/ssl/comicchase.key;
+    ssl_certificate      /code/app/ssl/comicchase.crt;
+    ssl_certificate_key  /code/app/ssl/comicchase.key;
 
     server_name          comicchase.com.tw;
     error_log            stderr warn;
@@ -34,7 +34,7 @@ server {
 
     # Serving static files
     location /static/ {
-        alias /code/static/;
+        alias /code/app/staticfiles/;
         expires 1y;
         add_header Cache-Control "public, immutable";
     }

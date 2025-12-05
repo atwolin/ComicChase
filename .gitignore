@@ -225,5 +225,10 @@ __marimo__/
 run.sh
 logs/
 
+# Django static files
+static/
+staticfiles/
+media/
+
 # SSL keys
 app/src/ssl/*.key
