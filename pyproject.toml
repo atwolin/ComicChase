@@ -3,3 +3,6 @@ line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"app/src/config/settings/*.py" = ["F403", "F405"]
