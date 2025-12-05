@@ -10,3 +10,4 @@ pyright==1.1.407
 python-decouple==3.8
 scrapy==2.13.3
 selenium==4.38.0
+supervisor==4.3.0
