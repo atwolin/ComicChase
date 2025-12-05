@@ -1,0 +1,41 @@
+# Upstream
+upstream comicchase {
+    server web:8000;
+}
+
+# Redirect HTTP to HTTPS
+server {
+    listen       80;
+    server_name  comicchase.com.tw;
+    return 301   https://$host$request_uri;
+}
+
+# Main HTTPS server
+server {
+    listen               443 ssl;
+    http2                on;
+
+    # TODO: apply trusted CA from https://letsencrypt.org/
+    ssl_certificate      /code/ssl/comicchase.crt;
+    ssl_certificate_key  /code/ssl/comicchase.key;
+
+    server_name          comicchase.com.tw;
+    error_log            stderr warn;
+    access_log           /dev/stdout main;
+
+    # Pass traffic to Gunicorn socket
+    location / {
+        proxy_pass       http://comicchase;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+        proxy_redirect   off;
+    }
+
+    # Serving static files
+    location /static/ {
+        alias /code/static/;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}
