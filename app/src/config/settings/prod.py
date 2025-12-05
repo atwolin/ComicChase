@@ -13,7 +13,7 @@ SECURE_PROXY_SSL_HEADER = (
 
 DEBUG = False
 
-ADMINS = [("admin", "admin@example.com")]
+ADMINS = [("atwolin", "tzhuchien@nlplab.cc")]
 
 # TODO: Update with actual production hosts
 ALLOWED_HOSTS = ["comicchase.com.tw"]
