@@ -15,10 +15,12 @@ services:
   web:
     build:
       context: .
+      args:
+        USER_ID: ${UID}
+        GROUP_ID: ${GID}
       dockerfile: ./app/Dockerfile.prod
     restart: unless-stopped
     volumes:
-      - ./app/src:/code/app
       - static_volume:/code/app/staticfiles
     expose:
       - "8000"
@@ -34,22 +36,7 @@ services:
     ports:
       - "4444:4444"
     volumes:
-      - /dev/shm:/dev/shm
-
-  scrapy:
-    build:
-      context: .
-      dockerfile: ./app/Dockerfile.prod
-    working_dir: /code/app/comic_scrapers
-    env_file:
-      - ./.env
-    depends_on:
-      - db
       - selenium
-    stdin_open: true
-    tty: true
-    volumes:
-      - ./app/src:/code/app
 
   # Uncomment when frontend is ready
   # ui:
