@@ -1,6 +1,6 @@
 # Upstream
 upstream comicchase {
-    server web:8000;
+    server backend:8000;
 }
 
 # Redirect HTTP to HTTPS
@@ -15,7 +15,7 @@ server {
     listen               443 ssl;
     http2                on;
 
-    # TODO: apply trusted CA from https://letsencrypt.org/
+    # TODO: Create an SSL with Certbot
     ssl_certificate      /code/app/ssl/comicchase.crt;
     ssl_certificate_key  /code/app/ssl/comicchase.key;
 
@@ -23,8 +23,20 @@ server {
     error_log            stderr warn;
     access_log           /dev/stdout main;
 
-    # Pass traffic to Gunicorn socket
-    location / {
+    # Pass API traffic to Gunicorn
+    location /api/ {
+        # The following rewrite strips /api from the URI
+        # before passing it to the upstream.
+        rewrite ^/api/(.*)$ /$1 break;
+        proxy_pass       http://comicchase;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+        proxy_redirect   off;
+    }
+
+    # Django admin
+    location /admin/ {
         proxy_pass       http://comicchase;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -33,7 +45,7 @@ server {
     }
 
     # Serving static files
-    location /static/ {
+    location /django-static/ {
         alias /code/app/staticfiles/;
         expires 1y;
         add_header Cache-Control "public, immutable";
