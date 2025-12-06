@@ -16,7 +16,9 @@ services:
     build:
       context: .
       dockerfile: ./app/Dockerfile
-    command: ["/code/wait-for-it.sh", "db:5432", "--", "python", "/code/manage.py", "runserver", "0.0.0.0:8000"]
+    command: [
+      "/code/wait-for-it.sh", "db:5432", "--",
+      "python", "/code/manage.py", "runserver", "0.0.0.0:8000", "--settings=config.settings.local"]
     restart: no
     volumes:
       - ./app/src:/code
