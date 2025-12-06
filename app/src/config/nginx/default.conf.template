@@ -19,7 +19,7 @@ server {
     ssl_certificate      /code/app/ssl/comicchase.crt;
     ssl_certificate_key  /code/app/ssl/comicchase.key;
 
-    server_name          comicchase.com.tw;
+    server_name          *.comicchase.com.tw comicchase.com.tw;
     error_log            stderr warn;
     access_log           /dev/stdout main;
 
