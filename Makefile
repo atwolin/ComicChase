@@ -10,17 +10,17 @@ COMPOSE = UID=$(UID) GID=$(GID) docker compose -f docker-compose.prod.yaml -p co
 .DEFAULT_GOAL := help
 
 # -------------------------------
-up: ## Start the Docker containers in detached mode
+up: ## Start the Docker containers in detached mode. Usage: make up UP_OPTIONS="<options>"
 	@echo "🚀 Starting services with UID=$(UID) GID=$(GID)..."
-	$(COMPOSE) up -d
+	$(COMPOSE) up -d $(UP_OPTIONS)
 
 down: ## Stop and remove the Docker containers
 	@echo "🛑 Stopping services..."
 	$(COMPOSE) down
 
-build: ## Build the Docker images
+build: ## Build the Docker images. Usage: make build UP_OPTIONS="<options>"
 	@echo "🔨 Building Docker images with UID=$(UID) GID=$(GID)..."
-	$(COMPOSE) up --build -d
+	$(COMPOSE) up --build -d $(UP_OPTIONS)
 
 logs: ## View logs of the Docker containers
 	@echo "📜 Viewing logs..."
@@ -31,7 +31,7 @@ shell: ## Access the shell of the app container
 	$(COMPOSE) exec web bash
 
 manage: ## Run a Django manage.py command inside the app container. Usage: make manage cmd=<command>
-	${COMPOSE} exec web python manage.py ${cmd}
+	$(COMPOSE) exec web python manage.py $(cmd)
 
 clean: ## Remove all Docker containers and volumes
 	@echo "🧹 Cleaning up Docker containers and volumes..."
@@ -41,9 +41,9 @@ help: ## Show this help message
 	@echo "Usage: make [command]"
 	@echo ""
 	@echo "Commands:"
-	@echo "  up      Start the application (detached mode)"
+	@echo "  up      Start the application (detached mode). Pass options with UP_OPTIONS."
 	@echo "  down    Stop the application"
-	@echo "  build   Rebuild and start the application"
+	@echo "  build   Rebuild and start the application. Pass options with UP_OPTIONS."
 	@echo "  logs    Follow log output"
 	@echo "  shell   Enter the 'web' container shell"
 	@echo "  manage  Run django manage.py command (e.g., make manage cmd=migrate)"
