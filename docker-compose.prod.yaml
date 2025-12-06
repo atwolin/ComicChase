@@ -6,11 +6,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=comic_db
-      - POSTGRES_USER=comic_user
-      - POSTGRES_PASSWORD=comic_pass
-    ports:
-      - "5432:5432"
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
   web:
     build:
@@ -28,6 +26,12 @@ services:
       - ./.env
     depends_on:
       - db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   selenium:
     image: selenium/standalone-chrome:latest
@@ -35,8 +39,6 @@ services:
     hostname: selenium
     ports:
       - "4444:4444"
-    volumes:
-      - selenium
 
   # Uncomment when frontend is ready
   # ui:
@@ -50,7 +52,7 @@ services:
   #   restart: no
 
   nginx:
-    image: nginx:1.25.5
+    image: nginx:1.28.0
     restart: unless-stopped
     ports:
       - "80:80"  # HTTP
