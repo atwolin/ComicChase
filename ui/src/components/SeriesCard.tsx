@@ -1,0 +1,96 @@
+import { Link } from 'react-router-dom'
+import type { Series } from '@/types'
+import { clsx } from 'clsx'
+
+interface SeriesCardProps {
+  series: Series
+}
+
+const statusLabels = {
+  ongoing: '連載中',
+  completed: '已完結',
+  hiatus: '休刊中',
+}
+
+const statusColors = {
+  ongoing: 'bg-green-500/20 text-green-700 border-green-500/30',
+  completed: 'bg-gray-500/20 text-gray-700 border-gray-500/30',
+  hiatus: 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30',
+}
+
+export const SeriesCard = ({ series }: SeriesCardProps) => {
+  return (
+    <Link
+      to={`/series/${series.id}`}
+      className="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-indigo-300"
+    >
+      {/* Cover Image Logic */}
+<div className="w-full h-64 flex items-center justify-center overflow-hidden bg-gray-100">
+
+  {imageUrl ? (
+    // 如果有爬到圖片，顯示圖片
+    <img
+      src={imageUrl}
+      alt="Comic Cover"
+      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+    />
+  ) : (
+    // 沒有圖片，顯示層背景 + Emoji
+    <div className="w-full h-full bg-gradient-to-br from-indigo-400 via-purple-500 to-pink-500 flex items-center justify-center">
+      <span className="text-7xl group-hover:scale-110 transition-transform duration-300">
+        📚
+      </span>
+    </div>
+  )}
+
+</div>
+
+      {/* Content */}
+      <div className="p-5">
+        <div className="flex justify-between items-start mb-3">
+          <h3 className="text-lg font-bold text-gray-900 line-clamp-2 flex-1 group-hover:text-indigo-600 transition-colors">
+            {series.traditional_chinese_title || series.japanese_title}
+          </h3>
+          <span
+            className={clsx(
+              'px-2.5 py-1 text-xs font-semibold rounded-full ml-2 flex-shrink-0 border',
+              statusColors[series.status_japan]
+            )}
+          >
+            {statusLabels[series.status_japan]}
+          </span>
+        </div>
+
+        {series.traditional_chinese_title && series.japanese_title && (
+          <p className="text-sm text-gray-600 mb-3 line-clamp-1">
+            {series.japanese_title}
+          </p>
+        )}
+
+        <p className="text-sm text-gray-700 mb-4">作者：{series.author}</p>
+
+        <div className="flex flex-col gap-2 text-xs">
+          {series.latest_volume_jp_number && (
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+              <span className="text-gray-600">
+                日版：第 <span className="font-semibold text-gray-900">{series.latest_volume_jp_number}</span> 卷
+              </span>
+            </div>
+          )}
+          {series.latest_volume_tw_number && (
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+              <span className="text-gray-600">
+                台版：第 <span className="font-semibold text-gray-900">{series.latest_volume_tw_number}</span> 卷
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+
+
