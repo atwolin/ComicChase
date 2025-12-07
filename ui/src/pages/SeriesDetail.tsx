@@ -1,8 +1,11 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useSeriesDetail } from '@/hooks/useSeries'
+import { useCollections, useAddCollection, useRemoveCollection } from '@/hooks/useCollections'
 import { Loading } from '@/components/Loading'
 import { Error } from '@/components/Error'
 import { clsx } from 'clsx'
+import { authApi } from '@/api/client'
+import { useState } from 'react'
 
 // 狀態標籤對應
 const statusLabels = {
@@ -28,8 +31,51 @@ const regionLabels = {
 export const SeriesDetail = () => {
   const { id } = useParams<{ id: string }>()
   const seriesId = id ? parseInt(id, 10) : 0
+  const navigate = useNavigate()
+  const [isAdding, setIsAdding] = useState(false)
 
   const { data: series, isLoading, error, refetch } = useSeriesDetail(seriesId)
+
+  // 檢查是否已登入
+  const isAuthenticated = authApi.isAuthenticated()
+
+  // 只有登入後才獲取收藏列表
+  const { data: collections } = useCollections({
+    enabled: isAuthenticated,
+  })
+  const addCollection = useAddCollection()
+  const removeCollection = useRemoveCollection()
+
+  // 檢查該漫畫是否已在收藏中
+  const isCollected = collections?.some(
+    (collection) => collection.series.id === seriesId
+  ) || false
+  const collectionId = collections?.find(
+    (collection) => collection.series.id === seriesId
+  )?.id
+
+  const handleToggleCollection = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!isAuthenticated) {
+      navigate('/login')
+      return
+    }
+
+    setIsAdding(true)
+    try {
+      if (isCollected && collectionId) {
+        await removeCollection.mutateAsync(collectionId)
+      } else {
+        await addCollection.mutateAsync(seriesId)
+      }
+    } catch (error) {
+      console.error('收藏操作失敗:', error)
+    } finally {
+      setIsAdding(false)
+    }
+  }
 
   // 載入中狀態
   if (isLoading) {
@@ -128,14 +174,72 @@ export const SeriesDetail = () => {
                       </p>
                     )}
                   </div>
-                  <span
-                    className={clsx(
-                      'px-4 py-2 text-sm font-semibold rounded-full border',
-                      statusColors[series.status_japan]
+                  <div className="flex items-center gap-3">
+                    {isAuthenticated && (
+                      <button
+                        onClick={handleToggleCollection}
+                        disabled={isAdding}
+                        className={clsx(
+                          'flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-md',
+                          isCollected
+                            ? 'bg-red-500 hover:bg-red-600 text-white'
+                            : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                        )}
+                        title={isCollected ? '移除收藏' : '加入收藏'}
+                      >
+                        {isAdding ? (
+                          <>
+                            <svg
+                              className="animate-spin h-5 w-5"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                            <span>處理中...</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg
+                              className="w-5 h-5"
+                              fill={isCollected ? 'currentColor' : 'none'}
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                              />
+                            </svg>
+                            <span>{isCollected ? '已收藏' : '加入收藏'}</span>
+                          </>
+                        )}
+                      </button>
                     )}
-                  >
-                    {statusLabels[series.status_japan]}
-                  </span>
+                    <span
+                      className={clsx(
+                        'px-4 py-2 text-sm font-semibold rounded-full border',
+                        statusColors[series.status_japan]
+                      )}
+                    >
+                      {statusLabels[series.status_japan]}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="space-y-3">

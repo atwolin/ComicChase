@@ -3,13 +3,14 @@ import { collectionApi } from '@/api/client'
 import type { UserCollection } from '@/types'
 
 // 取得使用者收藏列表
-export const useCollections = () => {
+export const useCollections = (options?: { enabled?: boolean }) => {
   return useQuery<UserCollection[]>({
     queryKey: ['collections'],
     queryFn: async () => {
       const data = await collectionApi.getCollections()
       return data.results
     },
+    enabled: options?.enabled !== false,
   })
 }
 
