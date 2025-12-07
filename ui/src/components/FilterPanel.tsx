@@ -3,7 +3,6 @@ import { clsx } from 'clsx'
 
 export interface FilterOptions {
   status_jp?: 'ongoing' | 'completed' | 'hiatus' | ''
-  category?: 'shounen' | 'shoujo' | 'seinen' | 'josei' | 'kodomo' | ''
   genre?: string
   year?: string
 }

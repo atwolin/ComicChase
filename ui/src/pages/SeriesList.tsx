@@ -14,7 +14,6 @@ export const SeriesList = () => {
   const [page, setPage] = useState(1)
   const [filters, setFilters] = useState<FilterOptions>({
     status_jp: searchParams.get('status_jp') as any || '',
-    category: searchParams.get('category') as any || '',
     genre: searchParams.get('genre') || '',
     year: searchParams.get('year') || '',
   })
@@ -33,7 +32,6 @@ export const SeriesList = () => {
       page,
       page_size: 20,
       ...(filters.status_jp && { status_jp: filters.status_jp }),
-      ...(filters.category && { category: filters.category }),
       ...(filters.genre && { genre: filters.genre }),
       ...(filters.year && { year: filters.year }),
     }),
