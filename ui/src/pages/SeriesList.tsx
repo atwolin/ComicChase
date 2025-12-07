@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useSeriesList } from '@/hooks/useSeries'
 import { SeriesCard } from '@/components/SeriesCard'
@@ -12,11 +12,14 @@ export const SeriesList = () => {
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
   const [ordering, setOrdering] = useState<string>('-id') // 默认按最新更新排序
   const [page, setPage] = useState(1)
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [filters, setFilters] = useState<FilterOptions>({
     status_jp: searchParams.get('status_jp') as any || '',
     genre: searchParams.get('genre') || '',
     year: searchParams.get('year') || '',
   })
+
+  const filterRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const searchParam = searchParams.get('search')
@@ -24,6 +27,23 @@ export const SeriesList = () => {
       setSearchQuery(searchParam)
     }
   }, [searchParams])
+
+  // 點擊外部關閉篩選面板
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFilterOpen(false)
+      }
+    }
+
+    if (isFilterOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isFilterOpen])
 
   const params = useMemo(
     () => ({
@@ -91,12 +111,29 @@ export const SeriesList = () => {
 
   const totalPages = Math.ceil(data.count / 20)
 
+  const hasActiveFilters = Object.values(filters).some((v) => v && v !== '')
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="container mx-auto px-4 py-8">
-        {/* 搜索栏 - 最上面 */}
-        <div className="mb-6">
-          <SearchBar onSearch={handleSearch} initialValue={searchQuery} />
+        {/* 搜尋攔 - 最上面 */}
+        <div className="mb-6 relative" ref={filterRef}>
+          <SearchBar
+            onSearch={handleSearch}
+            initialValue={searchQuery}
+            onFilterClick={() => setIsFilterOpen(!isFilterOpen)}
+            hasActiveFilters={hasActiveFilters}
+          />
+          <div className="relative">
+            <FilterPanel
+              filters={filters}
+              onFilterChange={handleFilterChange}
+              onReset={handleResetFilters}
+              isOpen={isFilterOpen}
+              onToggle={() => setIsFilterOpen(!isFilterOpen)}
+              position="absolute"
+            />
+          </div>
         </div>
 
         <div className="mb-8">
@@ -104,12 +141,6 @@ export const SeriesList = () => {
             <span className="w-1 h-10 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"></span>
             漫畫列表
           </h1>
-
-          <FilterPanel
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            onReset={handleResetFilters}
-          />
 
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
             <div className="flex items-center gap-2">
