@@ -2,7 +2,7 @@
   "name": "comic-chase-root",
   "version": "1.0.0",
   "scripts": {
-    "start-all": "DB_HOST=localhost concurrently \"python./app/src/manage.py runserver\" \"npm run dev --prefix ui\""
+    "start-all": "DB_HOST=localhost concurrently \"python ./app/src/manage.py runserver\" \"npm run dev --prefix ui\""
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
