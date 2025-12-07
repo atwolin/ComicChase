@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Publisher, Series, Volume
+from .models import Publisher, Series, UserCollection, Volume
 
 
 @admin.register(Publisher)
@@ -21,11 +21,39 @@ class VolumeInline(admin.TabularInline):
 
 @admin.register(Series)
 class SeriesAdmin(admin.ModelAdmin):
-    list_display = ("title_tw", "title_jp", "status_jp", "latest_volume_tw_display")
-    list_filter = ("status_jp",)
+    list_display = (
+        "title_tw",
+        "title_jp",
+        "status_jp",
+        "first_published_year",
+        "latest_volume_tw_display",
+    )
+    list_filter = ("status_jp", "first_published_year")
     search_fields = ("title_jp", "title_tw", "author_jp", "author_tw")
     autocomplete_fields = ["latest_volume_jp", "latest_volume_tw"]
     inlines = [VolumeInline]
+    fieldsets = (
+        (
+            "基本資訊",
+            {
+                "fields": (
+                    "title_jp",
+                    "title_tw",
+                    "author_jp",
+                    "author_tw",
+                    "status_jp",
+                )
+            },
+        ),
+        (
+            "分類與類型",
+            {"fields": ("genres", "first_published_year")},
+        ),
+        (
+            "最新單行本",
+            {"fields": ("latest_volume_jp", "latest_volume_tw")},
+        ),
+    )
 
     @admin.display(description="最新單行本 (台)")
     def latest_volume_tw_display(self, obj):
@@ -53,3 +81,12 @@ class VolumeAdmin(admin.ModelAdmin):
         (None, {"fields": ("series", "region", "volume_number", "variant")}),
         ("出版詳細資料", {"fields": ("publisher", "release_date", "isbn")}),
     )
+
+
+@admin.register(UserCollection)
+class UserCollectionAdmin(admin.ModelAdmin):
+    list_display = ("user", "series", "created_at")
+    list_filter = ("created_at",)
+    search_fields = ("user__username", "series__title_jp", "series__title_tw")
+    autocomplete_fields = ["user", "series"]
+    readonly_fields = ("created_at",)

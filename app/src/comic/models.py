@@ -38,11 +38,25 @@ class Series(models.Model):
         COMPLETED = "completed", _("已完結")
         HIATUS = "hiatus", _("休刊中")
 
+    class Genre(models.TextChoices):
+        ACTION = "action", _("動作")
+        ADVENTURE = "adventure", _("冒險")
+        COMEDY = "comedy", _("喜劇")
+        DRAMA = "drama", _(" drama")
+        FANTASY = "fantasy", _("奇幻")
+        HORROR = "horror", _("恐怖")
+        MYSTERY = "mystery", _("懸疑")
+        ROMANCE = "romance", _("戀愛")
+        SCI_FI = "sci_fi", _("科幻")
+        SLICE_OF_LIFE = "slice_of_life", _("日常")
+        SPORTS = "sports", _("運動")
+        SUPERNATURAL = "supernatural", _("超自然")
+
     title_jp = models.CharField(_("原名"), max_length=255, db_index=True, unique=True)
     title_tw = models.CharField(
         _("譯名"), max_length=255, db_index=True, null=True, blank=True
     )
-    author_jp = models.CharField(_("作者原名"), max_length=100)
+    author_jp = models.CharField(_("作者原名"), max_length=100, null=True, blank=True)
     author_tw = models.CharField(
         _("作者譯名"),
         max_length=100,
@@ -54,6 +68,20 @@ class Series(models.Model):
         max_length=10,
         choices=JapanStatus.choices,
         default=JapanStatus.ONGOING,
+        db_index=True,
+    )
+    genres = models.CharField(
+        _("類型"),
+        max_length=255,
+        blank=True,
+        help_text=_("多個類型用逗號分隔，例如：action,adventure,fantasy"),
+    )
+    first_published_year = models.PositiveIntegerField(
+        _("出版年份"),
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text=_("漫畫出版的年份"),
     )
 
     latest_volume_jp = models.ForeignKey(
@@ -80,6 +108,42 @@ class Series(models.Model):
 
     def __str__(self):
         return self.title_tw or self.title_jp
+
+    def get_genres_list(self):
+        """返回類型列表"""
+        if not self.genres:
+            return []
+        return [g.strip() for g in self.genres.split(",") if g.strip()]
+
+
+class UserCollection(models.Model):
+    """
+    用戶收藏 Model
+    """
+
+    user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.CASCADE,
+        related_name="collections",
+        verbose_name=_("用戶"),
+    )
+    series = models.ForeignKey(
+        Series,
+        on_delete=models.CASCADE,
+        related_name="collected_by",
+        verbose_name=_("漫畫系列"),
+    )
+    created_at = models.DateTimeField(_("收藏時間"), auto_now_add=True)
+    notes = models.TextField(_("備註"), blank=True)
+
+    class Meta:
+        verbose_name = _("用戶收藏")
+        verbose_name_plural = _("用戶收藏")
+        unique_together = [["user", "series"]]
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.series}"
 
 
 class Volume(models.Model):

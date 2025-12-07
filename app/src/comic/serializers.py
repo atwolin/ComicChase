@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Publisher, Series, Volume
+from .models import Publisher, Series, UserCollection, Volume
 
 
 class PublisherSerializer(serializers.ModelSerializer):
@@ -39,9 +39,13 @@ class SeriesListSerializer(serializers.ModelSerializer):
     漫畫清單的序列化器
     """
 
-    traditional_chinese_title = serializers.CharField(source="title_tw")
+    traditional_chinese_title = serializers.CharField(
+        source="title_tw", allow_null=True
+    )
     japanese_title = serializers.CharField(source="title_jp")
     status_japan = serializers.CharField(source="status_jp")
+    genres = serializers.SerializerMethodField()
+    first_published_year = serializers.IntegerField(required=False, allow_null=True)
 
     author = serializers.SerializerMethodField()
 
@@ -53,10 +57,15 @@ class SeriesListSerializer(serializers.ModelSerializer):
             "japanese_title",
             "author",
             "status_japan",
+            "genres",
+            "first_published_year",
         ]
 
     def get_author(self, obj):
         return obj.author_tw or obj.author_jp
+
+    def get_genres(self, obj):
+        return obj.get_genres_list()
 
 
 class SeriesDetailSerializer(SeriesListSerializer):
@@ -81,3 +90,30 @@ class SeriesDetailSerializer(SeriesListSerializer):
             "latest_volume_tw_number",
             "volumes",
         ]
+
+
+class UserCollectionSerializer(serializers.ModelSerializer):
+    """
+    用戶收藏序列化器
+    """
+
+    series = SeriesListSerializer(read_only=True)
+    series_id = serializers.IntegerField(write_only=True)
+
+    class Meta:
+        model = UserCollection
+        fields = ["id", "series", "series_id", "created_at", "notes"]
+        read_only_fields = ["created_at"]
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """
+    用戶序列化器
+    """
+
+    class Meta:
+        from django.contrib.auth.models import User
+
+        model = User
+        fields = ["id", "username", "email", "date_joined"]
+        read_only_fields = ["id", "date_joined"]
