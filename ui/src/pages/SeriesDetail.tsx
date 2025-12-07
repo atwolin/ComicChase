@@ -300,19 +300,19 @@ export const SeriesDetail = () => {
                             <table className="min-w-full divide-y divide-gray-300">
                               <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                                 <tr>
-                                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                                     卷數
                                   </th>
-                                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                                     版本
                                   </th>
-                                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                                     發售日期
                                   </th>
-                                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                                     出版社
                                   </th>
-                                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                                     ISBN
                                   </th>
                                 </tr>
@@ -326,12 +326,12 @@ export const SeriesDetail = () => {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                                       {volume.volume_number || '-'}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <td className="px-6 py-4 whitespace-nowrap text-base text-gray-700">
+                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-base font-medium bg-blue-100 text-blue-800">
                                         {volume.variant || '普通版'}
                                       </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    <td className="px-6 py-4 whitespace-nowrap text-base text-gray-700">
                                       {volume.release_date
                                         ? new Date(volume.release_date).toLocaleDateString(
                                             'zh-TW'

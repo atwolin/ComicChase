@@ -48,13 +48,15 @@ export const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
+          <Link
+            to="/"
+            className="flex items-center gap-3 transition-transform duration-300 hover:scale-105 origin-left"
+          >
             <img
               src="/logo.png"
               alt="ComicChase"
-              className="h-10 w-auto transition-transform duration-300 group-hover:scale-110"
+              className="h-14 w-auto object-contain"
               onError={(e) => {
-                // 如果圖片載入失敗，直接隱藏圖片即可
                 const target = e.target as HTMLImageElement
                 target.style.display = 'none'
               }}
@@ -63,9 +65,7 @@ export const Navbar = () => {
             <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
               ComicChase
             </span>
-         </Link>
-
-
+          </Link>
 
           {/* Navigation Links */}
           <div className="flex items-center gap-1">
