@@ -107,7 +107,7 @@ gcloud storage buckets create gs://${GS_BUCKET_NAME} --location=${REGION}
 echo DATABASE_URL=\"postgres://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@//cloudsql/${PROJECT_ID}:${REGION}:${INSTANCE_NAME}/${DATABASE_NAME}\" > .env
 echo GS_BUCKET_NAME=\"${GS_BUCKET_NAME}\" >> .env
 echo SECRET_KEY=$(cat /dev/urandom | LC_ALL=C tr -dc '[:alpha:]'| fold -w 50 | head -n1) >> .env
-echo DEBUG=True >> .env
+echo DEBUG=False >> .env
 ```
 
 2. Store the secret (name is `application_settings`) in Secret Manager:
