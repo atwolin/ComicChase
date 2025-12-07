@@ -114,9 +114,15 @@ class RegisterView(APIView):
                 {"error": "用戶名已存在"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        user = User.objects.create_user(
-            username=username, password=password, email=email
-        )
+        try:
+            user = User.objects.create_user(
+                username=username, password=password, email=email
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"創建用戶失敗: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response(
             {"message": "註冊成功", "user": UserSerializer(user).data},

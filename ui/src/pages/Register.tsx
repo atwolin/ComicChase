@@ -33,7 +33,31 @@ export const Register = () => {
       await authApi.login({ username, password })
       navigate('/collections')
     } catch (err: any) {
-      setError(err.response?.data?.error || '註冊失敗，請稍後再試')
+      console.error('註冊錯誤:', err)
+      if (err.response) {
+        // 服務器返回錯誤響應
+        const errorData = err.response.data
+        if (errorData?.error) {
+          setError(errorData.error)
+        } else if (errorData?.username) {
+          // Django 驗證錯誤格式
+          setError(Array.isArray(errorData.username) ? errorData.username[0] : errorData.username)
+        } else if (errorData?.password) {
+          setError(Array.isArray(errorData.password) ? errorData.password[0] : errorData.password)
+        } else if (errorData?.email) {
+          setError(Array.isArray(errorData.email) ? errorData.email[0] : errorData.email)
+        } else if (errorData?.detail) {
+          setError(errorData.detail)
+        } else {
+          setError(`註冊失敗: ${JSON.stringify(errorData)}`)
+        }
+      } else if (err.request) {
+        // 請求已發出但沒有收到響應
+        setError('無法連接到服務器，請確認後端服務是否運行')
+      } else {
+        // 其他錯誤
+        setError(err.message || '註冊失敗，請稍後再試')
+      }
     } finally {
       setIsLoading(false)
     }
