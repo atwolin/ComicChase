@@ -127,18 +127,6 @@ SUPERUSER_SECRET_NAME=superuser_password
 echo -n "$(cat /dev/urandom | LC_ALL=C tr -dc '[:alpha:]'| fold -w 30 | head -n1)" | gcloud secrets create ${SUPERUSER_SECRET_NAME} --data-file -
 ```
 
-5. Grant access to the secret to the Cloud Run service account:
-```bash
-PROJECTNUM=$(gcloud projects describe ${PROJECT_ID} --format='value(projectNumber)')
-gcloud secrets add-iam-policy-binding ${SECRET_NAME} \
-    --member serviceAccount:${PROJECTNUM}-compute@developer.gserviceaccount.com \
-    --role roles/secretmanager.secretAccessor
-
-gcloud secrets add-iam-policy-binding ${SUPERUSER_SECRET_NAME} \
-    --member serviceAccount:${PROJECTNUM}-compute@developer.gserviceaccount.com \
-    --role roles/secretmanager.secretAccessor
-```
-
 
 ### Setting minimum permissions
 1. Assign the service account to the service:
@@ -184,6 +172,7 @@ gcloud run deploy comicchase-service \
     --region ${REGION} \
     --image ${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/comicchase-service \
     --add-cloudsql-instances ${PROJECT_ID}:${REGION}:${INSTANCE_NAME} \
+    --service-account ${SERVICE_ACCOUNT} \
     --allow-unauthenticated
 ```
 > Successful output:
