@@ -68,7 +68,7 @@ export const Collections = () => {
             <span className="text-5xl">⭐</span>
             我的收藏
           </h1>
-          <p className="text-gray-600">管理您收藏的漫畫，追蹤閱讀進度</p>
+          <p className="text-gray-600">管理您收藏的漫畫，追蹤進度</p>
         </div>
 
         {/* Search Bar - 小尺寸 */}

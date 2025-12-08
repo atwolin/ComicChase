@@ -75,26 +75,26 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
 
 class UserCollectionViewSet(viewsets.ModelViewSet):
     """
-    用戶收藏 ViewSet
+    使用者收藏 ViewSet
     """
 
     serializer_class = UserCollectionSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        """只返回當前用戶的收藏"""
+        """只返回目前使用者的收藏"""
         return UserCollection.objects.filter(user=self.request.user).select_related(
             "series"
         )
 
     def perform_create(self, serializer):
-        """創建收藏時自動設置用戶"""
+        """建立收藏時自動設置使用者"""
         serializer.save(user=self.request.user)
 
 
 class RegisterView(APIView):
     """
-    用戶註冊視圖
+    使用者註冊
     """
 
     permission_classes = []
@@ -106,12 +106,13 @@ class RegisterView(APIView):
 
         if not username or not password:
             return Response(
-                {"error": "用戶名和密碼是必需的"}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "使用者名字和密碼是必需的"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if User.objects.filter(username=username).exists():
             return Response(
-                {"error": "用戶名已存在"}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "使用者名字已存在"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         try:
@@ -120,7 +121,7 @@ class RegisterView(APIView):
             )
         except Exception as e:
             return Response(
-                {"error": f"創建用戶失敗: {str(e)}"},
+                {"error": f"建立使用者失敗: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -132,7 +133,7 @@ class RegisterView(APIView):
 
 class CurrentUserView(APIView):
     """
-    獲取當前用戶訊息
+    顯示目前使用者的資訊
     """
 
     permission_classes = [IsAuthenticated]

@@ -45,7 +45,7 @@ export interface SeriesListParams {
   year?: number | string
 }
 
-// 用戶資料
+// 使用者資料
 export interface User {
   id: number
   username: string
@@ -53,7 +53,7 @@ export interface User {
   date_joined: string
 }
 
-// 用戶收藏的漫畫系列
+// 使用者收藏的漫畫系列
 export interface UserCollection {
   id: number
   series: Series

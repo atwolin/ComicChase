@@ -118,14 +118,14 @@ class Series(models.Model):
 
 class UserCollection(models.Model):
     """
-    用戶收藏 Model
+    使用者收藏 Model
     """
 
     user = models.ForeignKey(
         "auth.User",
         on_delete=models.CASCADE,
         related_name="collections",
-        verbose_name=_("用戶"),
+        verbose_name=_("使用者"),
     )
     series = models.ForeignKey(
         Series,
@@ -137,8 +137,9 @@ class UserCollection(models.Model):
     notes = models.TextField(_("備註"), blank=True)
 
     class Meta:
-        verbose_name = _("用戶收藏")
-        verbose_name_plural = _("用戶收藏")
+        verbose_name = _("使用者收藏")
+        verbose_name_plural = _("收藏")
+        verbose_name_plural = _("使用者收藏")
         unique_together = [["user", "series"]]
         ordering = ["-created_at"]
 

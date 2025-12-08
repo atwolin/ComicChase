@@ -78,7 +78,7 @@ export const seriesApi = {
 
 export const authApi = {
   /**
-   * 用戶註冊
+   * 使用者註冊
    */
   register: async (data: RegisterData): Promise<{ message: string; user: User }> => {
     const response = await apiClient.post('/auth/register/', data)
@@ -86,7 +86,7 @@ export const authApi = {
   },
 
   /**
-   * 用戶登錄
+   * 使用者登錄
    */
   login: async (data: LoginData): Promise<LoginResponse> => {
     const response = await apiClient.post<LoginResponse>('/auth/login/', data)
@@ -97,7 +97,7 @@ export const authApi = {
   },
 
   /**
-   * 獲取當前用戶資訊
+   * 獲取目前使用者資訊
    */
   getCurrentUser: async (): Promise<User> => {
     const response = await apiClient.get<User>('/auth/me/')
@@ -122,7 +122,7 @@ export const authApi = {
 
 export const collectionApi = {
   /**
-   * 獲取用戶收藏列表
+   * 獲取使用者收藏列表
    */
   getCollections: async (): Promise<{ results: UserCollection[] }> => {
     const response = await apiClient.get<{ results: UserCollection[] }>('/collections/')

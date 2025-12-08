@@ -21,7 +21,7 @@ export const Login = () => {
       await authApi.login({ username, password })
       navigate('/collections')
     } catch (err: any) {
-      setError(err.response?.data?.detail || '登錄失敗，請檢查用戶名和密碼')
+      setError(err.response?.data?.detail || '登錄失敗，請檢查使用者名稱和密碼')
     } finally {
       setIsLoading(false)
     }
@@ -41,7 +41,7 @@ export const Login = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                用戶名
+                使用者名稱
               </label>
               <input
                 id="username"
@@ -50,7 +50,7 @@ export const Login = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="請輸入用戶名"
+                placeholder="請輸入使用者名稱"
               />
             </div>
 

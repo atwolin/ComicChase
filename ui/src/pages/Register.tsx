@@ -69,7 +69,7 @@ export const Register = () => {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">註冊</h1>
-            <p className="text-gray-600">創建您的 ComicChase 帳號</p>
+            <p className="text-gray-600">建立您的 ComicChase 帳號</p>
           </div>
 
           {error && (
@@ -81,7 +81,7 @@ export const Register = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                用戶名
+                使用者名稱
               </label>
               <input
                 id="username"
@@ -90,7 +90,7 @@ export const Register = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="請輸入用戶名"
+                placeholder="請輸入使用者名稱"
               />
             </div>
 

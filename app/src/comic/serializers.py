@@ -94,7 +94,7 @@ class SeriesDetailSerializer(SeriesListSerializer):
 
 class UserCollectionSerializer(serializers.ModelSerializer):
     """
-    用戶收藏序列化器
+    使用者收藏序列化器
     """
 
     series = SeriesListSerializer(read_only=True)
@@ -108,7 +108,7 @@ class UserCollectionSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     """
-    用戶序列化器
+    使用者序列化器
     """
 
     class Meta:

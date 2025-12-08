@@ -85,14 +85,14 @@ class SeriesAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_readonly_permission_allows_anonymous_get(self):
-        """測試未認證用戶可以唯讀"""
+        """測試未認證的使用者可以唯讀"""
         url = reverse("comics-list")
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_write_operation_denied_for_anonymous(self):
-        """測試未認證用戶無法進行寫入操作"""
+        """測試未認證的使用者無法進行寫入操作"""
         url = reverse("comics-list")
         payload = {
             "title_jp": "新作品",
@@ -111,7 +111,7 @@ class SeriesAPITests(APITestCase):
         self.assertIn(
             response_anonymous.status_code,
             [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN],
-            f"匿名用戶應該被拒絕，但收到了: {response_anonymous.status_code}",
+            f"匿名使用者應該被拒絕，但收到了: {response_anonymous.status_code}",
         )
 
         # --- 第二部分：測試已認證使用者 (Authenticated) ---
@@ -127,5 +127,5 @@ class SeriesAPITests(APITestCase):
         self.assertEqual(
             response_authenticated.status_code,
             status.HTTP_201_CREATED,
-            f"已認證用戶應該能建立資料，但失敗了: {response_authenticated.data}",
+            f"已認證的使用者應該能建立資料，但失敗了: {response_authenticated.data}",
         )
