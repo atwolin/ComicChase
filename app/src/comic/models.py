@@ -42,7 +42,7 @@ class Series(models.Model):
         ACTION = "action", _("動作")
         ADVENTURE = "adventure", _("冒險")
         COMEDY = "comedy", _("喜劇")
-        DRAMA = "drama", _(" drama")
+        DRAMA = "drama", _("劇情")
         FANTASY = "fantasy", _("奇幻")
         HORROR = "horror", _("恐怖")
         MYSTERY = "mystery", _("懸疑")
