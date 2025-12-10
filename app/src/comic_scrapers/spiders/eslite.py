@@ -204,7 +204,7 @@ class EsliteSpider(scrapy.Spider):
                 )
 
         # Get book detail urls
-        urls_xpath = "//a[@class='item-image-url']"
+        urls_xpath = "//div[@class='item-wording-wrap']//a[@data-gid='title-link']"
         urls = None
         volume_release_date_xpath = "//div[@class='product-date mr-1']"
         volume_release_dates = None
