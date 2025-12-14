@@ -1,6 +1,7 @@
 # ComicChase - 前端 (UI)
 
-這是 ComicChase 專案的前端應用程式，一個使用 React 和 Vite 建構的現代化單頁應用 (SPA)。它負責提供使用者介面，讓使用者可以瀏覽、搜尋和查看漫畫的出版資訊。
+這是 ComicChase 專案的前端應用程式，一個使用 React 和 Vite 建構的現代化單頁應用 (SPA)。
+它負責提供使用者介面，讓使用者可以瀏覽、搜尋和查看漫畫的出版資訊。
 
 ## ✨ 主要功能
 
@@ -29,7 +30,7 @@
 ### 1. 環境需求
 
 - Node.js (建議版本 `v18.x` 或更高)
-- pnpm (或 `npm` / `yarn`)
+- npm (或 `npm` / `yarn`)
 
 ### 2. 安裝依賴
 
@@ -37,12 +38,13 @@
 
 ```bash
 cd ui
-pnpm install
+npm install
 ```
 
 ### 3. 設定環境變數
 
-前端應用程式在開發模式下，會透過代理 (Proxy) 將 API 請求轉發至後端服務。此設定已在 `vite.config.ts` 中完成，預設後端位址為 `http://localhost:8000`。
+前端應用程式在開發模式下，會透過代理 (Proxy) 將 API 請求轉發至後端服務。
+此設定已在 `vite.config.ts` 中完成，預設後端位址為 `http://localhost:8000`。
 
 如果您需要為生產環境打包，或後端位址不同，請在 `ui` 目錄下建立一個名為 `.env.local` 的檔案，並設定 API 的 URL。
 
@@ -58,7 +60,7 @@ VITE_API_BASE_URL=http://localhost:8000/api
 執行以下指令來啟動 Vite 開發伺服器。
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
 應用程式現在應該會在 `http://localhost:3000` (根據 `vite.config.ts` 的設定) 上運行。伺服器支援熱模組替換 (HMR)，任何程式碼的變更都會即時反映在瀏覽器上。
@@ -67,11 +69,11 @@ pnpm dev
 
 在 `ui/package.json` 中定義了以下主要腳本：
 
-- `pnpm dev`: 啟動開發伺服器。
-- `pnpm build`: 將專案打包成用於生產環境的靜態檔案，輸出到 `dist` 目錄。
-- `pnpm preview`: 在本地預覽生產環境打包後的成果。
-- `pnpm test`: 執行 Vitest 單元測試。
-- `pnpm lint`: 使用 ESLint 檢查程式碼風格。
+- `npm run dev`: 啟動開發伺服器。
+- `npm run build`: 將專案打包成用於生產環境的靜態檔案，輸出到 `dist` 目錄。
+- `npm run preview`: 在本地預覽生產環境打包後的成果。
+- `npm run test`: 執行 Vitest 單元測試。
+- `npm run lint`: 使用 ESLint 檢查程式碼風格。
 
 ## 📁 專案結構
 
