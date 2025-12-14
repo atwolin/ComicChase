@@ -14,7 +14,9 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+lib/*
+# 但允許追蹤 lib 目錄下的特定檔案
+!lib/react-query.ts
 lib64/
 parts/
 sdist/
