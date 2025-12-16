@@ -12,14 +12,24 @@ services:
     ports:
       - "5432:5432"
 
-  web:
+  selenium:
+    image: selenium/standalone-chrome:136.0
+    restart: unless-stopped
+    hostname: selenium
+    ports:
+      - "4444:4444"
+
+
+  backend:
     build:
       context: .
       dockerfile: ./app/Dockerfile
-    command: ["/code/wait-for-it.sh", "db:5432", "--", "python", "/code/manage.py", "runserver", "0.0.0.0:8000"]
+    command: [
+      "/code/app/wait-for-it.sh", "db:5432", "--",
+      "python", "/code/app/manage.py", "runserver", "0.0.0.0:8000", "--settings=config.settings.local"]
     restart: no
     volumes:
-      - ./app/src:/code
+      - ./app/src:/code/app
     ports:
       - "8000:8000"
     env_file:
@@ -27,30 +37,6 @@ services:
     depends_on:
       - db
 
-  selenium:
-    image: selenium/standalone-chrome:latest
-    restart: no
-    hostname: selenium
-    ports:
-      - "4444:4444"
-    volumes:
-      - /dev/shm:/dev/shm
-
-  scrapy:
-    build:
-      context: .
-      dockerfile: ./app/Dockerfile
-    working_dir: /code/comic_scrapers
-    command: ["/code/wait-for-it.sh", "db:5432", "--", "tail", "-f", "/dev/null"]
-    env_file:
-      - ./.env
-    depends_on:
-      - db
-      - selenium
-    stdin_open: true
-    tty: true
-    volumes:
-      - ./app/src:/code
 
   # Uncomment when frontend is ready
   # ui:
@@ -60,7 +46,7 @@ services:
   #   ports:
   #     - "80:80"
   #   depends_on:
-  #     - web
+  #     - backend
   #   restart: no
 
 volumes:

@@ -127,7 +127,7 @@ class ComicScrapersPipeline:
         volume_number = None
 
         # Volume is special edition if "(特裝版)" found
-        if parts[-1] in ["(特裝版)", "(首刷限定版)"]:
+        if "版" in parts[-1]:
             variant = parts[-1].strip("()")
             parts = parts[:-1]
         # Volume is final if "(完)" or "(全)" found

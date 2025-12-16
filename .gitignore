@@ -155,6 +155,7 @@ activemq-data/
 
 # Environments
 .env
+.env.prod
 .envrc
 .venv
 env/
@@ -234,3 +235,11 @@ npm-debug.log
 yarn-error.log
 .npm
 .yarn
+
+# Django static files
+static/
+staticfiles/
+media/
+
+# SSL keys
+app/src/ssl/*.key
