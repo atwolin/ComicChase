@@ -40,25 +40,34 @@ services:
       retries: 3
       start_period: 40s
 
-  # Uncomment when frontend is ready
-  # ui:
-  #   build:
-  #     context: ./ui
-  #     dockerfile: Dockerfile
-  #   restart: no
+  ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile.prod
+      args:
+        USER_ID: ${UID}
+        GROUP_ID: ${GID}
+        VITE_API_BASE_URL: /api
+    restart: unless-stopped
+    expose:
+      - "80"
+    depends_on:
+      - backend
 
   nginx:
     image: nginx:1.28.0
     restart: unless-stopped
     ports:
-      - "80:80"  # HTTP
-      - "443:443"  # HTTPS
+      - "8080:80"  # HTTP
+      - "8443:443"  # HTTPS
     volumes:
       - ./app/src/config/nginx:/etc/nginx/templates
       - ./app/src/ssl:/code/app/ssl:ro
       - static_volume:/code/app/staticfiles:ro
     depends_on:
       - backend
+      - ui
+
 volumes:
   postgres_data:
   static_volume:
