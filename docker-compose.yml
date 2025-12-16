@@ -19,7 +19,6 @@ services:
     ports:
       - "4444:4444"
 
-
   backend:
     build:
       context: .
@@ -37,17 +36,28 @@ services:
     depends_on:
       - db
 
-
-  # Uncomment when frontend is ready
-  # ui:
-  #   build:
-  #     context: ./ui
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "80:80"
-  #   depends_on:
-  #     - backend
-  #   restart: no
+  ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    restart: no
+    volumes:
+      - ./ui/src:/code/ui/src
+      - ./ui/config:/code/ui/config
+      - ./ui/public:/code/ui/public
+      - ./ui/index.html:/code/ui/index.html
+      - ./ui/vite.config.ts:/code/ui/vite.config.ts
+      - ./ui/tailwind.config.js:/code/ui/tailwind.config.js
+      - ./ui/postcss.config.js:/code/ui/postcss.config.js
+      - ./ui/tsconfig.json:/code/ui/tsconfig.json
+      - ./ui/vite-env.d.ts:/code/ui/vite-env.d.ts
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_BASE_URL=/api
+      - VITE_PROXY_TARGET=http://backend:8000
 
 volumes:
   postgres_data:
