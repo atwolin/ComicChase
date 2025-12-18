@@ -1,5 +1,6 @@
 import { useState, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { buildSeriesSearchUrl } from '@/constants/routes'
 
 interface SearchBarProps {
   onSearch?: (query: string) => void
@@ -18,7 +19,7 @@ export const SearchBar = ({
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (navigateOnSearch && query.trim()) {
-      navigate(`/series?search=${encodeURIComponent(query.trim())}`)
+      navigate(buildSeriesSearchUrl(query))
     } else if (onSearch) {
       onSearch(query)
     }
@@ -30,7 +31,7 @@ export const SearchBar = ({
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={e => setQuery(e.target.value)}
           placeholder="搜尋漫畫標題或作者..."
           className="w-full px-4 py-3 pl-12 pr-20 bg-white/95 backdrop-blur-sm border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent shadow-lg text-gray-900 placeholder-gray-500"
         />
@@ -59,7 +60,12 @@ export const SearchBar = ({
               }}
               className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"

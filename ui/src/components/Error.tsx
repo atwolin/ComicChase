@@ -3,7 +3,10 @@ interface ErrorProps {
   onRetry?: () => void
 }
 
-export const Error = ({ message = '發生錯誤，請稍後再試', onRetry }: ErrorProps) => {
+export const ErrorDisplay = ({
+  message = '發生錯誤，請稍後再試',
+  onRetry,
+}: ErrorProps) => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4">
       <div className="text-red-600 mb-4">
@@ -33,5 +36,3 @@ export const Error = ({ message = '發生錯誤，請稍後再試', onRetry }: E
     </div>
   )
 }
-
-

@@ -1,11 +1,27 @@
 repos:
-  # Ruff (Linter & Formatter)
+  # Ruff for backend
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.4.4
     hooks:
       - id: ruff
         args: [--fix]  # Automatically fix small issues
       - id: ruff-format
+
+  # ESLint and Prettier for frontend
+  - repo: local
+    hooks:
+      - id: eslint
+        name: eslint
+        entry: bash -c 'cd ui && npm run lint:fix'
+        language: system
+        files: ^ui/.*\.(ts|tsx)$
+        pass_filenames: false
+      - id: prettier
+        name: prettier
+        entry: bash -c 'cd ui && npm run format'
+        language: system
+        files: ^ui/.*\.(ts|tsx|css|json)$
+        pass_filenames: false
 
   # - repo: local
   #   hooks:

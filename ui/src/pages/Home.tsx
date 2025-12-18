@@ -2,15 +2,16 @@ import { Link } from 'react-router-dom'
 import { SeriesCard } from '@/components/SeriesCard'
 import { SearchBar } from '@/components/SearchBar'
 import { Loading } from '@/components/Loading'
-import { Error } from '@/components/Error'
+import { ErrorDisplay } from '@/components/Error'
 import { useSeriesList } from '@/hooks/useSeries'
+import { ROUTES } from '@/constants/routes'
 
 export const Home = () => {
   const {
     data: latestData,
     isLoading: latestLoading,
     isError: latestError,
-    refetch: retryLatest
+    refetch: retryLatest,
   } = useSeriesList({
     ordering: '-id',
     page: 1,
@@ -46,7 +47,7 @@ export const Home = () => {
               最新更新
             </h2>
             <Link
-              to="/series"
+              to={ROUTES.SERIES_LIST}
               className="text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1 transition-colors"
             >
               查看全部
@@ -70,17 +71,18 @@ export const Home = () => {
             <Loading />
           ) : latestError ? (
             // 如果發生錯誤，顯示 Error 並傳入重試函式
-            <Error message="無法載入最新漫畫，請檢查網路連線" onRetry={retryLatest} />
+            <ErrorDisplay
+              message="無法載入最新漫畫，請檢查網路連線"
+              onRetry={retryLatest}
+            />
           ) : latestData?.results && latestData.results.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {latestData.results.slice(0, 8).map((series) => (
+              {latestData.results.slice(0, 8).map(series => (
                 <SeriesCard key={series.id} series={series} />
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 text-gray-500">
-              暫無最新更新
-            </div>
+            <div className="text-center py-12 text-gray-500">暫無最新更新</div>
           )}
         </section>
       </div>

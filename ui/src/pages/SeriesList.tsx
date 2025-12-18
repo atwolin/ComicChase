@@ -3,19 +3,20 @@ import { useSearchParams } from 'react-router-dom'
 import { SeriesCard } from '@/components/SeriesCard'
 import { SearchBar } from '@/components/SearchBar'
 import { Loading } from '@/components/Loading'
-import { Error } from '@/components/Error'
+import { ErrorDisplay } from '@/components/Error'
 import { useSeriesList } from '@/hooks/useSeries'
 
 export const SeriesList = () => {
   const [searchParams, setSearchParams] = useSearchParams()
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
+  const [searchQuery, setSearchQuery] = useState(
+    searchParams.get('search') || ''
+  )
   const [page, setPage] = useState(1)
 
   useEffect(() => {
     const searchParam = searchParams.get('search')
-    if (searchParam !== null) {
-      setSearchQuery(searchParam)
-    }
+    setSearchQuery(searchParam ?? '')
+    setPage(1)
   }, [searchParams])
 
   const params = useMemo(
@@ -45,7 +46,7 @@ export const SeriesList = () => {
   }
 
   if (error) {
-    return <Error message="無法載入漫畫列表" onRetry={() => refetch()} />
+    return <ErrorDisplay message="無法載入漫畫列表" onRetry={() => refetch()} />
   }
 
   if (!data) {
@@ -59,10 +60,7 @@ export const SeriesList = () => {
       <div className="container mx-auto px-4 py-8">
         {/* 搜尋攔 - 最上面 */}
         <div className="mb-6 relative">
-          <SearchBar
-            onSearch={handleSearch}
-            initialValue={searchQuery}
-          />
+          <SearchBar onSearch={handleSearch} initialValue={searchQuery} />
         </div>
 
         <div className="mb-8">
@@ -72,9 +70,7 @@ export const SeriesList = () => {
           </h1>
 
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-            <div className="text-sm text-gray-600">
-              共 {data.count} 部漫畫
-            </div>
+            <div className="text-sm text-gray-600">共 {data.count} 部漫畫</div>
           </div>
         </div>
 
@@ -85,7 +81,7 @@ export const SeriesList = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-              {data.results.map((series) => (
+              {data.results.map(series => (
                 <SeriesCard key={series.id} series={series} />
               ))}
             </div>
@@ -93,7 +89,7 @@ export const SeriesList = () => {
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-2">
                 <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
                   className="px-4 py-2 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors shadow-sm"
                 >
@@ -103,7 +99,7 @@ export const SeriesList = () => {
                   第 {page} 頁 / 共 {totalPages} 頁
                 </span>
                 <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
                   className="px-4 py-2 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors shadow-sm"
                 >

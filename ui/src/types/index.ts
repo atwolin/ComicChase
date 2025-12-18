@@ -26,6 +26,7 @@ export interface Series {
   latest_volume_jp_number?: number | null
   latest_volume_tw_number?: number | null
   volumes?: Volume[]
+  cover_image?: string | null
 }
 
 export interface SeriesListResponse {

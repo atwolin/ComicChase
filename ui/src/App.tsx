@@ -5,6 +5,7 @@ import { Navbar } from '@/components/Navbar'
 import { Home } from '@/pages/Home'
 import { SeriesList } from '@/pages/SeriesList'
 import { SeriesDetail } from '@/pages/SeriesDetail'
+import { ROUTES } from '@/constants/routes'
 
 function App() {
   return (
@@ -14,8 +15,8 @@ function App() {
           <Navbar />
           <main>
             <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/series" element={<SeriesList />} />
+              <Route path={ROUTES.HOME} element={<Home />} />
+              <Route path={ROUTES.SERIES_LIST} element={<SeriesList />} />
               <Route path="/series/:id" element={<SeriesDetail />} />
             </Routes>
           </main>
@@ -26,4 +27,3 @@ function App() {
 }
 
 export default App
-

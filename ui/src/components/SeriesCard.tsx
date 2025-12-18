@@ -1,37 +1,30 @@
 import { Link } from 'react-router-dom'
 import type { Series } from '@/types'
 import { clsx } from 'clsx'
+import { ROUTES } from '@/constants/routes'
+
+import {
+  SERIES_STATUS_COLORS as statusColors,
+  SERIES_STATUS_LABELS as statusLabels,
+} from '@/constants/series'
 
 interface SeriesCardProps {
   series: Series
 }
 
-const statusLabels = {
-  ongoing: '連載中',
-  completed: '已完結',
-  hiatus: '休刊中',
-}
-
-const statusColors = {
-  ongoing: 'bg-green-500/20 text-green-700 border-green-500/30',
-  completed: 'bg-gray-500/20 text-gray-700 border-gray-500/30',
-  hiatus: 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30',
-  default: 'bg-gray-200 text-gray-600 border-gray-300', // 加入預設值以防 API 回傳未定義的狀態
-}
-
 export const SeriesCard = ({ series }: SeriesCardProps) => {
   // 定義 imageUrl。
   // 後端還沒做圖片欄位叫做 'cover_image'，暫時設為 null
-  const imageUrl = (series as any).cover_image || null;
+  const imageUrl = series.cover_image || null
 
-  // 取得對應的狀態顏色，如果找不到則使用預設值
-  const statusColor = statusColors[series.status_japan] || statusColors.default;
-  const statusLabel = (statusLabels as any)[series.status_japan] || series.status_japan;
+  // 取得對應的狀態顏色和標籤
+  const statusColor = statusColors[series.status_japan] || statusColors.default
+  const statusLabel = statusLabels[series.status_japan] || series.status_japan
 
   return (
     <Link
-      to={`/series/${series.id}`}
-      className="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-indigo-300"
+      to={ROUTES.SERIES_DETAIL(series.id)}
+      className="block bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden group border border-gray-200 hover:border-indigo-300"
     >
       {/* Cover Image Logic */}
       <div className="w-full h-64 relative flex items-center justify-center overflow-hidden bg-gray-100">
@@ -81,7 +74,11 @@ export const SeriesCard = ({ series }: SeriesCardProps) => {
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
               <span className="text-gray-600">
-                日版：第 <span className="font-semibold text-gray-900">{series.latest_volume_jp_number}</span> 卷
+                日版：第{' '}
+                <span className="font-semibold text-gray-900">
+                  {series.latest_volume_jp_number}
+                </span>{' '}
+                卷
               </span>
             </div>
           )}
@@ -89,7 +86,11 @@ export const SeriesCard = ({ series }: SeriesCardProps) => {
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-blue-500"></span>
               <span className="text-gray-600">
-                台版：第 <span className="font-semibold text-gray-900">{series.latest_volume_tw_number}</span> 卷
+                台版：第{' '}
+                <span className="font-semibold text-gray-900">
+                  {series.latest_volume_tw_number}
+                </span>{' '}
+                卷
               </span>
             </div>
           )}
