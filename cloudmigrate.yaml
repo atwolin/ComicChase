@@ -73,7 +73,7 @@ steps:
           --set-secrets APPLICATION_SETTINGS=${_SECRET_SETTINGS_NAME}:latest \
           --service-account ${_SERVICE_ACCOUNT} \
           --set-env-vars DJANGO_SETTINGS_MODULE=config.settings.cloud \
-          --command python,manage.py,loaddata,assets/test_comic_data.json \
+          --command python,manage.py,loaddata,test_comic_data \
           --execute-now
 
   # - id: "Deploy to Cloud Run"

@@ -22,7 +22,6 @@ COPY ./app/requirements-cloud.txt ./
 RUN pip install --no-cache-dir -r requirements-cloud.txt
 
 COPY ./app/src ./
-COPY ./assets ./assets
 
 RUN chmod +x entrypoint.cloud.sh wait-for-it.sh
 
