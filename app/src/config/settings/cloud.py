@@ -19,17 +19,16 @@ DEBUG = env("DEBUG")
 SECRET_KEY = env("SECRET_KEY")
 
 # Get CORS origins from environment or use defaults
-CORS_ALLOWED_ORIGINS_STR = env("CORS_ALLOWED_ORIGINS", default="")
-if CORS_ALLOWED_ORIGINS_STR:
-    CORS_ALLOWED_ORIGINS = [
-        origin.strip() for origin in CORS_ALLOWED_ORIGINS_STR.split(",")
-    ]
-else:
-    CORS_ALLOWED_ORIGINS = [
-        "http://localhost:3000",
-        "http://127.0.0.1:9000",
-        "https://comicchase.web.app",
-    ]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:9000",
+    "https://comicchase.web.app",
+]
+CORS_EXTRA_ORIGINS_STR = env("CORS_EXTRA_ORIGINS", default="")
+if CORS_EXTRA_ORIGINS_STR:
+    CORS_ALLOWED_ORIGINS.extend(
+        [origin.strip() for origin in CORS_EXTRA_ORIGINS_STR.split(",")]
+    )
 CORS_ALLOW_CREDENTIALS = True
 
 # If defined, add service URLs to Django security settings
