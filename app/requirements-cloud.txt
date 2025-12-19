@@ -1,5 +1,6 @@
 asgiref==3.10.0
 Django==5.2.8
+django-cors-headers==4.9.0
 django-stubs==5.2.7
 django-storages[google]==1.14.6
 django-environ==0.12.0

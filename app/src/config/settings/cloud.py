@@ -8,17 +8,21 @@ from .base import *
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Change this to "False" when you are ready for production
-env = environ.Env(DEBUG=(bool, False))
-env_file = os.path.join(BASE_DIR, ".env.cloud")
+env = environ.Env()
 
 env.read_env(io.StringIO(os.environ.get("APPLICATION_SETTINGS")))
 
+# Default false. True allows default landing pages to be visible
+DEBUG = env("DEBUG")
+
 # Setting this value from django-environ
 SECRET_KEY = env("SECRET_KEY")
-
-# Ensure comic is added to the installed applications
-if "comic" not in INSTALLED_APPS:
-    INSTALLED_APPS.append("comic")
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:9000",
+    "https://www.yourfrontenddomain.com",
+]
+CORS_ALLOW_CREDENTIALS = True
 
 # If defined, add service URLs to Django security settings
 CLOUDRUN_SERVICE_URLS = env("CLOUDRUN_SERVICE_URLS", default=None)
@@ -29,14 +33,12 @@ if CLOUDRUN_SERVICE_URLS:
 else:
     ALLOWED_HOSTS = ["*"]
 
-# Default false. True allows default landing pages to be visible
-DEBUG = env("DEBUG", default=False)
 
 # Set this value from django-environ
 DATABASES = {"default": env.db()}
 
 # Change database settings if using the Cloud SQL Auth Proxy
-if os.getenv("USE_CLOUD_SQL_AUTH_PROXY", None):
+if env("USE_CLOUD_SQL_AUTH_PROXY", None):
     DATABASES["default"]["HOST"] = "127.0.0.1"
     DATABASES["default"]["PORT"] = 5432
 
