@@ -8,30 +8,38 @@ from .base import *
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Change this to "False" when you are ready for production
-env = environ.Env()
+env = environ.Env(DEBUG=(bool, False))
 
-env.read_env(io.StringIO(os.environ.get("APPLICATION_SETTINGS")))
+env.read_env(io.StringIO(os.environ.get("APPLICATION_SETTINGS", "")))
 
 # Default false. True allows default landing pages to be visible
 DEBUG = env("DEBUG")
 
 # Setting this value from django-environ
 SECRET_KEY = env("SECRET_KEY")
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:9000",
-    "https://www.yourfrontenddomain.com",
-]
+
+# Get CORS origins from environment or use defaults
+CORS_ALLOWED_ORIGINS_STR = env("CORS_ALLOWED_ORIGINS", default="")
+if CORS_ALLOWED_ORIGINS_STR:
+    CORS_ALLOWED_ORIGINS = [
+        origin.strip() for origin in CORS_ALLOWED_ORIGINS_STR.split(",")
+    ]
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:9000",
+    ]
 CORS_ALLOW_CREDENTIALS = True
 
 # If defined, add service URLs to Django security settings
 CLOUDRUN_SERVICE_URLS = env("CLOUDRUN_SERVICE_URLS", default=None)
 if CLOUDRUN_SERVICE_URLS:
-    CSRF_TRUSTED_ORIGINS = env("CLOUDRUN_SERVICE_URLS").split(",")
+    CSRF_TRUSTED_ORIGINS = [url.strip() for url in CLOUDRUN_SERVICE_URLS.split(",")]
     # Remove the scheme from URLs for ALLOWED_HOSTS
     ALLOWED_HOSTS = [urlparse(url).netloc for url in CSRF_TRUSTED_ORIGINS]
 else:
     ALLOWED_HOSTS = ["*"]
+    CSRF_TRUSTED_ORIGINS = ["https://*.run.app"]
 
 
 # Set this value from django-environ
