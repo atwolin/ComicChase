@@ -1,0 +1,12 @@
+{
+  "name": "comic-chase-root",
+  "version": "1.0.0",
+  "scripts": {
+    "start-all": "DB_HOST=localhost concurrently \"python ./app/src/manage.py runserver\" \"npm run dev --prefix ui\""
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "concurrently": "^8.2.2"
+  }
+}
