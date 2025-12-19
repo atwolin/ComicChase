@@ -46,7 +46,7 @@ else:
 DATABASES = {"default": env.db()}
 
 # Change database settings if using the Cloud SQL Auth Proxy
-if env("USE_CLOUD_SQL_AUTH_PROXY", None):
+if env("USE_CLOUD_SQL_AUTH_PROXY", default=False):
     DATABASES["default"]["HOST"] = "127.0.0.1"
     DATABASES["default"]["PORT"] = 5432
 
