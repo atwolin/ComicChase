@@ -70,6 +70,7 @@ steps:
           --image ${_IMAGE_NAME} \
           --add-cloudsql-instances ${_CLOUD_SQL_CONNECTION_NAME} \
           --set-secrets APPLICATION_SETTINGS=${_SECRET_SETTINGS_NAME}:latest \
+          --set-env-vars DJANGO_SETTINGS_MODULE=config.settings.cloud \
           --service-account ${_SERVICE_ACCOUNT} \
           --allow-unauthenticated
 
