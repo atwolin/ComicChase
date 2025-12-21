@@ -1,30 +1,5 @@
 [
 {
-  "model": "auth.user",
-  "fields": {
-    "password": "pbkdf2_sha256$1000000$D1YJA6NN5Uk6zC4olctalP$gpb99/bgEGEXHoskSrG/Rg8N66UOOB/9dZeHAaLbVNw=",
-    "last_login": "2025-12-16T04:59:01.049Z",
-    "is_superuser": true,
-    "username": "admin",
-    "first_name": "",
-    "last_name": "",
-    "email": "admin@comicchase.com.tw",
-    "is_staff": true,
-    "is_active": true,
-    "date_joined": "2025-12-16T03:23:42.792Z",
-    "groups": [],
-    "user_permissions": []
-  }
-},
-{
-  "model": "sessions.session",
-  "pk": "eb65iibfp3002qsqrqy21vjonsi5xkbb",
-  "fields": {
-    "session_data": ".eJxVjEEOwiAQRe_C2pDSoSO4dO8ZCDMMUjU0Ke3KeHfbpAvd_vfef6sQ16WEtckcxqQuyqjT70aRn1J3kB6x3ifNU13mkfSu6IM2fZuSvK6H-3dQYitb7QGyuP6cjKAzFqwAIpoB0RFbcDBEoWSp88DQeWH0mXtHJmbaUlafL8KBN64:1vVN9J:VF1Ye3uZSymaoi4JbyLbutEK0nBjqrtr5IasUa4dc1E",
-    "expire_date": "2025-12-30T04:59:01.058Z"
-  }
-},
-{
   "model": "comic.publisher",
   "pk": 1,
   "fields": {
