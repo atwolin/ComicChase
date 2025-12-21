@@ -95,6 +95,7 @@ steps:
 
 options:
   dynamicSubstitutions: true
+  logging: CLOUD_LOGGING_ONLY
 
 substitutions:
   _INSTANCE_NAME: comic-instance
