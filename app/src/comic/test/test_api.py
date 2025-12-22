@@ -99,7 +99,7 @@ class SeriesAPITests(APITestCase):
             "title_tw": "新作品",
             "author_jp": "作者",
             "author_tw": "作者",
-            "status_jp": Series.JapanStatus.RUNNING,
+            "status_jp": Series.JapanStatus.ONGOING,
         }
         # --- 第一部分：測試匿名使用者 (Anonymous) ---
         # 確保沒有登入
