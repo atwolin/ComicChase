@@ -39,8 +39,6 @@ PROJECT_ID=$(gcloud config get-value core/project)
 REGION=us-central1
 ```
 
-TODO: check region
-
 ### Create a service account
 
 1. Create a service account (name is `cloudrun-serviceaccount`):
@@ -65,11 +63,10 @@ INSTANCE_NAME=comic-instance
 gcloud sql instances create ${INSTANCE_NAME} \
     --project ${PROJECT_ID} \
     --database-version POSTGRES_16 \
-    --tier db-f1-micro \
-    --region ${REGION}
+    --tier db-g1-small \
+    --region ${REGION} \
+    --edition ENTERPRISE
 ```
-
-TODO: Check tier
 
 2. Create a database:
 

@@ -9,7 +9,6 @@
     "rewrites": [
       {
         "source": "/api/**",
-        "function": "bypass",
         "run": {
           "serviceId": "comicchase-service",
           "region": "us-central1"

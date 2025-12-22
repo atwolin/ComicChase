@@ -71,7 +71,7 @@ Create `ui/.env.production` file:
 
 ```bash
 cat > .env.production << EOF
-VITE_API_URL=${BACKEND_URL}
+VITE_API_BASE_URL=${BACKEND_URL}
 EOF
 ```
 
@@ -91,7 +91,6 @@ Edit `ui/firebase.json` to add rewrites for SPA routing and API proxy:
     "rewrites": [
       {
         "source": "/api/**",
-        "function": "bypass",
         "run": {
           "serviceId": "comicchase-service",
           "region": "REGION"

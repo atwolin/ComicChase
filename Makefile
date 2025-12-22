@@ -28,10 +28,10 @@ logs: ## View logs of the Docker containers
 
 shell: ## Access the shell of the app container
 	@echo "🐚 Accessing app container shell..."
-	$(COMPOSE) exec web bash
+	$(COMPOSE) exec backend bash
 
 manage: ## Run a Django manage.py command inside the app container. Usage: make manage cmd=<command>
-	$(COMPOSE) exec web python manage.py $(cmd)
+	$(COMPOSE) exec backend python manage.py $(cmd)
 
 clean: ## Remove all Docker containers and volumes
 	@echo "🧹 Cleaning up Docker containers and volumes..."
@@ -45,6 +45,6 @@ help: ## Show this help message
 	@echo "  down    Stop the application"
 	@echo "  build   Rebuild and start the application. Pass options with UP_OPTIONS."
 	@echo "  logs    Follow log output"
-	@echo "  shell   Enter the 'web' container shell"
+	@echo "  shell   Enter the 'backend' container shell"
 	@echo "  manage  Run django manage.py command (e.g., make manage cmd=migrate)"
 	@echo "  clean   Stop and remove containers, networks, and volumes"
