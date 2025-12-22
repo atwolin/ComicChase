@@ -18,7 +18,11 @@ down: ## Stop and remove the Docker containers
 	@echo "🛑 Stopping services..."
 	$(COMPOSE) down
 
-build: ## Build the Docker images. Usage: make build UP_OPTIONS="<options>"
+build: ## Build the Docker images without starting. Usage: make build
+	@echo "🔨 Building Docker images with UID=$(UID) GID=$(GID)..."
+	$(COMPOSE) build
+
+rebuild: ## Rebuild and start the Docker containers. Usage: make rebuild UP_OPTIONS="<options>"
 	@echo "🔨 Building Docker images with UID=$(UID) GID=$(GID)..."
 	$(COMPOSE) up --build -d $(UP_OPTIONS)
 
@@ -43,7 +47,8 @@ help: ## Show this help message
 	@echo "Commands:"
 	@echo "  up      Start the application (detached mode). Pass options with UP_OPTIONS."
 	@echo "  down    Stop the application"
-	@echo "  build   Rebuild and start the application. Pass options with UP_OPTIONS."
+	@echo "  build   Build the Docker images"
+	@echo "  rebuild Rebuild and start the application"
 	@echo "  logs    Follow log output"
 	@echo "  shell   Enter the 'backend' container shell"
 	@echo "  manage  Run django manage.py command (e.g., make manage cmd=migrate)"

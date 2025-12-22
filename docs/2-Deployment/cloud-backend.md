@@ -122,6 +122,15 @@ echo SECRET_KEY=$(cat /dev/urandom | LC_ALL=C tr -dc '[:alpha:]'| fold -w 50 | h
 echo DEBUG=False >> .env
 ```
 
+For SECRET_KEY generation, alternately use cryptographically secure methods:
+```bash
+echo SECRET_KEY=$(python3 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())") >> .env
+```
+or
+```bash
+echo SECRET_KEY=$(openssl rand -base64 32) >> .env
+```
+
 2. Store the secret (name is `application_settings`) in Secret Manager:
 
 ```bash
