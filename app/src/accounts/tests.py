@@ -6,7 +6,7 @@ class CustomUserTests(TestCase):
     def test_create_user(self):
         User = get_user_model()
         user = User.objects.create_user(
-            email="testuser@email.com", password="testpass123"
+            username="testuser", email="testuser@email.com", password="testpass123"
         )
         self.assertEqual(user.username, "testuser")
         self.assertEqual(user.email, "testuser@email.com")
@@ -17,7 +17,7 @@ class CustomUserTests(TestCase):
     def test_create_superuser(self):
         User = get_user_model()
         admin_user = User.objects.create_superuser(
-            email="adminuser@email.com", password="testpass123"
+            username="adminuser", email="adminuser@email.com", password="testpass123"
         )
         self.assertEqual(admin_user.username, "adminuser")
         self.assertEqual(admin_user.email, "adminuser@email.com")
