@@ -62,7 +62,7 @@ class JpComicItem(scrapy.Item):
         title_jp: The title of the comic in Japanese
         author_jp: The author of the comic in Japanese
         publisher_jp: The publisher of the comic in Japan
-        search_url: The URL of the search results page
+        series_name: The series name of the comic
         detail_url: The URL of the book detail page
         product_desc: The product description of the comic
     """
