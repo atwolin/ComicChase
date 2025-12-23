@@ -4,7 +4,10 @@ from django.utils.translation import gettext_lazy as _
 
 class Publisher(models.Model):
     """
-    出版社 Model
+    Represents a publisher of comic books.
+
+    This model stores information about publishers. It is used to associate
+    each comic volume with its publisher.
     """
 
     class Region(models.TextChoices):
@@ -30,7 +33,9 @@ class Publisher(models.Model):
 
 class Series(models.Model):
     """
-    系列漫畫 Model
+    Represents a comic book series.
+
+    This model contains core information about a comic series.
     """
 
     class JapanStatus(models.TextChoices):
@@ -45,6 +50,7 @@ class Series(models.Model):
         _("作者譯名"),
         max_length=100,
         blank=True,
+        default="",
     )
     status_jp = models.CharField(
         _("日本出版狀態"),
@@ -71,8 +77,8 @@ class Series(models.Model):
     )
 
     class Meta:
-        verbose_name = _("系列漫畫")
-        verbose_name_plural = _("系列漫畫")
+        verbose_name = _("系列")
+        verbose_name_plural = _("系列")
         ordering = ["title_tw", "title_jp"]
 
     def __str__(self):
@@ -81,24 +87,23 @@ class Series(models.Model):
 
 class Volume(models.Model):
     """
-    單行本 Model
+    Represents a single volume of a comic book series.
+
+    Each instance corresponds to a specific physical book and stores details.
     """
 
-    # 每一列資料代表一本實體書（不論地區）
     class Region(models.TextChoices):
         JAPAN = "JP", _("Japan")
         TAIWAN = "TW", _("Taiwan")
 
-    # 關聯與卷數
     series = models.ForeignKey(
         Series,
-        verbose_name=_("關聯漫畫"),
+        verbose_name=_("系列"),
         on_delete=models.CASCADE,
         related_name="volumes",
         null=True,
         blank=True,
     )
-
     publisher = models.ForeignKey(
         Publisher,
         verbose_name=_("出版社"),
@@ -108,7 +113,7 @@ class Volume(models.Model):
         blank=True,
     )
 
-    # 基本資訊
+    # Basic volume information
     region = models.CharField(
         _("地區"),
         max_length=2,
@@ -116,12 +121,9 @@ class Volume(models.Model):
         default=Region.JAPAN,
         db_index=True,
     )
-
     volume_number = models.PositiveIntegerField(
         _("卷數"), db_index=True, blank=True, null=True
     )
-
-    # 版本資訊
     variant = models.CharField(
         _("版本備註"),
         max_length=50,
@@ -129,9 +131,6 @@ class Volume(models.Model):
         default="",
         help_text=_("如：特裝版、首刷限定。普通版留空。"),
     )
-
-    # 出版資訊
-    # 刪除 _jp / _tw ，由 region 定義了地區
     release_date = models.DateField(_("發售日期"), null=True, blank=True)
     isbn = models.CharField(_("ISBN"), max_length=13, blank=True, unique=True)
 
@@ -139,8 +138,6 @@ class Volume(models.Model):
         verbose_name = _("單行本")
         verbose_name_plural = _("單行本")
         ordering = ["series", "volume_number", "region", "release_date"]
-
-        # 確保沒重複寫入
         constraints = [
             models.UniqueConstraint(
                 fields=["series", "volume_number", "region", "variant"],
