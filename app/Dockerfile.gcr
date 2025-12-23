@@ -1,6 +1,8 @@
 
 FROM python:3.12-slim
 
+# TODO: Add frontend build stage to copy built files
+
 ARG USER_ID=1000
 ARG GID=1000
 
@@ -16,22 +18,19 @@ RUN groupadd -g $GID docker-users && \
     adduser docker sudo
 
 RUN pip install --upgrade pip
-COPY ./app/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY ./app/requirements-gcr.txt ./
+RUN pip install --no-cache-dir -r requirements-gcr.txt
 
 COPY ./app/src ./
 
-RUN chmod +x entrypoint.prod.sh wait-for-it.sh
-
-# Copy supervisord config
-RUN cp supervisord.conf /etc/supervisord.conf
+RUN chmod +x entrypoint.gcr.sh wait-for-it.sh
 
 # Set ownership and permissions
 RUN chown -R docker:docker-users /code/app
 
 USER docker
 
-ENTRYPOINT [ "/code/app/entrypoint.prod.sh" ]
+ENTRYPOINT [ "/code/app/entrypoint.gcr.sh" ]
 
-# Use supervisord to manage processes (pip installed version is in /usr/local/bin)
-CMD ["/usr/local/bin/supervisord", "-c", "/etc/supervisord.conf"]
+CMD exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 0 config.wsgi:application
+

@@ -51,14 +51,31 @@ if env("USE_CLOUD_SQL_AUTH_PROXY", default=False):
     DATABASES["default"]["PORT"] = 5432
 
 # Define static storage via django-storages[google]
-GS_BUCKET_NAME = env("GS_BUCKET_NAME")
-STATICFILES_DIRS = []
-GS_DEFAULT_ACL = "publicRead"
-STORAGES = {
-    "default": {
-        "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
-    },
-}
+GS_BUCKET_NAME = env("GS_BUCKET_NAME", default="")
+
+# Use GCS only if bucket name is provided, otherwise use local filesystem
+if GS_BUCKET_NAME:
+    STATICFILES_DIRS = []
+    GS_DEFAULT_ACL = "publicRead"
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+        },
+    }
+else:
+    # Local filesystem storage for testing with WhiteNoise
+    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+    # Add WhiteNoise middleware for local testing
+    MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")

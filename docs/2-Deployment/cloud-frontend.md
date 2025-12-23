@@ -48,7 +48,7 @@ BACKEND_URL="https://comicchase-service-${PROJECT_ID}.REGION.run.app"
 cd ui
 
 # Create production build
-npm run build
+npm run build:gcr
 ```
 
 #### 3. Initialize Firebase Hosting
