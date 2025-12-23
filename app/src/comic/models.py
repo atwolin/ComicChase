@@ -44,7 +44,13 @@ class Series(models.Model):
         HIATUS = "hiatus", _("休刊中")
 
     title_jp = models.CharField(_("原名"), max_length=255, db_index=True, unique=True)
-    title_tw = models.CharField(_("譯名"), max_length=255, db_index=True, blank=True)
+    title_tw = models.CharField(
+        _("譯名"),
+        max_length=255,
+        db_index=True,
+        blank=True,
+        default="",
+    )
     author_jp = models.CharField(_("作者原名"), max_length=100)
     author_tw = models.CharField(
         _("作者譯名"),
@@ -132,7 +138,7 @@ class Volume(models.Model):
         help_text=_("如：特裝版、首刷限定。普通版留空。"),
     )
     release_date = models.DateField(_("發售日期"), null=True, blank=True)
-    isbn = models.CharField(_("ISBN"), max_length=13, blank=True, unique=True)
+    isbn = models.CharField(_("ISBN"), max_length=13, blank=True, default="")
 
     class Meta:
         verbose_name = _("單行本")
