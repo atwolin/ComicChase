@@ -35,7 +35,7 @@ steps:
           --service-account ${_SERVICE_ACCOUNT} \
           --set-cloudsql-instances ${_CLOUD_SQL_CONNECTION_NAME} \
           --set-secrets APPLICATION_SETTINGS=${_SECRET_SETTINGS_NAME}:latest \
-          --set-env-vars DJANGO_SETTINGS_MODULE=config.settings.cloud \
+          --set-env-vars DJANGO_SETTINGS_MODULE=config.settings.gcr \
           --command python,manage.py,migrate,--noinput \
           --execute-now
 
@@ -52,7 +52,7 @@ steps:
           --set-cloudsql-instances ${_CLOUD_SQL_CONNECTION_NAME} \
           --set-secrets APPLICATION_SETTINGS=${_SECRET_SETTINGS_NAME}:latest \
           --service-account ${_SERVICE_ACCOUNT} \
-          --set-env-vars DJANGO_SETTINGS_MODULE=config.settings.cloud \
+          --set-env-vars DJANGO_SETTINGS_MODULE=config.settings.gcr \
           --set-env-vars DJANGO_SUPERUSER_USERNAME=${_ADMIN_USERNAME} \
           --set-env-vars DJANGO_SUPERUSER_EMAIL=${_ADMIN_EMAIL} \
           --set-secrets DJANGO_SUPERUSER_PASSWORD=${_ADMIN_PASSWORD_NAME}:latest \
@@ -72,7 +72,7 @@ steps:
           --set-cloudsql-instances ${_CLOUD_SQL_CONNECTION_NAME} \
           --set-secrets APPLICATION_SETTINGS=${_SECRET_SETTINGS_NAME}:latest \
           --service-account ${_SERVICE_ACCOUNT} \
-          --set-env-vars DJANGO_SETTINGS_MODULE=config.settings.cloud \
+          --set-env-vars DJANGO_SETTINGS_MODULE=config.settings.gcr \
           --command python,manage.py,loaddata,test_comic_data \
           --execute-now
 
@@ -87,7 +87,7 @@ steps:
           --image ${_IMAGE_NAME} \
           --add-cloudsql-instances ${_CLOUD_SQL_CONNECTION_NAME} \
           --set-secrets APPLICATION_SETTINGS=${_SECRET_SETTINGS_NAME}:latest \
-          --set-env-vars DJANGO_SETTINGS_MODULE=config.settings.cloud \
+          --set-env-vars DJANGO_SETTINGS_MODULE=config.settings.gcr \
           --service-account ${_SERVICE_ACCOUNT} \
           --timeout 300 \
           --allow-unauthenticated
