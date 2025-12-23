@@ -1,0 +1,20 @@
+# Frontend Dockerfile for ComicChase UI (React + Vite) - Development
+
+FROM node:20-alpine
+
+WORKDIR /code/ui
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Expose Vite dev server port
+EXPOSE 3000
+
+# Start development server
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

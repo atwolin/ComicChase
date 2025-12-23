@@ -1,0 +1,1764 @@
+[
+{
+  "model": "comic.publisher",
+  "pk": 1,
+  "fields": {
+    "name": "四季國際出版有限公司",
+    "region": "TW"
+  }
+},
+{
+  "model": "comic.publisher",
+  "pk": 2,
+  "fields": {
+    "name": "東立出版社有限公司",
+    "region": "TW"
+  }
+},
+{
+  "model": "comic.publisher",
+  "pk": 3,
+  "fields": {
+    "name": "尖端出版",
+    "region": "TW"
+  }
+},
+{
+  "model": "comic.publisher",
+  "pk": 4,
+  "fields": {
+    "name": "台灣東販股份有限公司",
+    "region": "TW"
+  }
+},
+{
+  "model": "comic.publisher",
+  "pk": 5,
+  "fields": {
+    "name": "知翎文化",
+    "region": "TW"
+  }
+},
+{
+  "model": "comic.publisher",
+  "pk": 6,
+  "fields": {
+    "name": "台灣角川股份有限公司",
+    "region": "TW"
+  }
+},
+{
+  "model": "comic.publisher",
+  "pk": 7,
+  "fields": {
+    "name": "長鴻出版社股份有限公司",
+    "region": "TW"
+  }
+},
+{
+  "model": "comic.publisher",
+  "pk": 8,
+  "fields": {
+    "name": "未來數位有限公司",
+    "region": "TW"
+  }
+},
+{
+  "model": "comic.publisher",
+  "pk": 9,
+  "fields": {
+    "name": "十羽文化",
+    "region": "TW"
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 1,
+  "fields": {
+    "title_jp": "人形の国",
+    "title_tw": "人形之國",
+    "author_jp": "",
+    "author_tw": "貳瓶勉",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 79
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 2,
+  "fields": {
+    "title_jp": "ソアラと魔物の家",
+    "title_tw": "索亞菈與魔物之家",
+    "author_jp": "",
+    "author_tw": "山地英功",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 78
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 3,
+  "fields": {
+    "title_jp": "じゃあ、あんたが作ってみろよ",
+    "title_tw": "有本事換你來做啊!",
+    "author_jp": "",
+    "author_tw": "谷口菜津子",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 77
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 4,
+  "fields": {
+    "title_jp": "BLEACHブリーチ",
+    "title_tw": "BLEACH死神愛藏版",
+    "author_jp": "",
+    "author_tw": "久保帯人",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 75
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 5,
+  "fields": {
+    "title_jp": "魔男のイチ",
+    "title_tw": "魔男伊奇",
+    "author_jp": "",
+    "author_tw": "西修/ 原作; 宇佐崎しろ",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 74
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 6,
+  "fields": {
+    "title_jp": "ブルーピリオド",
+    "title_tw": "藍色時期",
+    "author_jp": "",
+    "author_tw": "山口飛翔",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 73
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 7,
+  "fields": {
+    "title_jp": "僕の心のヤバイやつ",
+    "title_tw": "我內心的糟糕念頭",
+    "author_jp": "",
+    "author_tw": "桜井紀雄",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 72
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 8,
+  "fields": {
+    "title_jp": "無力聖女と無能王女: 魔力ゼロで召喚された聖女の異世界救国記",
+    "title_tw": "無力聖女與無能王女: 魔力值零卻被召喚的聖女異世界救國記",
+    "author_jp": "",
+    "author_tw": "玉崎たま",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 67
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 9,
+  "fields": {
+    "title_jp": "アオのハコ",
+    "title_tw": "青春之箱",
+    "author_jp": "",
+    "author_tw": "三浦糀",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 66
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 10,
+  "fields": {
+    "title_jp": "魔女大戦 32人の異才の魔女は殺し合う",
+    "title_tw": "魔女大戰 32名異能魔女交戰廝殺",
+    "author_jp": "",
+    "author_tw": "河本ほむら/ 原作; 塩塚誠",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 65
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 11,
+  "fields": {
+    "title_jp": "あかね噺",
+    "title_tw": "朱音落語",
+    "author_jp": "",
+    "author_tw": "末永裕樹/ 原作; 馬上鷹将",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 64
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 12,
+  "fields": {
+    "title_jp": "나 혼자만 레벨 업",
+    "title_tw": "我獨自升級",
+    "author_jp": "",
+    "author_tw": "Chugong/ 原作; DUBU (REDICE STUDIO)",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 63
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 13,
+  "fields": {
+    "title_jp": "月の子MOON CHILD",
+    "title_tw": "月光迷情愛藏版",
+    "author_jp": "",
+    "author_tw": "清水玲子",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 61
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 14,
+  "fields": {
+    "title_jp": "色憑くモノクローム",
+    "title_tw": "染上色艷的黑白世界",
+    "author_jp": "",
+    "author_tw": "内山敦司",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 60
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 15,
+  "fields": {
+    "title_jp": "ニセモノの錬金術師",
+    "title_tw": "冒牌鍊金術師",
+    "author_jp": "",
+    "author_tw": "杉浦次郎/ 原作; うめ丸",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 59
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 16,
+  "fields": {
+    "title_jp": "異世界で姉に名前を奪われました",
+    "title_tw": "在異世界被姊姊奪走了名字",
+    "author_jp": "",
+    "author_tw": "琴子/ 原作; NiKrome",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 58
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 17,
+  "fields": {
+    "title_jp": "宗像教授世界篇",
+    "title_tw": "宗像教授世界篇",
+    "author_jp": "",
+    "author_tw": "星野之宣",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 57
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 18,
+  "fields": {
+    "title_jp": "旦那様がちっちゃいモフモフになりました: 私を悪女だと誤解していたのに、すべて義母の嘘だと気づいたようです",
+    "title_tw": "老公大人變身成毛茸茸小動物: 原本誤會我是惡女的他, 似乎早就發現是婆婆在說謊",
+    "author_jp": "",
+    "author_tw": "菜々/ 原作; 眠介/ 角色設定; いなる",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 56
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 19,
+  "fields": {
+    "title_jp": "クプルムの花嫁",
+    "title_tw": "銅匠的新娘",
+    "author_jp": "",
+    "author_tw": "namo",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 54
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 20,
+  "fields": {
+    "title_jp": "新装版政宗くんのリベンジ",
+    "title_tw": "政宗君的復仇新裝版",
+    "author_jp": "",
+    "author_tw": "竹岡葉月/ 原作; Tiv",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 53
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 21,
+  "fields": {
+    "title_jp": "最後にひとつだけお願いしてもよろしいでしょうか",
+    "title_tw": "最後可以再拜託您一件事嗎?",
+    "author_jp": "",
+    "author_tw": "鳳ナナ/ 原作; ほおのきソラ",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 52
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 22,
+  "fields": {
+    "title_jp": "香原さんのふぇちのーと",
+    "title_tw": "香原同學的戀物癖筆記本",
+    "author_jp": "",
+    "author_tw": "鬼無サケル",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 50
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 23,
+  "fields": {
+    "title_jp": "Artiste",
+    "title_tw": "Artiste料理藝術之路",
+    "author_jp": "",
+    "author_tw": "さもえど太郎",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 48
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 24,
+  "fields": {
+    "title_jp": "もやしもん",
+    "title_tw": "農大菌物語",
+    "author_jp": "",
+    "author_tw": "石川雅之",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 47
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 25,
+  "fields": {
+    "title_jp": "ホイッスル!",
+    "title_tw": "哨聲響起愛藏版",
+    "author_jp": "",
+    "author_tw": "樋口大輔",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 46
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 26,
+  "fields": {
+    "title_jp": "シェパードハウス．ホテル",
+    "title_tw": "牧羊人之家．飯店",
+    "author_jp": "",
+    "author_tw": "森数機/ 原作; はまぐり",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 44
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 27,
+  "fields": {
+    "title_jp": "極彩の家",
+    "title_tw": "極彩之家",
+    "author_jp": "",
+    "author_tw": "びっけ",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 42
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 28,
+  "fields": {
+    "title_jp": "濁る瞳で何を願う: ハイセルク戦記",
+    "title_tw": "混濁眼瞳渴求何物: 海瑟爾克戰記",
+    "author_jp": "",
+    "author_tw": "トルトネン/ 原作; 創-taro/ 角色原案; 齊藤八吞",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 40
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 29,
+  "fields": {
+    "title_jp": "彼女がクズを愛するワケは。",
+    "title_tw": "我的她沒道理總是愛上渣男",
+    "author_jp": "",
+    "author_tw": "池田ルイ",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 39
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 30,
+  "fields": {
+    "title_jp": "覆面系ノイズ",
+    "title_tw": "覆面系NOISE",
+    "author_jp": "",
+    "author_tw": "福山遼子",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 38
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 31,
+  "fields": {
+    "title_jp": "今年注目のエースちゃん",
+    "title_tw": "今年注目的王牌女孩",
+    "author_jp": "",
+    "author_tw": "うぇじたぶる",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 36
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 32,
+  "fields": {
+    "title_jp": "追放されるたびにスキルを手に入れた俺が、100の異世界で2周目無双",
+    "title_tw": "每遭放逐就能獲得技能的我、在100個異世界大開2周目無雙",
+    "author_jp": "",
+    "author_tw": "日之浦拓/ 原作; GreeN/ 角色原案; 仁森島司",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 35
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 33,
+  "fields": {
+    "title_jp": "この子知りませんか?",
+    "title_tw": "你認識這個孩子嗎?",
+    "author_jp": "",
+    "author_tw": "てぃーろんたろん",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 34
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 34,
+  "fields": {
+    "title_jp": "野生のラスボスが現れた! 黒翼の覇王",
+    "title_tw": "野生的大魔王出現了! 黑翼霸王",
+    "author_jp": "",
+    "author_tw": "炎頭/ YahaKo/ 原作; 葉月翼",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 33
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 35,
+  "fields": {
+    "title_jp": "ハニーレモンソーダ",
+    "title_tw": "青春特調蜂蜜檸檬蘇打",
+    "author_jp": "",
+    "author_tw": "村田真優",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 32
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 36,
+  "fields": {
+    "title_jp": "魔法少女ダンデライオン",
+    "title_tw": "魔法少女丹緹萊恩",
+    "author_jp": "",
+    "author_tw": "水帆卡艾璐",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 30
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 37,
+  "fields": {
+    "title_jp": "BLACK LAGOONエダイニシャルステージ",
+    "title_tw": "企業傭兵．艾妲Initial Stage",
+    "author_jp": "",
+    "author_tw": "広江礼威/ 原作; 山村哉",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 29
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 38,
+  "fields": {
+    "title_jp": "願いを叶えてもらおうと悪魔を召喚したけど、可愛かったので結婚しました ~悪魔の新妻~",
+    "title_tw": "為了實現願望召喚了惡魔, 但因為太可愛就結婚了 ~惡魔的新妻~",
+    "author_jp": "",
+    "author_tw": "shiryu/ 原作; となりける",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 28
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 39,
+  "fields": {
+    "title_jp": "Ubel Blatt~ユーベルブラット~",
+    "title_tw": "Ubel Blatt斬魔凶刃",
+    "author_jp": "",
+    "author_tw": "鹽野干支郎次",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 27
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 40,
+  "fields": {
+    "title_jp": "鉄鍋のジャン!! 2nd",
+    "title_tw": "鐵鍋料理王!! 2nd",
+    "author_jp": "",
+    "author_tw": "今井亮/ ムラヨシマサユキ/ 監修; 西條真二",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 26
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 41,
+  "fields": {
+    "title_jp": "メリトあいきゅうごっど",
+    "title_tw": "梅莉特與埃及之神",
+    "author_jp": "",
+    "author_tw": "津山冬/ 故事構成; 酒井ゆかり",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 24
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 42,
+  "fields": {
+    "title_jp": "戦国小町苦労譚",
+    "title_tw": "戰國小町苦勞譚",
+    "author_jp": "",
+    "author_tw": "夾竹桃/ 平沢下戸/ 原作; 沢田一",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 21
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 43,
+  "fields": {
+    "title_jp": "ガールクラッシュ",
+    "title_tw": "GIRL CRUSH追尋星光的少女們",
+    "author_jp": "",
+    "author_tw": "タヤマ碧",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 20
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 44,
+  "fields": {
+    "title_jp": "ねずみロワイアル",
+    "title_tw": "決一鼠戰",
+    "author_jp": "",
+    "author_tw": "佐々木順一郎",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 19
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 45,
+  "fields": {
+    "title_jp": "壁サー同人作家の猫屋敷くんは承認欲求をこじらせている",
+    "title_tw": "人氣同人作家貓屋敷想得到認同",
+    "author_jp": "",
+    "author_tw": "ミナモトカズキ",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 18
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 46,
+  "fields": {
+    "title_jp": "男女の友情は成立する? (いや、しないっ!!)",
+    "title_tw": "男女之間存在純友情嗎? 不, 不存在!",
+    "author_jp": "",
+    "author_tw": "七菜なな/ 原作; Parum/ 角色原案; Kamelie",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 15
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 47,
+  "fields": {
+    "title_jp": "オオカミは月に恋をする",
+    "title_tw": "為月傾心的狼兒",
+    "author_jp": "",
+    "author_tw": "小牧まりあ",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 10
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 48,
+  "fields": {
+    "title_jp": "しらないこと研究会",
+    "title_tw": "不知道的事研究會",
+    "author_jp": "",
+    "author_tw": "不知火建設/ 原案; つむみ/ 漫畫",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 8
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 49,
+  "fields": {
+    "title_jp": "하프 오브 미",
+    "title_tw": "另一個我",
+    "author_jp": "",
+    "author_tw": "samK/ 原作; Juhan",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 3
+  }
+},
+{
+  "model": "comic.series",
+  "pk": 50,
+  "fields": {
+    "title_jp": "チェンソーマン",
+    "title_tw": "鏈鋸人",
+    "author_jp": "",
+    "author_tw": "藤本樹",
+    "status_jp": "ongoing",
+    "latest_volume_jp": null,
+    "latest_volume_tw": 1
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 1,
+  "fields": {
+    "series": 50,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 21,
+    "variant": "首刷限定版",
+    "release_date": "2025-11-27",
+    "isbn": "9786260261665"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 2,
+  "fields": {
+    "series": 7,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 12,
+    "variant": "",
+    "release_date": "2025-12-30",
+    "isbn": "9786260260026"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 3,
+  "fields": {
+    "series": 49,
+    "publisher": 9,
+    "region": "TW",
+    "volume_number": 1,
+    "variant": "",
+    "release_date": "2025-12-23",
+    "isbn": "9786267734087"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 4,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "9786264373043"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 5,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "9786260259105"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 6,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "4717702300111"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 7,
+  "fields": {
+    "series": 9,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 21,
+    "variant": "首刷限定版",
+    "release_date": "2025-12-30",
+    "isbn": "9786260262730"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 8,
+  "fields": {
+    "series": 48,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 1,
+    "variant": "首刷限定版",
+    "release_date": "2025-11-27",
+    "isbn": "9786260249779"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 9,
+  "fields": {
+    "series": 28,
+    "publisher": 4,
+    "region": "TW",
+    "volume_number": 2,
+    "variant": "",
+    "release_date": "2025-12-28",
+    "isbn": "9786264372466"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 10,
+  "fields": {
+    "series": 47,
+    "publisher": 6,
+    "region": "TW",
+    "volume_number": 1,
+    "variant": "",
+    "release_date": "2025-12-17",
+    "isbn": "9786264358309"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 11,
+  "fields": {
+    "series": 46,
+    "publisher": 6,
+    "region": "TW",
+    "volume_number": 2,
+    "variant": "",
+    "release_date": "2025-12-17",
+    "isbn": "9786264358323"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 12,
+  "fields": {
+    "series": 40,
+    "publisher": 6,
+    "region": "TW",
+    "volume_number": 2,
+    "variant": "",
+    "release_date": "2025-12-17",
+    "isbn": "9786264358293"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 13,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "9786260260309"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 14,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "9786260260293"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 15,
+  "fields": {
+    "series": 46,
+    "publisher": 6,
+    "region": "TW",
+    "volume_number": 1,
+    "variant": "",
+    "release_date": "2025-12-17",
+    "isbn": "9786264358316"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 16,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "9786264358170"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 17,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "4711528701022"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 18,
+  "fields": {
+    "series": 45,
+    "publisher": 3,
+    "region": "TW",
+    "volume_number": 5,
+    "variant": "",
+    "release_date": "2025-12-22",
+    "isbn": "9786264347594"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 19,
+  "fields": {
+    "series": 44,
+    "publisher": 4,
+    "region": "TW",
+    "volume_number": 2,
+    "variant": "",
+    "release_date": "2025-12-28",
+    "isbn": "9786264373067"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 20,
+  "fields": {
+    "series": 43,
+    "publisher": 3,
+    "region": "TW",
+    "volume_number": 4,
+    "variant": "",
+    "release_date": "2025-12-17",
+    "isbn": "9786264343657"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 21,
+  "fields": {
+    "series": 42,
+    "publisher": 7,
+    "region": "TW",
+    "volume_number": 7,
+    "variant": "",
+    "release_date": "2025-12-23",
+    "isbn": "9786264307796"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 22,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "9786264345217"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 23,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "9786264358163"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 24,
+  "fields": {
+    "series": 41,
+    "publisher": 7,
+    "region": "TW",
+    "volume_number": 2,
+    "variant": "",
+    "release_date": "2025-12-23",
+    "isbn": "9786264307819"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 25,
+  "fields": {
+    "series": 39,
+    "publisher": 6,
+    "region": "TW",
+    "volume_number": 22,
+    "variant": "",
+    "release_date": "2025-12-17",
+    "isbn": "9786264358095"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 26,
+  "fields": {
+    "series": 40,
+    "publisher": 6,
+    "region": "TW",
+    "volume_number": 1,
+    "variant": "",
+    "release_date": "2025-12-17",
+    "isbn": "9786264358286"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 27,
+  "fields": {
+    "series": 39,
+    "publisher": 6,
+    "region": "TW",
+    "volume_number": 23,
+    "variant": "",
+    "release_date": "2025-12-17",
+    "isbn": "9786264358101"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 28,
+  "fields": {
+    "series": 38,
+    "publisher": 7,
+    "region": "TW",
+    "volume_number": 5,
+    "variant": "",
+    "release_date": "2025-12-16",
+    "isbn": "9786264307253"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 29,
+  "fields": {
+    "series": 37,
+    "publisher": 7,
+    "region": "TW",
+    "volume_number": 4,
+    "variant": "",
+    "release_date": "2025-12-16",
+    "isbn": "9786264307024"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 30,
+  "fields": {
+    "series": 36,
+    "publisher": 4,
+    "region": "TW",
+    "volume_number": 2,
+    "variant": "",
+    "release_date": "2025-12-28",
+    "isbn": "9786264372978"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 31,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "9786264358354"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 32,
+  "fields": {
+    "series": 35,
+    "publisher": 3,
+    "region": "TW",
+    "volume_number": 23,
+    "variant": "",
+    "release_date": "2025-12-22",
+    "isbn": "9786264346535"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 33,
+  "fields": {
+    "series": 34,
+    "publisher": 7,
+    "region": "TW",
+    "volume_number": 5,
+    "variant": "",
+    "release_date": "2025-12-16",
+    "isbn": "9786264307260"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 34,
+  "fields": {
+    "series": 33,
+    "publisher": 4,
+    "region": "TW",
+    "volume_number": 6,
+    "variant": "",
+    "release_date": "2025-12-28",
+    "isbn": "9786264372732"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 35,
+  "fields": {
+    "series": 32,
+    "publisher": 8,
+    "region": "TW",
+    "volume_number": 2,
+    "variant": "",
+    "release_date": "2025-12-14",
+    "isbn": "4712568607145"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 36,
+  "fields": {
+    "series": 31,
+    "publisher": 4,
+    "region": "TW",
+    "volume_number": 1,
+    "variant": "網路通路版",
+    "release_date": "2025-12-28",
+    "isbn": "4714453010504"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 37,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "9786260260316"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 38,
+  "fields": {
+    "series": 30,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 14,
+    "variant": "",
+    "release_date": "2025-12-30",
+    "isbn": "9786260258054"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 39,
+  "fields": {
+    "series": 29,
+    "publisher": 6,
+    "region": "TW",
+    "volume_number": 1,
+    "variant": "",
+    "release_date": "2025-12-17",
+    "isbn": "9786264358248"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 40,
+  "fields": {
+    "series": 28,
+    "publisher": 4,
+    "region": "TW",
+    "volume_number": 1,
+    "variant": "",
+    "release_date": "2025-12-28",
+    "isbn": "9786264372145"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 41,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "9786260264130"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 42,
+  "fields": {
+    "series": 27,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 12,
+    "variant": "",
+    "release_date": "2025-12-30",
+    "isbn": "9786260255206"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 43,
+  "fields": {
+    "series": 4,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 13,
+    "variant": "",
+    "release_date": "2025-12-30",
+    "isbn": "9786260255312"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 44,
+  "fields": {
+    "series": 26,
+    "publisher": 7,
+    "region": "TW",
+    "volume_number": 2,
+    "variant": "",
+    "release_date": "2025-12-23",
+    "isbn": "9786264307826"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 45,
+  "fields": {
+    "series": 24,
+    "publisher": 3,
+    "region": "TW",
+    "volume_number": 12,
+    "variant": "",
+    "release_date": "2025-12-23",
+    "isbn": "9786264346122"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 46,
+  "fields": {
+    "series": 25,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 10,
+    "variant": "首刷限定版",
+    "release_date": "2025-12-30",
+    "isbn": "9786260249922"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 47,
+  "fields": {
+    "series": 24,
+    "publisher": 3,
+    "region": "TW",
+    "volume_number": 13,
+    "variant": "",
+    "release_date": "2025-12-23",
+    "isbn": "9786264346139"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 48,
+  "fields": {
+    "series": 23,
+    "publisher": 4,
+    "region": "TW",
+    "volume_number": 7,
+    "variant": "",
+    "release_date": "2025-12-28",
+    "isbn": "9786264372398"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 49,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "4710462498722"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 50,
+  "fields": {
+    "series": 22,
+    "publisher": 4,
+    "region": "TW",
+    "volume_number": 2,
+    "variant": "",
+    "release_date": "2025-12-28",
+    "isbn": "9786264373036"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 51,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "4712568607008"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 52,
+  "fields": {
+    "series": 21,
+    "publisher": 7,
+    "region": "TW",
+    "volume_number": 6,
+    "variant": "",
+    "release_date": "2025-12-23",
+    "isbn": "9786264307840"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 53,
+  "fields": {
+    "series": 20,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 5,
+    "variant": "",
+    "release_date": "2025-12-30",
+    "isbn": "9786260220693"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 54,
+  "fields": {
+    "series": 19,
+    "publisher": 3,
+    "region": "TW",
+    "volume_number": 3,
+    "variant": "",
+    "release_date": "2025-12-17",
+    "isbn": "9786264346528"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 55,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "9786269254828"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 56,
+  "fields": {
+    "series": 18,
+    "publisher": 4,
+    "region": "TW",
+    "volume_number": 2,
+    "variant": "",
+    "release_date": "2025-12-28",
+    "isbn": "9786264372985"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 57,
+  "fields": {
+    "series": 17,
+    "publisher": 4,
+    "region": "TW",
+    "volume_number": 5,
+    "variant": "",
+    "release_date": "2025-12-28",
+    "isbn": "9786264373050"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 58,
+  "fields": {
+    "series": 16,
+    "publisher": 6,
+    "region": "TW",
+    "volume_number": 4,
+    "variant": "",
+    "release_date": "2025-12-17",
+    "isbn": "9786264358217"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 59,
+  "fields": {
+    "series": 15,
+    "publisher": 6,
+    "region": "TW",
+    "volume_number": 3,
+    "variant": "",
+    "release_date": "2025-12-17",
+    "isbn": "9786264357968"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 60,
+  "fields": {
+    "series": 14,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 2,
+    "variant": "",
+    "release_date": "2025-12-30",
+    "isbn": "9786260249328"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 61,
+  "fields": {
+    "series": 13,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 8,
+    "variant": "完/首刷限定版",
+    "release_date": "2025-12-30",
+    "isbn": "9786260242800"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 62,
+  "fields": {
+    "series": 12,
+    "publisher": 5,
+    "region": "TW",
+    "volume_number": 17,
+    "variant": "",
+    "release_date": "2026-01-07",
+    "isbn": "9789577876607"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 63,
+  "fields": {
+    "series": 12,
+    "publisher": 5,
+    "region": "TW",
+    "volume_number": 18,
+    "variant": "",
+    "release_date": "2026-01-07",
+    "isbn": "9789577876614"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 64,
+  "fields": {
+    "series": 11,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 17,
+    "variant": "",
+    "release_date": "2025-12-30",
+    "isbn": "9786260253837"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 65,
+  "fields": {
+    "series": 10,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 2,
+    "variant": "",
+    "release_date": "2025-12-30",
+    "isbn": "9786260239657"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 66,
+  "fields": {
+    "series": 9,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 21,
+    "variant": "",
+    "release_date": "2025-12-30",
+    "isbn": "9786260257118"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 67,
+  "fields": {
+    "series": 8,
+    "publisher": 4,
+    "region": "TW",
+    "volume_number": 2,
+    "variant": "",
+    "release_date": "2025-12-28",
+    "isbn": "9786264372961"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 68,
+  "fields": {
+    "series": 6,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 17,
+    "variant": "首刷限定版",
+    "release_date": "2025-12-30",
+    "isbn": "9786260257866"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 69,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "4711289627227"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 70,
+  "fields": {
+    "series": 5,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 3,
+    "variant": "首刷限定版",
+    "release_date": "2025-12-30",
+    "isbn": "9786260263003"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 71,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "4711289627234"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 72,
+  "fields": {
+    "series": 7,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 12,
+    "variant": "首刷限定版",
+    "release_date": "2025-12-30",
+    "isbn": "9786260261955"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 73,
+  "fields": {
+    "series": 6,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 17,
+    "variant": "",
+    "release_date": "2025-12-30",
+    "isbn": "9786260257453"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 74,
+  "fields": {
+    "series": 5,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 3,
+    "variant": "",
+    "release_date": "2025-12-30",
+    "isbn": "9786260251772"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 75,
+  "fields": {
+    "series": 4,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 13,
+    "variant": "首刷限定版",
+    "release_date": "2025-12-30",
+    "isbn": "9786260255411"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 76,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "4710462498753"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 77,
+  "fields": {
+    "series": 3,
+    "publisher": 3,
+    "region": "TW",
+    "volume_number": 1,
+    "variant": "",
+    "release_date": "2025-12-18",
+    "isbn": "9786264346504"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 78,
+  "fields": {
+    "series": 2,
+    "publisher": 2,
+    "region": "TW",
+    "volume_number": 4,
+    "variant": "",
+    "release_date": "2025-12-30",
+    "isbn": "9786260239640"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 79,
+  "fields": {
+    "series": 1,
+    "publisher": 1,
+    "region": "TW",
+    "volume_number": 6,
+    "variant": "",
+    "release_date": "2025-12-16",
+    "isbn": "9789578661721"
+  }
+},
+{
+  "model": "comic.volume",
+  "pk": 80,
+  "fields": {
+    "series": null,
+    "publisher": null,
+    "region": "TW",
+    "volume_number": null,
+    "variant": "",
+    "release_date": null,
+    "isbn": "9789577876591"
+  }
+}
+]

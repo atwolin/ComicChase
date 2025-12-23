@@ -1,0 +1,44 @@
+# Docker Compose file for testing GCR deployment locally
+# This mimics Cloud Run environment as closely as possible
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: comicchase
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_gcr_test:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./app/Dockerfile.gcr
+      args:
+        USER_ID: ${UID:-1000}
+        GROUP_ID: ${GID:-1000}
+    ports:
+      - "8080:8080"
+    environment:
+      # Cloud Run uses PORT=8080
+      PORT: 8080
+      # Database connection in DATABASE_URL format (required by gcr.py settings)
+      DATABASE_URL: "postgres://postgres:postgres@db:5432/comicchase"
+      # For local testing: provide SQL_HOST to trigger wait-for-it.sh
+      SQL_HOST: db
+      SQL_PORT: 5432
+      # Django settings
+      DJANGO_SETTINGS_MODULE: config.settings.gcr
+      SECRET_KEY: test-secret-key-for-local-testing-only
+      DEBUG: "False"
+      ALLOWED_HOSTS: localhost,127.0.0.1,0.0.0.0
+      # GCS bucket (optional for local testing - empty string to disable)
+      GS_BUCKET_NAME: ""
+    depends_on:
+      - db
+
+volumes:
+  postgres_data_gcr_test:

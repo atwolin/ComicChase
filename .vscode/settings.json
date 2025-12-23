@@ -1,0 +1,8 @@
+{
+  "editor.rulers": [
+        88,
+    ],
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+}
