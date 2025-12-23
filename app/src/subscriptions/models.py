@@ -28,5 +28,5 @@ class Subscription(models.Model):
 
     class Meta:
         unique_together = ("user", "series")
-        verbose_name = "訂閱者"
-        verbose_name_plural = "訂閱者"
+        verbose_name = "漫畫追蹤列表"
+        verbose_name_plural = "漫畫追蹤列表"
