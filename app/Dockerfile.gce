@@ -21,7 +21,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./app/src ./
 
-RUN chmod +x entrypoint.prod.sh wait-for-it.sh
+RUN chmod +x entrypoint.gce.sh wait-for-it.sh
 
 # Copy supervisord config
 RUN cp supervisord.conf /etc/supervisord.conf
@@ -31,7 +31,7 @@ RUN chown -R docker:docker-users /code/app
 
 USER docker
 
-ENTRYPOINT [ "/code/app/entrypoint.prod.sh" ]
+ENTRYPOINT [ "/code/app/entrypoint.gce.sh" ]
 
 # Use supervisord to manage processes (pip installed version is in /usr/local/bin)
 CMD ["/usr/local/bin/supervisord", "-c", "/etc/supervisord.conf"]
