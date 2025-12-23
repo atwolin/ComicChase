@@ -33,7 +33,7 @@ USER docker
 # TODO: Add frontend build stage before uncommenting
 # COPY --from=frontend-builder /app/frontend/build /app/static_src_react
 
-ENTRYPOINT [ "/code/app/entrypoint.cloud.sh" ]
+ENTRYPOINT [ "/code/app/entrypoint.gcr.sh" ]
 
 CMD exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 0 config.wsgi:application
 
