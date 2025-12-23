@@ -1,39 +1,35 @@
 from comic.views import SeriesViewSet
 from django.contrib import admin
 from django.urls import include, path
-from drf_yasg import openapi
-from drf_yasg.views import get_schema_view
-from rest_framework import permissions
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
 from rest_framework.routers import DefaultRouter
 
-# 建立 DRF router
+# Router setup
 router = DefaultRouter()
 router.register(r"series", SeriesViewSet, basename="comics")
 
-# Swagger schema view
-schema_view = get_schema_view(
-    openapi.Info(
-        title="Snippets API",
-        default_version="v1",
-        description="Test description",
-        terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="contact@snippets.local"),
-        license=openapi.License(name="BSD License"),
-    ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
-)
 
 urlpatterns = [
+    # Django admin
     path("admin/", admin.site.urls),
+    # User management
+    path("_allauth/", include("allauth.headless.urls")),
+    # Local apps
     path("api/", include(router.urls)),
+    # OpenAPI
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
-        "swagger.<format>/", schema_view.without_ui(cache_timeout=0), name="schema-json"
+        "api/schema/swagger-ui/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
     ),
     path(
-        "swagger/",
-        schema_view.with_ui("swagger", cache_timeout=0),
-        name="schema-swagger-ui",
+        "api/schema/redoc/",
+        SpectacularRedocView.as_view(url_name="schema"),
+        name="redoc",
     ),
-    path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
 ]

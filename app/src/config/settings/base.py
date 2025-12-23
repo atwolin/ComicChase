@@ -29,10 +29,16 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
     "rest_framework",
+    "allauth",
+    "allauth.account",
+    "allauth.headless",
+    "allauth.usersessions",
     "corsheaders",
-    "drf_yasg",
-    "comic",
+    "drf_spectacular",
+    "accounts.apps.AccountsConfig",
+    "comic.apps.ComicConfig",
     "comic_scrapers",
 ]
 
@@ -45,6 +51,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -75,8 +82,8 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation"
-        ".UserAttributeSimilarityValidator",
+        "NAME": "django.contrib.auth.password_validation."
+        "UserAttributeSimilarityValidator",
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
@@ -114,11 +121,52 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+AUTH_USER_MODEL = "accounts.CustomUser"
+
+# django-allauth config
+SITE_ID = 1
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+# Email settings
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = "admin@comicchase.web.app"
+
+ACCOUNT_SESSION_REMEMBER = True
+ACCOUNT_EMAIL_VERIFICATION = "optional"  # TODO: set "mandatory" after email setup
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
+# ACCOUNT_LOGIN_BY_CODE_ENABLED = True
+# ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED = True
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+
+HEADLESS_ONLY = True
+HEADLESS_FRONTEND_URLS = {
+    "account_confirm_email": "/account/verify-email/{key}",
+    "account_reset_password": "/account/password/reset",
+    "account_reset_password_from_key": "/account/password/reset/key/{key}",
+    "account_signup": "/account/signup",
+    "socialaccount_login_error": "/account/provider/callback",
+}
+HEADLESS_SERVE_SPECIFICATION = True
+
+# django-rest-framework config
 REST_FRAMEWORK = {
-    # 設定預設權限為唯讀
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
+}
+
+# drf-spectacular config
+SPECTACULAR_SETTINGS = {
+    "TITLE": "ComicChase API",
+    "DESCRIPTION": "API for ComicChase application",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "EXTERNAL_DOCS": {"description": "allauth", "url": "/_allauth/openapi.html"},
 }
