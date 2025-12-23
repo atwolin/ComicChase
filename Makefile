@@ -5,7 +5,7 @@ GID ?= $(shell id -g)
 # Define docker-compose command with production config
 COMPOSE = UID=$(UID) GID=$(GID) docker compose -f docker-compose.prod.yaml -p comicchase-prod
 
-.PHONY: build up down logs shell clean help
+.PHONY: up down build rebuild logs shell manage clean help
 
 .DEFAULT_GOAL := help
 
