@@ -39,14 +39,11 @@ class Series(models.Model):
         HIATUS = "hiatus", _("休刊中")
 
     title_jp = models.CharField(_("原名"), max_length=255, db_index=True, unique=True)
-    title_tw = models.CharField(
-        _("譯名"), max_length=255, db_index=True, null=True, blank=True
-    )
+    title_tw = models.CharField(_("譯名"), max_length=255, db_index=True, blank=True)
     author_jp = models.CharField(_("作者原名"), max_length=100)
     author_tw = models.CharField(
         _("作者譯名"),
         max_length=100,
-        null=True,
         blank=True,
     )
     status_jp = models.CharField(
@@ -136,9 +133,7 @@ class Volume(models.Model):
     # 出版資訊
     # 刪除 _jp / _tw ，由 region 定義了地區
     release_date = models.DateField(_("發售日期"), null=True, blank=True)
-    isbn = models.CharField(
-        _("ISBN"), max_length=13, null=True, blank=True, unique=True
-    )
+    isbn = models.CharField(_("ISBN"), max_length=13, blank=True, unique=True)
 
     class Meta:
         verbose_name = _("單行本")
