@@ -37,8 +37,10 @@ INSTALLED_APPS = [
     "allauth.usersessions",
     "corsheaders",
     "drf_spectacular",
+    "apis.apps.ApisConfig",
     "accounts.apps.AccountsConfig",
     "comic.apps.ComicConfig",
+    "subscriptions.apps.SubscriptionsConfig",
     "comic_scrapers",
 ]
 
