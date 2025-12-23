@@ -1,7 +1,7 @@
 export const ROUTES = {
   HOME: '/',
   SERIES_LIST: '/series',
-  SERIES_DETAIL: (id: number | string) => `/series/${id}`,
+  SERIES_DETAIL: (id: number | string) => `/comics/series/${id}`,
 } as const
 
 export const buildSeriesSearchUrl = (searchQuery: string) => {

@@ -9,7 +9,7 @@ from comic.models import Publisher, Series, Volume
 class SeriesAPITests(APITestCase):
     @classmethod
     def setUpTestData(cls):
-        """在所有測試之前建立必要的測試資料"""
+        """Create test data for the entire TestCase"""
         cls.publisher = Publisher.objects.create(
             name="東立", region=Publisher.Region.TAIWAN
         )
@@ -30,7 +30,7 @@ class SeriesAPITests(APITestCase):
 
     def test_list_endpoint_returns_series(self):
         """測試列出所有系列漫畫"""
-        url = reverse("comics-list")
+        url = reverse("series-list")
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -44,7 +44,7 @@ class SeriesAPITests(APITestCase):
                 title_jp=f"テスト作品{idx}",
                 author_jp="作者",
             )
-        url = reverse("comics-list")
+        url = reverse("series-list")
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -53,7 +53,7 @@ class SeriesAPITests(APITestCase):
 
     def test_search_filters_by_titles(self):
         """測試搜尋功能可依標題過濾"""
-        url = reverse("comics-list")
+        url = reverse("series-list")
         response = self.client.get(url, {"search": "巨人"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -62,7 +62,7 @@ class SeriesAPITests(APITestCase):
 
     def test_search_can_return_empty_results(self):
         """測試空結果的處理"""
-        url = reverse("comics-list")
+        url = reverse("series-list")
         response = self.client.get(url, {"search": "不存在"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -70,7 +70,7 @@ class SeriesAPITests(APITestCase):
 
     def test_detail_endpoint_includes_volumes(self):
         """測試回傳詳細資訊及關聯單行本"""
-        url = reverse("comics-detail", args=[self.series.id])
+        url = reverse("series-detail", args=[self.series.id])
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -79,21 +79,21 @@ class SeriesAPITests(APITestCase):
 
     def test_detail_endpoint_returns_404_for_missing_series(self):
         """測試不存在的 ID 回傳 404"""
-        url = reverse("comics-detail", args=[9999])
+        url = reverse("series-detail", args=[9999])
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_readonly_permission_allows_anonymous_get(self):
         """測試未認證用戶可以唯讀"""
-        url = reverse("comics-list")
+        url = reverse("series-list")
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_write_operation_denied_for_anonymous(self):
-        """測試未認證用戶無法進行寫入操作"""
-        url = reverse("comics-list")
+    def test_write_operation_not_allowed(self):
+        """測試 API 為唯讀，不允許寫入操作"""
+        url = reverse("series-list")
         payload = {
             "title_jp": "新作品",
             "title_tw": "新作品",
@@ -101,31 +101,25 @@ class SeriesAPITests(APITestCase):
             "author_tw": "作者",
             "status_jp": Series.JapanStatus.ONGOING,
         }
-        # --- 第一部分：測試匿名使用者 (Anonymous) ---
-        # 確保沒有登入
+
+        # 測試匿名用戶 - IsAuthenticatedOrReadOnly 會先檢查權限
         self.client.force_authenticate(user=None)
-
         response_anonymous = self.client.post(url, payload, format="json")
-
-        # 驗證：應該被拒絕 (401 未授權 或 403 禁止)
-        self.assertIn(
+        self.assertEqual(
             response_anonymous.status_code,
-            [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN],
-            f"匿名用戶應該被拒絕，但收到了: {response_anonymous.status_code}",
+            status.HTTP_403_FORBIDDEN,
+            "匿名用戶嘗試 POST 應該回傳 403 Forbidden (IsAuthenticatedOrReadOnly)",
         )
 
-        # --- 第二部分：測試已認證使用者 (Authenticated) ---
-        # 建立並登入一個測試帳號
+        # 測試已認證用戶 - ReadOnlyModelViewSet 不支援 POST
         user = get_user_model().objects.create_user(
-            username="testuser", password="testpass"
+            username="testuser", email="testuser@example.com", password="testpass"
         )
         self.client.force_authenticate(user=user)
-
         response_authenticated = self.client.post(url, payload, format="json")
-
-        # 驗證：應該成功建立 (201 Created)
         self.assertEqual(
             response_authenticated.status_code,
-            status.HTTP_201_CREATED,
-            f"已認證用戶應該能建立資料，但失敗了: {response_authenticated.data}",
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+            "已認證用戶嘗試 POST 應該回傳 405 Method Not Allowed"
+            " (ReadOnlyModelViewSet)",
         )

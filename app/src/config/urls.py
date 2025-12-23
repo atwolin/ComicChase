@@ -1,4 +1,3 @@
-from comic.views import SeriesViewSet
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import (
@@ -6,12 +5,6 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
-from rest_framework.routers import DefaultRouter
-
-# Router setup
-router = DefaultRouter()
-router.register(r"series", SeriesViewSet, basename="comics")
-
 
 urlpatterns = [
     # Django admin
@@ -19,7 +12,8 @@ urlpatterns = [
     # User management
     path("_allauth/", include("allauth.headless.urls")),
     # Local apps
-    path("api/", include(router.urls)),
+    path("api/comics/", include("comic.urls")),
+    path("api/subscriptions/", include("subscriptions.urls")),
     # OpenAPI
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
