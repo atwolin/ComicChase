@@ -17,7 +17,10 @@ function App() {
             <Routes>
               <Route path={ROUTES.HOME} element={<Home />} />
               <Route path={ROUTES.SERIES_LIST} element={<SeriesList />} />
-              <Route path="comics/series/:id" element={<SeriesDetail />} />
+              <Route
+                path={ROUTES.SERIES_DETAIL_PATTERN}
+                element={<SeriesDetail />}
+              />
             </Routes>
           </main>
         </div>
