@@ -1,6 +1,6 @@
 from comic.models import Series
 from django.contrib.auth import get_user_model
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 
 from subscriptions.models import Subscription
@@ -39,8 +39,9 @@ class SubscriptionModelTest(TestCase):
             user=self.user,
             series=self.series,
         )
-        with self.assertRaises(IntegrityError):
-            Subscription.objects.create(
-                user=self.user,
-                series=self.series,
-            )
+        with transaction.atomic():
+            with self.assertRaises(IntegrityError):
+                Subscription.objects.create(
+                    user=self.user,
+                    series=self.series,
+                )
