@@ -76,6 +76,16 @@ class SubscriptionAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Subscription.objects.filter(id=subscription.id).exists())
 
+    def test_unfollow_nonexistent_series(self):
+        """Test that unfollowing a nonexistent series returns 404."""
+        self.client.force_authenticate(user=self.alice)
+
+        nonexistent_series_id = 9999  # Assuming this ID does not exist
+        response = self.client.delete(
+            reverse("subscription-destroy-by-series", args=[nonexistent_series_id])
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_unfollow_not_following_series(self):
         """Test that unfollowing a series the user is not following returns 404."""
         self.client.force_authenticate(user=self.alice)
@@ -85,7 +95,6 @@ class SubscriptionAPITest(APITestCase):
             reverse("subscription-destroy-by-series", args=[self.series2.id])
         )
 
-        # Should return 404 with our custom message
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data["message"], "您尚未訂閱此系列")
 

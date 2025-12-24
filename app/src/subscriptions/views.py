@@ -1,4 +1,6 @@
 from apis.permissions import IsOwner
+from comic.models import Series
+from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -48,12 +50,13 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
         knowing the subscription ID. The standard DELETE endpoint using
         subscription ID is still available and preferred when the ID is known.
         """
+        # Validate that the series exists
+        get_object_or_404(Series, pk=series_id)
+
         deleted_count, _ = self.get_queryset().filter(series_id=series_id).delete()
 
         if deleted_count > 0:
-            return Response(
-                {"message": "已成功取消訂閱"}, status=status.HTTP_204_NO_CONTENT
-            )
+            return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             return Response(
                 {"message": "您尚未訂閱此系列"}, status=status.HTTP_404_NOT_FOUND
