@@ -7,6 +7,15 @@ repos:
         args: [--fix]  # Automatically fix small issues
       - id: ruff-format
 
+  # - repo: local
+  #   hooks:
+  #     - id: pyright
+  #       name: pyright
+  #       entry: pyright
+  #       language: system
+  #       types: [python]
+  #       pass_filenames: true
+
   # ESLint and Prettier for frontend
   - repo: local
     hooks:
@@ -22,12 +31,3 @@ repos:
         language: system
         files: ^ui/.*\.(ts|tsx|css|json)$
         pass_filenames: false
-
-  # - repo: local
-  #   hooks:
-  #     - id: pyright
-  #       name: pyright
-  #       entry: pyright
-  #       language: system
-  #       types: [python]
-  #       pass_filenames: true

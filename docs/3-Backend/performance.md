@@ -27,19 +27,19 @@
 使用 `wrk` 壓力測試工具進行負載測試：
 
 ```bash
-wrk -t4 -c100 -d30s https://comicchase.com.tw/api/series/
+wrk -t4 -c100 -d30s https://comicchase.com.tw/api/comics/series/
 ```
 
 **測試參數:**
 - 執行緒數: 4
 - 並發連線數: 100
 - 測試時長: 30 秒
-- 測試端點: `/api/series/` (系列列表 API)
+- 測試端點: `/api/comics/series/` (系列列表 API)
 
 ### 測試結果
 
 ```
-Running 30s test @ https://comicchase.com.tw/api/series/
+Running 30s test @ https://comicchase.com.tw/api/comics/series/
   4 threads and 100 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
     Latency   295.74ms   38.93ms 801.74ms   82.95%

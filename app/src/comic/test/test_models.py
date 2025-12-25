@@ -160,23 +160,16 @@ class VolumeModelTests(TestCase):
                 isbn="9782222222222",
             )
 
-    def test_isbn_uniqueness(self):
-        """測試 ISBN 的唯一性"""
-        Volume.objects.create(
+    def test_isbn_is_optional(self):
+        """測試 ISBN 為選填欄位"""
+        volume = Volume.objects.create(
             series=self.series,
             publisher=self.publisher_jp,
             region=Volume.Region.JAPAN,
             volume_number=5,
-            isbn="9783333333333",
+            isbn="",  # ISBN can be empty
         )
-        with self.assertRaises(IntegrityError):
-            Volume.objects.create(
-                series=self.series,
-                publisher=self.publisher_jp,
-                region=Volume.Region.TAIWAN,
-                volume_number=5,
-                isbn="9783333333333",  # 重複的 ISBN
-            )
+        self.assertEqual(volume.isbn, "")
 
     def test_str_representation(self):
         """測試 __str__ 方法的顯示格式"""
