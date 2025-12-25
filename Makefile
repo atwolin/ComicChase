@@ -46,7 +46,7 @@ rebuild: env-info ## Rebuild and start the Docker containers. Usage: make rebuil
 
 logs: ## View logs of the Docker containers. Usage: make logs [ENV=local|gce|gcr-test]
 	@echo "📜 Viewing logs..."
-	$(COMPOSE) logs
+	$(COMPOSE) logs -f
 
 shell: ## Access the shell of the app container. Usage: make shell [ENV=local|gce|gcr-test]
 	@echo "🐚 Accessing app container shell..."
