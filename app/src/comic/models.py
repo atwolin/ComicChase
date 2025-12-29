@@ -1,3 +1,4 @@
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -86,6 +87,18 @@ class Series(models.Model):
         verbose_name = _("系列")
         verbose_name_plural = _("系列")
         ordering = ["title_tw", "title_jp"]
+        indexes = [
+            GinIndex(
+                fields=["title_tw"],
+                name="series_title_tw_trgm_idx",
+                opclasses=["gin_trgm_ops"],
+            ),
+            GinIndex(
+                fields=["title_jp"],
+                name="series_title_jp_trgm_idx",
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
 
     def __str__(self):
         return self.title_tw or self.title_jp
