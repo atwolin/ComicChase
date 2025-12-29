@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "accounts.apps.AccountsConfig",
     "comic.apps.ComicConfig",
     "subscriptions.apps.SubscriptionsConfig",
+    "django.contrib.postgres",
     "comic_scrapers",
 ]
 
