@@ -1,0 +1,17 @@
+{
+  "include": [
+    "app/src"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/migrations"
+  ],
+  "ignore": [
+    "app/src/**/tests/**"
+  ],
+  "reportMissingImports": true,
+  "reportMissingTypeStubs": false,
+  "pythonVersion": "3.11",
+  "pythonPlatform": "Linux"
+}
