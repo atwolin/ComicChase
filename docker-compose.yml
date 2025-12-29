@@ -19,10 +19,98 @@ services:
     ports:
       - "4444:4444"
 
+  rabbitmq:
+    image: rabbitmq:4.2-management
+    restart: no
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+      - RABBITMQ_DEFAULT_VHOST=staging_vhost
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  celery:
+    build:
+      context: .
+      dockerfile: ./app/Dockerfile
+      args:
+        USER_ID: ${UID}
+        GID: ${GID}
+    entrypoint: [""]
+    command: celery -A config worker -l INFO
+    volumes:
+      - ./app/src:/code/app
+    env_file:
+      - ./.env
+    depends_on:
+      - backend
+      - rabbitmq
+
+  celery-crawler:
+    build:
+      context: .
+      dockerfile: ./app/Dockerfile
+      args:
+        USER_ID: ${UID}
+        GID: ${GID}
+    entrypoint: [""]
+    command: celery -A config worker -Q crawler -l INFO
+    volumes:
+      - ./app/src:/code/app
+    env_file:
+      - ./.env
+    depends_on:
+      - backend
+      - rabbitmq
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: ./app/Dockerfile
+      args:
+        USER_ID: ${UID}
+        GID: ${GID}
+    entrypoint: [""]
+    command: celery -A config beat -l INFO --schedule=/home/docker/celerybeat-schedule
+    volumes:
+      - ./app/src:/code/app
+      - celerybeat_data:/home/docker
+    env_file:
+      - ./.env
+    depends_on:
+      - backend
+      - rabbitmq
+
+  flower:
+    build:
+      context: .
+      dockerfile: ./app/Dockerfile
+      args:
+        USER_ID: ${UID}
+        GID: ${GID}
+    entrypoint: [""]
+    command: celery flower -A config --port=5555 --broker=amqp://admin:admin@rabbitmq:5672/staging_vhost
+    ports:
+      - "5555:5555"
+    env_file:
+      - ./.env
+    depends_on:
+      - backend
+      - celery
+      - celery-crawler
+      - celery-beat
+      - rabbitmq
+
   backend:
     build:
       context: .
       dockerfile: ./app/Dockerfile
+      args:
+        USER_ID: ${UID}
+        GID: ${GID}
     command: [
       "/code/app/wait-for-it.sh", "db:5432", "--",
       "python", "/code/app/manage.py", "runserver", "0.0.0.0:8000", "--settings=config.settings.local"]
@@ -61,3 +149,5 @@ services:
 
 volumes:
   postgres_data:
+  rabbitmq_data:
+  celerybeat_data:
