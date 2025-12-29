@@ -1,3 +1,4 @@
+from django.contrib.postgres.search import TrigramSimilarity
 from rest_framework import filters, viewsets
 
 from .models import Series
@@ -23,6 +24,20 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
         根據 list 或 retrieve 動態優化資料庫查詢
         """
         queryset = super().get_queryset()
+
+        search_query = self.request.query_params.get("search", None)
+        if search_query:
+            # 1. 計算相似度權重
+            # 2. 同時搜尋台版與日版名稱
+            # 3. 過濾掉相似度過低的結果 (< 0.2)
+            queryset = (
+                queryset.annotate(
+                    similarity=TrigramSimilarity("title_tw", search_query)
+                    + TrigramSimilarity("title_jp", search_query)
+                )
+                .filter(similarity__gt=0.1)
+                .order_by("-similarity")
+            )
 
         if self.action == "retrieve":
             # === 詳細頁面 (Detail View) ===
