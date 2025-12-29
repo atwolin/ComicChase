@@ -7,7 +7,7 @@ class OrphanVolumeItem(scrapy.Item):
 
     Fields:
         isbn_tw: The ISBN of the volume in Taiwan
-        search_field_name: The field name to search by
+        search_query: The target used to find the respective book
         source_url: The URL of the source page
     """
 
@@ -29,7 +29,7 @@ class OrphanMapItem(scrapy.Item):
         author_tw: The author of the comic in Taiwan
         release_date_tw: The release date of the volume in Taiwan
         publisher_tw: The publisher of the volume in Taiwan
-        search_field_name: The field name to search by
+        search_query: The target used to find the respective book
         search_url: The URL of the search results page
         detail_url: The URL of the book detail page
         product_desc: The product description of the volume
@@ -64,7 +64,7 @@ class JpComicItem(scrapy.Item):
         title_jp: The title of the comic in Japanese
         author_jp: The author of the comic in Japanese
         publisher_jp: The publisher of the comic in Japan
-        search_field_name: The field name to search by
+        search_query: The target used to find the respective book
         detail_url: The URL of the book detail page
         product_desc: The product description of the comic
     """
