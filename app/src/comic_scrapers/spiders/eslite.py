@@ -89,10 +89,9 @@ class EsliteSpider(BaseSeleniumSpider):
                 category_tw.click()
                 # Wait for filter to be applied (search results to reload)
                 self.wait.until(EC.staleness_of(category_tw))
-            except selenium_exceptions.TimeoutException as e:
-                self.logger.error(
-                    "apply_search_filters(): Timeout while"
-                    f"applying category filter: {e}"
+            except selenium_exceptions.TimeoutException:
+                self.logger.exception(
+                    "apply_search_filters(): Timeout whileapplying category filter"
                 )
 
     def should_skip_detail_page(self, page_value: str, product_desc: str) -> bool:
@@ -135,12 +134,9 @@ class EsliteISBNSpider(EsliteSpider):
             last_release_date (str): Last known release date for this ISBN
                 in YYYY-MM-DD format (optional for ISBN search).
         """
-        super().__init__(
-            search_value=search_value,
-            last_release_date=last_release_date,
-            *args,
-            **kwargs,
-        )
+        kwargs["search_value"] = search_value
+        kwargs["last_release_date"] = last_release_date
+        super().__init__(*args, **kwargs)
 
         # Search by ISBN
         self.search_field_name = "isbn_tw"
@@ -168,12 +164,9 @@ class EsliteTitleTwSpider(EsliteSpider):
                 in YYYY-MM-DD format. Used to skip volumes we already have.
                 Defaults to None (crawl all volumes).
         """
-        super().__init__(
-            search_value=search_value,
-            last_release_date=last_release_date,
-            *args,
-            **kwargs,
-        )
+        kwargs["search_value"] = search_value
+        kwargs["last_release_date"] = last_release_date
+        super().__init__(*args, **kwargs)
 
         # Search by title
         self.search_field_name = "title_tw"
