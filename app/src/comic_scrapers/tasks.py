@@ -218,7 +218,7 @@ def crawl_single_title_booksjp(self, title, last_release_date):
         raise
 
 
-@shared_task
+@shared_task(acks_late=True)
 def crawl_orphan_volumes_eslite():
     """Schedule crawl tasks for all orphan volumes using ISBN."""
     from celery import group
@@ -244,7 +244,7 @@ def crawl_orphan_volumes_eslite():
     return {"total_tasks": len(tasks), "group_id": result.id}
 
 
-@shared_task
+@shared_task(acks_late=True)
 def crawl_all_series_eslite():
     """Schedule crawl tasks for all Eslite Traditional Chinese series."""
     from celery import group
@@ -274,7 +274,7 @@ def crawl_all_series_eslite():
     return {"total_tasks": len(tasks), "group_id": result.id}
 
 
-@shared_task
+@shared_task(acks_late=True)
 def crawl_all_series_booksjp():
     """Schedule crawl tasks for all Japanese comic series."""
     from celery import group
