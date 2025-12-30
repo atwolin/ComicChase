@@ -143,7 +143,7 @@ class TestEsliteSpiderParseSearchResults(unittest.TestCase):
         # Create mock URL and date elements
         mock_urls = [MagicMock() for _ in range(num_urls)]
         mock_dates = []
-        for i, day in enumerate([18, 17, 16], 1):
+        for day in [18, 17, 16]:
             mock_date = MagicMock()
             # base_selenium_spider calls get_attribute("innerHTML")
             mock_date.get_attribute.return_value = f"2025年12月{day}日"
