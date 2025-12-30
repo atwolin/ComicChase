@@ -9,7 +9,6 @@ DB_PORT=${SQL_PORT:-5432}
 
 # Run migrations
 python manage.py migrate --noinput
-python manage.py migrate django_celery_results --noinput
 
 # Execute the main command
 exec "$@"
