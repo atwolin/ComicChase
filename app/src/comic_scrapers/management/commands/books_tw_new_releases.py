@@ -1,6 +1,6 @@
-import os
 import subprocess
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 
@@ -10,10 +10,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write("Starting books.com.tw new releases crawl...")
 
-        # Get the directory containing scrapy.cfg (same as manage.py)
-        scrapy_dir = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
+        # Get the directory containing scrapy.cfg (BASE_DIR from settings)
+        scrapy_dir = str(settings.BASE_DIR)
 
         result = subprocess.run(
             ["scrapy", "crawl", "books_tw"],
@@ -35,6 +33,6 @@ class Command(BaseCommand):
                 self.style.ERROR(f"Crawl failed with exit code {result.returncode}")
             )
             self.stderr.write("STDOUT:")
-            self.stderr.write(result.stdout)
+            self.stdout.write(result.stdout)
             self.stderr.write("STDERR:")
             self.stderr.write(result.stderr)

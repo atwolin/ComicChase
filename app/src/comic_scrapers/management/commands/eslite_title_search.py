@@ -1,6 +1,6 @@
-import os
 import subprocess
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 
@@ -33,10 +33,8 @@ class Command(BaseCommand):
         else:
             self.stdout.write("Starting eslite.com title search for all series...")
 
-        # Get the directory containing scrapy.cfg
-        scrapy_dir = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
+        # Get the directory containing scrapy.cfg (BASE_DIR from settings)
+        scrapy_dir = str(settings.BASE_DIR)
 
         result = subprocess.run(cmd, capture_output=True, text=True, cwd=scrapy_dir)
 
