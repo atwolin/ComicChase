@@ -55,6 +55,9 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
         "DOWNLOAD_DELAY": 10,  # Polite crawling: 10 seconds between requests
     }
 
+    # Delay after processing each detail page (seconds)
+    detail_page_delay = 20
+
     DATE_REGEX = re.compile(r"([0-9]{4})年([0-9]{1,2})月([0-9]{1,2})日")
 
     def __init__(self, search_value=None, last_release_date=None, *args, **kwargs):
@@ -645,7 +648,7 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
             # Wait for detail page processing to complete
             # This long delay helps avoid triggering anti-scraping measures
             # and ensures the search results page is stable when we return
-            time.sleep(20)
+            time.sleep(self.detail_page_delay)
 
             # Go back to search results page
             self.driver.back()
