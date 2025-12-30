@@ -19,6 +19,11 @@ class ComicScrapersPipeline:
     preventing blocking of the Scrapy reactor.
     """
 
+    ISBN_TW_REGEX = re.compile(r"ISBN13 / ([0-9]{13})")
+    DATE_REGEX = re.compile(r"([0-9]{4})年([0-9]{1,2})月([0-9]{1,2})日")
+    VOLUME_NUMBER_JP_REGEX = re.compile(r"[（(]?[0-9０-９]+[)）]?")
+    ISBN_JP_REGEX = re.compile(r"([0-9]{13})")
+
     def process_item(self, item, spider):
         """See base class."""
         # Process data from books.com.tw
@@ -83,7 +88,7 @@ class ComicScrapersPipeline:
 
         except IntegrityError as e:
             spider.logger.warning(f"Duplicate data for ISBN {isbn_tw}: {str(e)}")
-            raise DropItem(f"Duplicate Volume: {isbn_tw}")
+            raise DropItem(f"Duplicate Volume: {isbn_tw}") from e
         except DropItem:
             raise
         except Exception as e:
@@ -91,7 +96,7 @@ class ComicScrapersPipeline:
                 f"Failed to process Orphan Volume with ISBN {isbn_tw}, error: {str(e)}",
                 exc_info=True,
             )
-            raise DropItem(f"Processing failed for Orphan Volume: {str(e)}")
+            raise DropItem(f"Processing failed for Orphan Volume: {str(e)}") from e
 
     def _get_book_title_tw(self, book_title: str):
         """Process book_title_tw to extract title and volume number
@@ -116,13 +121,10 @@ class ComicScrapersPipeline:
                 - variant (str or None): The variant information if present.
                 - volume_number (int or None): The extracted volume number if present.
                 - is_final_volume (bool): True if the volume is marked as final.
-                - latest_volume_tw (int or None): The latest volume number
-                                                  if this is a final volume.
         """
         parts = book_title.split(" ")
         # Series field
         series_name_tw = None
-        latest_volume_tw = None
         is_final_volume = False
         # Volume field
         variant = None
@@ -148,11 +150,7 @@ class ComicScrapersPipeline:
         # Update title_tw
         series_name_tw = " ".join(parts[:-1]).strip()
 
-        # Update latest_volume_tw if is final volume
-        if is_final_volume:
-            latest_volume_tw = volume_number
-
-        return series_name_tw, variant, volume_number, is_final_volume, latest_volume_tw
+        return series_name_tw, variant, volume_number, is_final_volume
 
     def _process_orphan_map_item(self, item: OrphanMapItem, spider):
         """Process OrphanMapItem to link existing Comics with Volumes in the database
@@ -206,7 +204,6 @@ class ComicScrapersPipeline:
                 variant,
                 volume_number,
                 is_final_volume,
-                latest_volume_tw,
             ) = self._get_book_title_tw(title_tw)
 
             author_tw_raw = adapter.get("author_tw")
@@ -287,7 +284,7 @@ class ComicScrapersPipeline:
 
         except IntegrityError as e:
             spider.logger.warning(f"Duplicate data for {title_jp}: {str(e)}")
-            raise DropItem(f"Duplicate data: {str(e)}")
+            raise DropItem(f"Duplicate data: {str(e)}") from e
         except DropItem:
             raise
         except Exception as e:
@@ -295,9 +292,7 @@ class ComicScrapersPipeline:
                 f"Failed to process Orphan Map Item for {title_jp}, error: {str(e)}",
                 exc_info=True,
             )
-            raise DropItem(f"Processing failed for Orphan Map Item: {str(e)}")
-
-    ISBN_TW_REGEX = re.compile(r"ISBN13 / ([0-9]{13})")
+            raise DropItem(f"Processing failed for Orphan Map Item: {str(e)}") from e
 
     def _process_eslite_title_item(self, item: OrphanMapItem, spider):
         """Process OrphanMapItem from EsliteTitleTwSpider
@@ -312,6 +307,7 @@ class ComicScrapersPipeline:
         """
         adapter = ItemAdapter(item)
         title_jp = adapter.get("title_jp")
+        title_tw = adapter.get("title_tw")
 
         try:
             if not title_jp:
@@ -323,9 +319,9 @@ class ComicScrapersPipeline:
             # Validate Title TW matches search query
             # Note: We check if search_query is in title_tw
             # because title_tw includes volume number etc.
-            if search_query and search_query not in adapter.get("title_tw"):
+            if search_query and title_tw and (search_query not in title_tw):
                 raise DropItem(
-                    f"Title TW '{adapter.get('title_tw')}' does not contain "
+                    f"Title TW '{title_tw}' does not contain "
                     f"search query '{search_query}'. Skipping."
                 )
 
@@ -344,7 +340,6 @@ class ComicScrapersPipeline:
                 return item
 
             # Process Volume title and volume number
-            title_tw = adapter.get("title_tw")
             if not title_tw:
                 raise DropItem(f"No title_tw in item: {adapter.items()}")
 
@@ -353,7 +348,6 @@ class ComicScrapersPipeline:
                 variant,
                 volume_number,
                 is_final_volume,
-                latest_volume_tw,
             ) = self._get_book_title_tw(title_tw)
 
             release_date_tw_raw = adapter.get("release_date_tw")
@@ -434,9 +428,7 @@ class ComicScrapersPipeline:
                 f"Failed to process Eslite Title Item for {title_jp}: {e}",
                 exc_info=True,
             )
-            raise DropItem(f"Processing failed: {e}")
-
-    DATE_REGEX = re.compile(r"([0-9]{4})年([0-9]{1,2})月([0-9]{1,2})日")
+            raise DropItem(f"Processing title item failed: {e}") from e
 
     def _get_book_release_date_jp(self, product_desc: str):
         """Process product_desc to extract release date for the current volume.
@@ -459,8 +451,6 @@ class ComicScrapersPipeline:
             # Pad month and day with leading zeros to ensure 2 digits
             return f"{year}-{month.zfill(2)}-{day.zfill(2)}"
         return None
-
-    VOLUME_NUMBER_JP_REGEX = re.compile(r"[（(]?[0-9０-９]+[)）]?")
 
     def _get_book_title_jp(self, book_title: str, series_name_jp: str):
         """Process title to extract volume number for Japanese comics
@@ -491,8 +481,6 @@ class ComicScrapersPipeline:
             volume_number = int(volume_number.strip("()（）").strip())
             return variant, volume_number
         return None, None
-
-    ISBN_JP_REGEX = re.compile(r"([0-9]{13})")
 
     def _process_jp_comic_item(self, item: JpComicItem, spider):
         """Process JpComicItem to update or create Series and Volume entry.
@@ -635,12 +623,13 @@ class ComicScrapersPipeline:
 
         except IntegrityError as e:
             spider.logger.warning(f"Duplicate data for {series_name_jp}: {str(e)}")
-            raise DropItem(f"Duplicate Volume: {str(e)}")
+            raise DropItem(f"Duplicate Volume: {str(e)}") from e
         except DropItem:
             raise
         except Exception as e:
             spider.logger.error(
-                f"Failed to process JP Comic Item for{series_name_jp}, error: {str(e)}",
+                "Failed to process JP Comic Item for "
+                f"{series_name_jp}, error: {str(e)}",
                 exc_info=True,
             )
-            raise DropItem(f"Processing failed for JP Comic Item: {str(e)}")
+            raise DropItem(f"Processing failed for JP Comic Item: {str(e)}") from e
