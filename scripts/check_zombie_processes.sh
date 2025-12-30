@@ -2,7 +2,7 @@
 # 殭屍程序檢查腳本
 # 用途：檢查 Celery Worker 執行爬蟲後是否有 Python 或 Chrome 殭屍程序殘留
 
-set -e
+set -uo pipefail
 
 # 顏色定義
 RED='\033[0;31m'
@@ -64,7 +64,7 @@ fi
 # 檢查殭屍程序 (Z state)
 echo ""
 echo "檢查殭屍程序 (Z 狀態):"
-ZOMBIE_OUTPUT=$(docker exec $CRAWLER_CONTAINER ps aux 2>/dev/null | awk '$8=="Z" || $8~/Z/')
+ZOMBIE_OUTPUT=$(docker exec $CRAWLER_CONTAINER ps -eo pid,stat,comm 2>/dev/null | awk 'NR>1 && $2 ~ /Z/' || true)
 if [ -z "$ZOMBIE_OUTPUT" ]; then
     echo -e "${GREEN}✓ 無殭屍程序${NC}"
 else
