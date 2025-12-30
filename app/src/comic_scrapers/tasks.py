@@ -45,8 +45,8 @@ def crawl_new_volumes_bookstw(self):
             "output": stdout_content[-500:] if stdout_content else "",
             "errors": stderr_content[-500:] if stderr_content else "",
         }
-    except Exception as e:
-        logger.error(f"[{task_id}] Crawl failed: {str(e)}")
+    except Exception:
+        logger.exception(f"[{task_id}] Crawl failed")
         logger.error(f"[{task_id}] Error output: {err.getvalue()}")
         raise
 
@@ -92,8 +92,8 @@ def crawl_single_isbn_eslite(self, isbn):
             "output": stdout_content[-500:] if stdout_content else "",
             "errors": stderr_content[-500:] if stderr_content else "",
         }
-    except Exception as e:
-        logger.error(f"[{task_id}] Eslite ISBN crawl failed for {isbn}: {str(e)}")
+    except Exception:
+        logger.exception(f"[{task_id}] Eslite ISBN crawl failed for {isbn}")
         logger.error(f"[{task_id}] Error output: {err.getvalue()}")
         raise
 
@@ -152,8 +152,8 @@ def crawl_single_title_eslite(self, title, last_release_date):
             "output": stdout_content[-500:] if stdout_content else "",
             "errors": stderr_content[-500:] if stderr_content else "",
         }
-    except Exception as e:
-        logger.error(f"[{task_id}] Crawl failed for {title}: {str(e)}")
+    except Exception:
+        logger.exception(f"[{task_id}] Crawl failed for {title}")
         logger.error(f"[{task_id}] Error output: {err.getvalue()}")
         raise
 
@@ -212,8 +212,8 @@ def crawl_single_title_booksjp(self, title, last_release_date):
             "output": stdout_content[-500:] if stdout_content else "",
             "errors": stderr_content[-500:] if stderr_content else "",
         }
-    except Exception as e:
-        logger.error(f"[{task_id}] Crawl failed for {title}: {str(e)}")
+    except Exception:
+        logger.exception(f"[{task_id}] Crawl failed for {title}")
         logger.error(f"[{task_id}] Error output: {err.getvalue()}")
         raise
 
