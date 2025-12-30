@@ -5,10 +5,8 @@ services:
     restart: no
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=comic_db
-      - POSTGRES_USER=comic_user
-      - POSTGRES_PASSWORD=comic_pass
+    env_file:
+      - ./.env
     ports:
       - "5432:5432"
 
@@ -22,10 +20,8 @@ services:
   rabbitmq:
     image: rabbitmq:4.2-management
     restart: no
-    environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=admin
-      - RABBITMQ_DEFAULT_VHOST=staging_vhost
+    env_file:
+      - ./.env
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -46,8 +42,10 @@ services:
     env_file:
       - ./.env
     depends_on:
-      - backend
-      - rabbitmq
+      backend:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
 
   celery-crawler:
     build:
@@ -63,8 +61,10 @@ services:
     env_file:
       - ./.env
     depends_on:
-      - backend
-      - rabbitmq
+      backend:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
 
   celery-beat:
     build:
@@ -81,8 +81,10 @@ services:
     env_file:
       - ./.env
     depends_on:
-      - backend
-      - rabbitmq
+      backend:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
 
   flower:
     build:
@@ -92,7 +94,7 @@ services:
         USER_ID: ${UID}
         GID: ${GID}
     entrypoint: [""]
-    command: celery flower -A config --port=5555 --broker=amqp://admin:admin@rabbitmq:5672/staging_vhost
+    command: celery flower -A config --port=5555 --broker=${CELERY_BROKER_URL}
     ports:
       - "5555:5555"
     env_file:
