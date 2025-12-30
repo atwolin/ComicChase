@@ -1,6 +1,10 @@
+import time
+
 from scrapy.item import Item
 from selenium.common import exceptions as selenium_exceptions
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
 
 from comic_scrapers.items import JpComicItem
 from comic_scrapers.spiders.base_selenium_spider import BaseSeleniumSpider
@@ -76,11 +80,6 @@ class BooksJpSpider(BaseSeleniumSpider):
         """Execute the search using books.or.jp specific search button."""
         search_box.click()
 
-        # Clear the search box
-        import time
-
-        from selenium.webdriver.common.keys import Keys
-
         search_box.send_keys(Keys.CONTROL + "a")  # Select all
         search_box.send_keys(Keys.DELETE)  # Delete
         time.sleep(0.5)  # Brief wait for field to clear
@@ -145,10 +144,6 @@ class BooksJpSpider(BaseSeleniumSpider):
             bool: True if page content changed, False if timeout.
         """
         try:
-            # Wait for the search results container to update
-            # We detect this by waiting for the old results to become stale
-            from selenium.webdriver.support import expected_conditions as EC
-
             # Get current results before they become stale
             old_results = self.driver.find_elements(
                 By.XPATH, self.search_results_url_xpath
@@ -189,12 +184,9 @@ class BooksJpTitleTwSpider(BooksJpSpider):
                 in YYYY-MM-DD format. Used to skip volumes we already have.
                 Defaults to None (crawl all volumes).
         """
-        super().__init__(
-            search_value=search_value,
-            last_release_date=last_release_date,
-            *args,
-            **kwargs,
-        )
+        kwargs["search_value"] = search_value
+        kwargs["last_release_date"] = last_release_date
+        super().__init__(*args, **kwargs)
 
         # Search by series name
         self.search_field_name = "title_jp"
