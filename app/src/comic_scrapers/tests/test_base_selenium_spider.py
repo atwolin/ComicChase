@@ -59,10 +59,7 @@ class TestBaseSeleniumSpiderClosed(unittest.TestCase):
         spider.driver = mock_driver
 
         # Should not raise exception
-        try:
-            spider.closed("finished")
-        except Exception:
-            self.fail("closed() should handle driver.quit() exceptions")
+        spider.closed("finished")
 
 
 if __name__ == "__main__":
