@@ -91,7 +91,7 @@ class EsliteSpider(BaseSeleniumSpider):
                 self.wait.until(EC.staleness_of(category_tw))
             except selenium_exceptions.TimeoutException:
                 self.logger.exception(
-                    "apply_search_filters(): Timeout whileapplying category filter"
+                    "apply_search_filters(): Timeout while applying category filter"
                 )
 
     def should_skip_detail_page(self, page_value: str, product_desc: str) -> bool:
