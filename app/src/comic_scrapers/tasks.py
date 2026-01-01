@@ -46,8 +46,10 @@ def crawl_new_volumes_bookstw(self):
             "errors": stderr_content[-500:] if stderr_content else "",
         }
     except Exception:
+        stderr_content = err.getvalue()
+        if stderr_content:
+            logger.warning(f"[{task_id}] Command stderr: {stderr_content}")
         logger.exception(f"[{task_id}] Crawl failed")
-        logger.error(f"[{task_id}] Error output: {err.getvalue()}")
         raise
 
 
@@ -93,8 +95,10 @@ def crawl_single_isbn_eslite(self, isbn):
             "errors": stderr_content[-500:] if stderr_content else "",
         }
     except Exception:
-        logger.exception(f"[{task_id}] Eslite ISBN crawl failed for {isbn}")
-        logger.error(f"[{task_id}] Error output: {err.getvalue()}")
+        stderr_content = err.getvalue()
+        if stderr_content:
+            logger.warning(f"[{task_id}] Command stderr: {stderr_content}")
+        logger.exception(f"[{task_id}] Crawl failed")
         raise
 
 
@@ -153,8 +157,10 @@ def crawl_single_title_eslite(self, title, last_release_date):
             "errors": stderr_content[-500:] if stderr_content else "",
         }
     except Exception:
-        logger.exception(f"[{task_id}] Crawl failed for {title}")
-        logger.error(f"[{task_id}] Error output: {err.getvalue()}")
+        stderr_content = err.getvalue()
+        if stderr_content:
+            logger.warning(f"[{task_id}] Command stderr: {stderr_content}")
+        logger.exception(f"[{task_id}] Crawl failed")
         raise
 
 
@@ -213,8 +219,10 @@ def crawl_single_title_booksjp(self, title, last_release_date):
             "errors": stderr_content[-500:] if stderr_content else "",
         }
     except Exception:
-        logger.exception(f"[{task_id}] Crawl failed for {title}")
-        logger.error(f"[{task_id}] Error output: {err.getvalue()}")
+        stderr_content = err.getvalue()
+        if stderr_content:
+            logger.warning(f"[{task_id}] Command stderr: {stderr_content}")
+        logger.exception(f"[{task_id}] Crawl failed")
         raise
 
 
