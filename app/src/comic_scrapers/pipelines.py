@@ -223,6 +223,9 @@ class ComicScrapersPipeline:
                 publisher_tw_raw.rsplit("\n", 1)[-1].strip() if publisher_tw_raw else ""
             )
 
+            # Extract image URL
+            image_url_tw = adapter.get("image_url_tw", "")
+
             # Start storing data into database
             # 1. Get or create Publisher
             publisher, created_pub = Publisher.objects.get_or_create(
@@ -252,6 +255,7 @@ class ComicScrapersPipeline:
                 volume.volume_number = volume_number
                 volume.variant = variant or ""
                 volume.release_date = release_date_tw
+                volume.image_url = image_url_tw
                 volume.save()
                 spider.logger.info(f"Updated Volume: {volume}")
             else:
@@ -362,6 +366,9 @@ class ComicScrapersPipeline:
                 publisher_tw_raw.rsplit("\n", 1)[-1].strip() if publisher_tw_raw else ""
             )
 
+            # Extract image URL
+            image_url_tw = adapter.get("image_url_tw", "")
+
             # 1. Get or create Publisher
             publisher, _ = Publisher.objects.get_or_create(
                 name=publisher_tw, region="TW"
@@ -386,6 +393,7 @@ class ComicScrapersPipeline:
                     "volume_number": volume_number,
                     "variant": variant or "",
                     "release_date": release_date_tw,
+                    "image_url": image_url_tw,
                 },
             )
 
@@ -398,6 +406,7 @@ class ComicScrapersPipeline:
                 volume.volume_number = volume_number
                 volume.variant = variant or ""
                 volume.release_date = release_date_tw
+                volume.image_url = image_url_tw
                 volume.save()
                 spider.logger.info(f"Updated existing Volume: {volume}")
 
@@ -561,6 +570,9 @@ class ComicScrapersPipeline:
                 product_desc if product_desc else ""
             )
 
+            # Extract image URL
+            image_url_jp = adapter.get("image_url_jp", "")
+
             # Start storing data into database
             # 1. Get or create Publisher
             publisher, created_pub = Publisher.objects.get_or_create(
@@ -593,6 +605,7 @@ class ComicScrapersPipeline:
                     "volume_number": volume_number,
                     "variant": variant or "",
                     "release_date": release_date_jp,
+                    "image_url": image_url_jp,
                 },
             )
             if created_volume:
