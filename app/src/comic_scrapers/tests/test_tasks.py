@@ -355,12 +355,9 @@ class TestCrawlOrphanVolumesEslite(unittest.TestCase):
 class TestCrawlAllSeriesEslite(unittest.TestCase):
     """[UNIT] Test crawl_all_series_eslite task."""
 
-    @patch("celery.group")
     @patch("comic_scrapers.tasks.crawl_single_title_eslite")
     @patch("comic.models.Series")
-    def test_creates_task_for_each_series(
-        self, mock_series, mock_crawl_task, mock_group
-    ):
+    def test_creates_task_for_each_series(self, mock_series, mock_crawl_task):
         """Test that a task is created for each series with TC title."""
         # Arrange
         mock_queryset = MagicMock()
@@ -371,25 +368,25 @@ class TestCrawlAllSeriesEslite(unittest.TestCase):
         ]
         mock_series.objects.filter.return_value = mock_queryset
 
-        # Mock the signature method and group
-        mock_crawl_task.s = MagicMock(return_value=MagicMock())
-        mock_job = MagicMock()
-        mock_job.apply_async.return_value = MagicMock(id="test-group-id")
-        mock_group.return_value = mock_job
+        # Mock the chunks method
+        mock_chunks_result = MagicMock()
+        mock_chunks_result.apply_async.return_value = MagicMock(id="test-group-id")
+        mock_crawl_task.chunks.return_value = mock_chunks_result
 
         # Act
         result = crawl_all_series_eslite()
 
         # Assert
         self.assertEqual(result["total_tasks"], 3)
-        self.assertEqual(mock_crawl_task.s.call_count, 3)
+        # Verify chunks was called with correct arguments and chunk size
+        mock_crawl_task.chunks.assert_called_once()
+        call_args = mock_crawl_task.chunks.call_args[0]
+        self.assertEqual(len(call_args[0]), 3)  # 3 series
+        self.assertEqual(call_args[1], 20)  # chunk size
 
-    @patch("celery.group")
     @patch("comic_scrapers.tasks.crawl_single_title_eslite")
     @patch("comic.models.Series")
-    def test_formats_release_date_correctly(
-        self, mock_series, mock_crawl_task, mock_group
-    ):
+    def test_formats_release_date_correctly(self, mock_series, mock_crawl_task):
         """Test that release date is formatted to YYYY-MM-DD string."""
         # Arrange
         mock_queryset = MagicMock()
@@ -400,25 +397,24 @@ class TestCrawlAllSeriesEslite(unittest.TestCase):
             },
         ]
         mock_series.objects.filter.return_value = mock_queryset
-        mock_crawl_task.s = MagicMock(return_value=MagicMock())
 
-        # Mock group
-        mock_job = MagicMock()
-        mock_job.apply_async.return_value = MagicMock(id="test-group-id")
-        mock_group.return_value = mock_job
+        # Mock the chunks method
+        mock_chunks_result = MagicMock()
+        mock_chunks_result.apply_async.return_value = MagicMock(id="test-group-id")
+        mock_crawl_task.chunks.return_value = mock_chunks_result
 
         # Act
         crawl_all_series_eslite()
 
         # Assert
-        call_args = mock_crawl_task.s.call_args[0]
-        self.assertEqual(call_args[0], "葬送的芙莉蓮")
-        self.assertEqual(call_args[1], "2025-12-01")
+        # Verify the task arguments contain formatted date
+        call_args = mock_crawl_task.chunks.call_args[0]
+        task_args = call_args[0]
+        self.assertEqual(task_args[0], ("葬送的芙莉蓮", "2025-12-01"))
 
-    @patch("celery.group")
     @patch("comic_scrapers.tasks.crawl_single_title_eslite")
     @patch("comic.models.Series")
-    def test_handles_none_release_date(self, mock_series, mock_crawl_task, mock_group):
+    def test_handles_none_release_date(self, mock_series, mock_crawl_task):
         """Test that None release date is passed as None."""
         # Arrange
         mock_queryset = MagicMock()
@@ -426,60 +422,47 @@ class TestCrawlAllSeriesEslite(unittest.TestCase):
             {"title_tw": "Test", "latest_volume_tw__release_date": None},
         ]
         mock_series.objects.filter.return_value = mock_queryset
-        mock_crawl_task.s = MagicMock(return_value=MagicMock())
 
-        # Mock group
-        mock_job = MagicMock()
-        mock_job.apply_async.return_value = MagicMock(id="test-group-id")
-        mock_group.return_value = mock_job
+        # Mock the chunks method
+        mock_chunks_result = MagicMock()
+        mock_chunks_result.apply_async.return_value = MagicMock(id="test-group-id")
+        mock_crawl_task.chunks.return_value = mock_chunks_result
 
         # Act
         crawl_all_series_eslite()
 
         # Assert
-        call_args = mock_crawl_task.s.call_args[0]
-        self.assertIsNone(call_args[1])
+        call_args = mock_crawl_task.chunks.call_args[0]
+        task_args = call_args[0]
+        self.assertEqual(task_args[0], ("Test", None))
 
-    @patch("celery.group")
     @patch("comic_scrapers.tasks.crawl_single_title_eslite")
     @patch("comic.models.Series")
-    def test_returns_zero_tasks_when_no_series(
-        self, mock_series, mock_crawl_task, mock_group
-    ):
+    def test_returns_zero_tasks_when_no_series(self, mock_series, mock_crawl_task):
         """Test behavior when no series with Traditional Chinese titles exist."""
         # Arrange
         mock_queryset = MagicMock()
         mock_queryset.values.return_value = []
         mock_series.objects.filter.return_value = mock_queryset
 
-        # Mock group
-        mock_job = MagicMock()
-        mock_job.apply_async.return_value = MagicMock(id="test-group-id")
-        mock_group.return_value = mock_job
-
         # Act
         result = crawl_all_series_eslite()
 
         # Assert
         self.assertEqual(result["total_tasks"], 0)
-        mock_crawl_task.s.assert_not_called()
+        self.assertIsNone(result["group_id"])
+        mock_crawl_task.chunks.assert_not_called()
 
-    @patch("celery.group")
     @patch("comic_scrapers.tasks.crawl_single_title_eslite")
     @patch("comic.models.Series")
     def test_queries_only_series_with_traditional_chinese_titles(
-        self, mock_series, mock_crawl_task, mock_group
+        self, mock_series, mock_crawl_task
     ):
         """Test that query filters for non-null title_tw."""
         # Arrange
         mock_queryset = MagicMock()
         mock_queryset.values.return_value = []
         mock_series.objects.filter.return_value = mock_queryset
-
-        # Mock group
-        mock_job = MagicMock()
-        mock_job.apply_async.return_value = MagicMock(id="test-group-id")
-        mock_group.return_value = mock_job
 
         # Act
         crawl_all_series_eslite()
@@ -491,12 +474,9 @@ class TestCrawlAllSeriesEslite(unittest.TestCase):
 class TestCrawlAllSeriesBooksjp(unittest.TestCase):
     """[UNIT] Test crawl_all_series_booksjp task."""
 
-    @patch("celery.group")
     @patch("comic_scrapers.tasks.crawl_single_title_booksjp")
     @patch("comic.models.Series")
-    def test_creates_task_for_each_japanese_series(
-        self, mock_series, mock_crawl_task, mock_group
-    ):
+    def test_creates_task_for_each_japanese_series(self, mock_series, mock_crawl_task):
         """Test that a task is created for each series with Japanese title."""
         # Arrange
         mock_queryset = MagicMock()
@@ -505,25 +485,27 @@ class TestCrawlAllSeriesBooksjp(unittest.TestCase):
             {"title_jp": "ブルーピリオド", "latest_volume_jp__release_date": None},
         ]
         mock_series.objects.filter.return_value = mock_queryset
-        mock_crawl_task.s = MagicMock(return_value=MagicMock())
 
-        # Mock group
-        mock_job = MagicMock()
-        mock_job.apply_async.return_value = MagicMock(id="test-group-id")
-        mock_group.return_value = mock_job
+        # Mock the chunks method
+        mock_chunks_result = MagicMock()
+        mock_chunks_result.apply_async.return_value = MagicMock(id="test-group-id")
+        mock_crawl_task.chunks.return_value = mock_chunks_result
 
         # Act
         result = crawl_all_series_booksjp()
 
         # Assert
         self.assertEqual(result["total_tasks"], 2)
-        self.assertEqual(mock_crawl_task.s.call_count, 2)
+        # Verify chunks was called with correct arguments and chunk size
+        mock_crawl_task.chunks.assert_called_once()
+        call_args = mock_crawl_task.chunks.call_args[0]
+        self.assertEqual(len(call_args[0]), 2)  # 2 series
+        self.assertEqual(call_args[1], 20)  # chunk size
 
-    @patch("celery.group")
     @patch("comic_scrapers.tasks.crawl_single_title_booksjp")
     @patch("comic.models.Series")
     def test_queries_only_series_with_japanese_titles(
-        self, mock_series, mock_crawl_task, mock_group
+        self, mock_series, mock_crawl_task
     ):
         """Test that query filters for non-null title_jp."""
         # Arrange
@@ -531,23 +513,15 @@ class TestCrawlAllSeriesBooksjp(unittest.TestCase):
         mock_queryset.values.return_value = []
         mock_series.objects.filter.return_value = mock_queryset
 
-        # Mock group
-        mock_job = MagicMock()
-        mock_job.apply_async.return_value = MagicMock(id="test-group-id")
-        mock_group.return_value = mock_job
-
         # Act
         crawl_all_series_booksjp()
 
         # Assert
         mock_series.objects.filter.assert_called_once_with(title_jp__isnull=False)
 
-    @patch("celery.group")
     @patch("comic_scrapers.tasks.crawl_single_title_booksjp")
     @patch("comic.models.Series")
-    def test_formats_japanese_release_date(
-        self, mock_series, mock_crawl_task, mock_group
-    ):
+    def test_formats_japanese_release_date(self, mock_series, mock_crawl_task):
         """Test that Japanese release date is formatted correctly."""
         # Arrange
         mock_queryset = MagicMock()
@@ -558,19 +532,36 @@ class TestCrawlAllSeriesBooksjp(unittest.TestCase):
             },
         ]
         mock_series.objects.filter.return_value = mock_queryset
-        mock_crawl_task.s = MagicMock(return_value=MagicMock())
 
-        # Mock group
-        mock_job = MagicMock()
-        mock_job.apply_async.return_value = MagicMock(id="test-group-id")
-        mock_group.return_value = mock_job
+        # Mock the chunks method
+        mock_chunks_result = MagicMock()
+        mock_chunks_result.apply_async.return_value = MagicMock(id="test-group-id")
+        mock_crawl_task.chunks.return_value = mock_chunks_result
 
         # Act
         crawl_all_series_booksjp()
 
         # Assert
-        call_args = mock_crawl_task.s.call_args[0]
-        self.assertEqual(call_args[1], "2025-11-20")
+        call_args = mock_crawl_task.chunks.call_args[0]
+        task_args = call_args[0]
+        self.assertEqual(task_args[0], ("ブルーピリオド", "2025-11-20"))
+
+    @patch("comic_scrapers.tasks.crawl_single_title_booksjp")
+    @patch("comic.models.Series")
+    def test_returns_zero_tasks_when_no_series(self, mock_series, mock_crawl_task):
+        """Test behavior when no series with Japanese titles exist."""
+        # Arrange
+        mock_queryset = MagicMock()
+        mock_queryset.values.return_value = []
+        mock_series.objects.filter.return_value = mock_queryset
+
+        # Act
+        result = crawl_all_series_booksjp()
+
+        # Assert
+        self.assertEqual(result["total_tasks"], 0)
+        self.assertIsNone(result["group_id"])
+        mock_crawl_task.chunks.assert_not_called()
 
 
 class TestTaskConfiguration(unittest.TestCase):

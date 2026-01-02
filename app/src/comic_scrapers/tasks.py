@@ -9,6 +9,8 @@ logger = logging.getLogger(__name__)
 
 @shared_task(
     bind=True,
+    soft_time_limit=50 * 60,
+    time_limit=60 * 60,
     max_retries=3,
     acks_late=True,
     autoretry_for=(Exception,),
@@ -241,9 +243,9 @@ def crawl_orphan_volumes_eslite():
         return {"total_tasks": 0, "group_id": None}
 
     # Process in chunks of 20
-    chunck_size = 20
+    chunk_size = 20
     result = crawl_single_isbn_eslite.chunks(
-        [(isbn,) for isbn in orphan_isbns], chunck_size
+        [(isbn,) for isbn in orphan_isbns], chunk_size
     ).apply_async()  # pyright: ignore[reportCallIssue]
 
     logger.info(f"Scheduled {len(orphan_isbns)} Eslite ISBN crawl tasks in chunks")
@@ -253,7 +255,6 @@ def crawl_orphan_volumes_eslite():
 @shared_task(acks_late=True)
 def crawl_all_series_eslite():
     """Schedule crawl tasks for all Eslite Traditional Chinese series."""
-    from celery import group
     from comic.models import Series
 
     # Query all series with Traditional Chinese titles
@@ -261,29 +262,30 @@ def crawl_all_series_eslite():
         "title_tw", "latest_volume_tw__release_date"
     )
 
-    # Create task for each series
-    tasks = []
+    # Prepare task arguments
+    task_args = []
     for series in series_list:
         title = series["title_tw"]
         last_date = series["latest_volume_tw__release_date"]
         last_date_str = last_date.strftime("%Y-%m-%d") if last_date else None
+        task_args.append((title, last_date_str))
 
-        task = crawl_single_title_eslite.s(title, last_date_str)  # pyright: ignore[reportCallIssue]
-        tasks.append(task)
+    if not task_args:
+        logger.info("No series found for Eslite crawl")
+        return {"total_tasks": 0, "group_id": None}
 
-    # Execute tasks in parallel using group
-    job = group(tasks)
-    result = job.apply_async()  # pyright: ignore[reportCallIssue]
+    # Process in chunks
+    chunk_size = 20
+    result = crawl_single_title_eslite.chunks(task_args, chunk_size).apply_async()  # pyright: ignore[reportCallIssue]
 
-    logger.info(f"Scheduled {len(tasks)} Eslite crawl tasks")
+    logger.info(f"Scheduled {len(task_args)} Eslite crawl tasks in chunks")
 
-    return {"total_tasks": len(tasks), "group_id": result.id}
+    return {"total_tasks": len(task_args), "group_id": result.id}
 
 
 @shared_task(acks_late=True)
 def crawl_all_series_booksjp():
     """Schedule crawl tasks for all Japanese comic series."""
-    from celery import group
     from comic.models import Series
 
     # Query all series with Japanese titles
@@ -291,18 +293,22 @@ def crawl_all_series_booksjp():
         "title_jp", "latest_volume_jp__release_date"
     )
 
-    tasks = []
+    # Prepare task arguments
+    task_args = []
     for series in series_list:
         title = series["title_jp"]
         last_date = series["latest_volume_jp__release_date"]
         last_date_str = last_date.strftime("%Y-%m-%d") if last_date else None
+        task_args.append((title, last_date_str))
 
-        task = crawl_single_title_booksjp.s(title, last_date_str)  # pyright: ignore[reportCallIssue]
-        tasks.append(task)
+    if not task_args:
+        logger.info("No series found for BooksJP crawl")
+        return {"total_tasks": 0, "group_id": None}
 
-    job = group(tasks)
-    result = job.apply_async()  # pyright: ignore[reportCallIssue]
+    # Process in chunks
+    chunk_size = 20
+    result = crawl_single_title_booksjp.chunks(task_args, chunk_size).apply_async()  # pyright: ignore[reportCallIssue]
 
-    logger.info(f"Scheduled {len(tasks)} BooksJP crawl tasks")
+    logger.info(f"Scheduled {len(task_args)} BooksJP crawl tasks in chunks")
 
-    return {"total_tasks": len(tasks), "group_id": result.id}
+    return {"total_tasks": len(task_args), "group_id": result.id}
