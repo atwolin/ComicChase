@@ -263,13 +263,17 @@ class TestEsliteSpiderParseDetailInfo(unittest.TestCase):
             "author": "作\n者：\n測試作者",  # author_tw
             "publicDate": "出\n版\n日\n期：\n2025/11/18",  # release_date_tw
             "publisher": "出\n版\n社：\n測試出版社",  # publisher_tw
+            "swiper-wrapper": "https://example.com/cover.jpg",  # image_url_tw (src)
         }
 
         def mock_find_element(by, xpath):
             mock_elem = MagicMock()
             for key, value in field_mapping.items():
                 if key in xpath:
-                    mock_elem.text = value
+                    if key == "swiper-wrapper":  # Image element
+                        mock_elem.get_attribute.return_value = value
+                    else:
+                        mock_elem.text = value
                     break
             return mock_elem
 
@@ -285,6 +289,7 @@ class TestEsliteSpiderParseDetailInfo(unittest.TestCase):
         self.assertEqual(result_item["author_tw"], "作\n者：\n測試作者")
         self.assertEqual(result_item["release_date_tw"], "出\n版\n日\n期：\n2025/11/18")
         self.assertEqual(result_item["publisher_tw"], "出\n版\n社：\n測試出版社")
+        self.assertEqual(result_item["image_url_tw"], "https://example.com/cover.jpg")
 
     def test_parse_detail_info_handles_topic_mismatch(self):
         """Test that parse_detail_info() returns early on topic mismatch."""

@@ -225,6 +225,10 @@ class TestBooksJpSpiderParseDetailInfo(unittest.TestCase):
                 mock_elem.text = "廻天のアルバス ７"
             elif "bookdetail_publisher" in xpath:  # publisher_jp
                 mock_elem.text = "出版社：小学館"
+            elif "main_image" in xpath:  # image_url_jp (src)
+                mock_elem.get_attribute.return_value = (
+                    "https://example.com/jp_cover.jpg"
+                )
             return mock_elem
 
         def mock_find_elements(by, xpath):
@@ -252,6 +256,9 @@ class TestBooksJpSpiderParseDetailInfo(unittest.TestCase):
         self.assertEqual(result_item["publisher_jp"], "出版社：小学館")
         self.assertIsInstance(result_item["author_jp"], list)
         self.assertEqual(len(result_item["author_jp"]), 4)
+        self.assertEqual(
+            result_item["image_url_jp"], "https://example.com/jp_cover.jpg"
+        )
 
     def test_parse_detail_info_handles_topic_mismatch(self):
         """Test that parse_detail_info() returns early on topic mismatch."""

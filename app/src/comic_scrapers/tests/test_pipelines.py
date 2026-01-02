@@ -20,7 +20,7 @@ class TestGetBookTitleTw(unittest.TestCase):
         """Test parsing title with volume number."""
         book_title = "藍色時期 16"
 
-        series_name_tw, variant, volume_number, is_final, latest_volume = (
+        series_name_tw, variant, volume_number, is_final = (
             self.pipeline._get_book_title_tw(book_title)
         )
 
@@ -28,13 +28,12 @@ class TestGetBookTitleTw(unittest.TestCase):
         self.assertIsNone(variant)
         self.assertEqual(volume_number, 16)
         self.assertFalse(is_final)
-        self.assertIsNone(latest_volume)
 
     def test_get_book_title_tw_with_special_edition(self):
         """Test parsing title with special edition marker."""
         book_title = "貓咪好夥伴小圓圓和小八 6 (特裝版)"
 
-        series_name_tw, variant, volume_number, is_final, latest_volume = (
+        series_name_tw, variant, volume_number, is_final = (
             self.pipeline._get_book_title_tw(book_title)
         )
 
@@ -42,13 +41,12 @@ class TestGetBookTitleTw(unittest.TestCase):
         self.assertEqual(variant, "特裝版")
         self.assertEqual(volume_number, 6)
         self.assertFalse(is_final)
-        self.assertIsNone(latest_volume)
 
     def test_get_book_title_tw_with_final_volume_marker(self):
         """Test parsing title with final volume marker."""
         book_title = "神速零零壹 2 (完)"
 
-        series_name_tw, variant, volume_number, is_final, latest_volume = (
+        series_name_tw, variant, volume_number, is_final = (
             self.pipeline._get_book_title_tw(book_title)
         )
 
@@ -56,7 +54,6 @@ class TestGetBookTitleTw(unittest.TestCase):
         self.assertIsNone(variant)
         self.assertEqual(volume_number, 2)
         self.assertTrue(is_final)
-        self.assertEqual(latest_volume, 2)
 
 
 class TestGetBookReleaseDateJp(unittest.TestCase):
@@ -212,6 +209,7 @@ class TestProcessOrphanMapItem(unittest.TestCase):
         item["author_tw"] = "作\n者：\n山口飛翔"
         item["release_date_tw"] = "出\n版\n日\n期：\n2025/11/27"
         item["publisher_tw"] = "出\n版\n社：\n東立出版社有限公司"
+        item["image_url_tw"] = "https://example.com/cover.jpg"
 
         mock_pub_obj = MagicMock()
         mock_publisher.objects.get_or_create.return_value = (mock_pub_obj, True)
@@ -260,6 +258,7 @@ class TestProcessOrphanMapItem(unittest.TestCase):
         item["author_tw"] = "作\n者：\n内海ロング"
         item["release_date_tw"] = "出\n版\n日\n期：\n2025/11/18"
         item["publisher_tw"] = "出\n版\n社：\n長鴻出版社股份有限公司"
+        item["image_url_tw"] = "https://example.com/cover2.jpg"
 
         mock_publisher.objects.get_or_create.return_value = (MagicMock(), True)
         mock_series_obj = MagicMock()
@@ -306,6 +305,7 @@ class TestProcessJpComicItem(unittest.TestCase):
             "発行年月日：2025年12月23日<br>発売予定日：2025年12月18日"
             '<span class="readonly">。</span></p>'
         )
+        item["image_url_jp"] = "https://example.com/jp_cover.jpg"
 
         mock_pub_obj = MagicMock()
         mock_publisher.objects.get_or_create.return_value = (mock_pub_obj, True)
