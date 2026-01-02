@@ -263,12 +263,9 @@ class TestCrawlSingleTitleBooksjp(unittest.TestCase):
 class TestCrawlOrphanVolumesEslite(unittest.TestCase):
     """[UNIT] Test crawl_orphan_volumes_eslite task."""
 
-    @patch("celery.group")
     @patch("comic_scrapers.tasks.crawl_single_isbn_eslite")
     @patch("comic.models.Volume")
-    def test_creates_task_for_each_orphan_volume(
-        self, mock_volume, mock_crawl_task, mock_group
-    ):
+    def test_creates_task_for_each_orphan_volume(self, mock_volume, mock_crawl_task):
         """Test that a task is created for each orphan volume with ISBN."""
         # Arrange
         mock_queryset = MagicMock()
@@ -279,35 +276,30 @@ class TestCrawlOrphanVolumesEslite(unittest.TestCase):
         ]
         mock_volume.objects.filter.return_value = mock_queryset
 
-        # Mock the signature method and group
-        mock_crawl_task.s = MagicMock(return_value=MagicMock())
-        mock_job = MagicMock()
-        mock_job.apply_async.return_value = MagicMock(id="test-group-id")
-        mock_group.return_value = mock_job
+        # Mock the chunks method
+        mock_chunks_result = MagicMock()
+        mock_chunks_result.apply_async.return_value = MagicMock(id="test-group-id")
+        mock_crawl_task.chunks.return_value = mock_chunks_result
 
         # Act
         result = crawl_orphan_volumes_eslite()
 
         # Assert
         self.assertEqual(result["total_tasks"], 3)
-        self.assertEqual(mock_crawl_task.s.call_count, 3)
+        # Verify chunks was called with correct ISBN tuples and chunk size
+        mock_crawl_task.chunks.assert_called_once()
+        call_args = mock_crawl_task.chunks.call_args[0]
+        self.assertEqual(len(call_args[0]), 3)  # 3 ISBNs
+        self.assertEqual(call_args[1], 20)  # chunk size
 
-    @patch("celery.group")
     @patch("comic_scrapers.tasks.crawl_single_isbn_eslite")
     @patch("comic.models.Volume")
-    def test_queries_only_orphan_volumes_with_isbn(
-        self, mock_volume, mock_crawl_task, mock_group
-    ):
+    def test_queries_only_orphan_volumes_with_isbn(self, mock_volume, mock_crawl_task):
         """Test that query filters for orphan volumes (no series) with ISBN."""
         # Arrange
         mock_queryset = MagicMock()
         mock_queryset.values_list.return_value = []
         mock_volume.objects.filter.return_value = mock_queryset
-
-        # Mock group
-        mock_job = MagicMock()
-        mock_job.apply_async.return_value = MagicMock(id="test-group-id")
-        mock_group.return_value = mock_job
 
         # Act
         crawl_orphan_volumes_eslite()
@@ -317,34 +309,34 @@ class TestCrawlOrphanVolumesEslite(unittest.TestCase):
             series__isnull=True, isbn__isnull=False
         )
 
-    @patch("celery.group")
     @patch("comic_scrapers.tasks.crawl_single_isbn_eslite")
     @patch("comic.models.Volume")
-    def test_passes_isbn_to_single_task(self, mock_volume, mock_crawl_task, mock_group):
-        """Test that ISBN is passed correctly to crawl_single_isbn_eslite."""
+    def test_passes_isbn_to_single_task(self, mock_volume, mock_crawl_task):
+        """Test that ISBNs are passed correctly to chunks."""
         # Arrange
         test_isbn = "9789861238999"
         mock_queryset = MagicMock()
         mock_queryset.values_list.return_value = [test_isbn]
         mock_volume.objects.filter.return_value = mock_queryset
-        mock_crawl_task.s = MagicMock(return_value=MagicMock())
 
-        # Mock group
-        mock_job = MagicMock()
-        mock_job.apply_async.return_value = MagicMock(id="test-group-id")
-        mock_group.return_value = mock_job
+        # Mock the chunks method
+        mock_chunks_result = MagicMock()
+        mock_chunks_result.apply_async.return_value = MagicMock(id="test-group-id")
+        mock_crawl_task.chunks.return_value = mock_chunks_result
 
         # Act
         crawl_orphan_volumes_eslite()
 
         # Assert
-        mock_crawl_task.s.assert_called_once_with(test_isbn)
+        mock_crawl_task.chunks.assert_called_once()
+        call_args = mock_crawl_task.chunks.call_args[0]
+        # Check that the ISBN is in the list of tuples
+        self.assertEqual(call_args[0], [(test_isbn,)])
 
-    @patch("celery.group")
     @patch("comic_scrapers.tasks.crawl_single_isbn_eslite")
     @patch("comic.models.Volume")
     def test_returns_zero_tasks_when_no_orphan_volumes(
-        self, mock_volume, mock_crawl_task, mock_group
+        self, mock_volume, mock_crawl_task
     ):
         """Test behavior when no orphan volumes with ISBN exist."""
         # Arrange
@@ -352,17 +344,12 @@ class TestCrawlOrphanVolumesEslite(unittest.TestCase):
         mock_queryset.values_list.return_value = []
         mock_volume.objects.filter.return_value = mock_queryset
 
-        # Mock group
-        mock_job = MagicMock()
-        mock_job.apply_async.return_value = MagicMock(id="test-group-id")
-        mock_group.return_value = mock_job
-
         # Act
         result = crawl_orphan_volumes_eslite()
 
         # Assert
         self.assertEqual(result["total_tasks"], 0)
-        mock_crawl_task.s.assert_not_called()
+        mock_crawl_task.chunks.assert_not_called()
 
 
 class TestCrawlAllSeriesEslite(unittest.TestCase):
