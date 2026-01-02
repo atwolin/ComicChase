@@ -133,7 +133,7 @@ run_checks() {
 run_checks
 
 # 進階: 如果提供 --watch 參數，則持續監控
-if [ "$1" == "--watch" ]; then
+if [ "${1:-}" == "--watch" ]; then
     INTERVAL=${2:-30}
     # Validate interval is numeric
     if ! [[ "$INTERVAL" =~ ^[0-9]+$ ]]; then
