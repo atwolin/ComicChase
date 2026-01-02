@@ -63,12 +63,16 @@ class BooksJpSpider(BaseSeleniumSpider):
         publisher_jp = self.driver.find_element(
             By.XPATH, "//div[@class='bookdetail_publisher']"
         ).text
+        image_element = self.driver.find_element(
+            By.XPATH, "//div[@class='main_image']//img"
+        ).get_attribute("src")
 
         item["title_jp"] = title_jp.strip()
         item["author_jp"] = [
             element.get_attribute("innerHTML").strip() for element in author_jp
         ]
         item["publisher_jp"] = publisher_jp.strip()
+        item["image_url_jp"] = image_element.strip() if image_element else ""
 
         return item
 

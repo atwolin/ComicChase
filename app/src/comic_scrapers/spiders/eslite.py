@@ -66,12 +66,16 @@ class EsliteSpider(BaseSeleniumSpider):
         publisher_tw = self.driver.find_element(
             By.XPATH, "//div[@class='publisher flex mb-1']"
         ).text
+        image_element = self.driver.find_element(
+            By.XPATH, "//div[@class='swiper-wrapper']//img"
+        ).get_attribute("src")
 
         item["title_jp"] = title_jp.strip()
         item["title_tw"] = title_tw.strip()
         item["author_tw"] = author_tw.strip()
         item["release_date_tw"] = release_date_tw.strip()
         item["publisher_tw"] = publisher_tw.strip()
+        item["image_url_tw"] = image_element.strip() if image_element else ""
 
         return item
 
@@ -99,7 +103,8 @@ class EsliteSpider(BaseSeleniumSpider):
 
         Args:
             page_value: The value extracted from the detail page (e.g., book title).
-            product_desc: Product description for additional validation.
+            product_desc: Product description for additional validation (currently
+            unused, reserved for future validation logic).
 
         Returns:
             bool: True if this page should be skipped (doesn't match search criteria).
