@@ -1,3 +1,6 @@
+from urllib.parse import urlparse
+
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -151,6 +154,25 @@ class Volume(models.Model):
                 name="unique_volume_variant",
             )
         ]
+
+    def clean(self):
+        """Validate model fields to prevent security issues."""
+        super().clean()
+
+        # Validate image_url scheme to prevent XSS attacks
+        if self.image_url:
+            parsed_url = urlparse(self.image_url)
+            allowed_schemes = ["http", "https"]
+
+            if parsed_url.scheme and parsed_url.scheme.lower() not in allowed_schemes:
+                raise ValidationError(
+                    {
+                        "image_url": _(
+                            f"不安全的 URL scheme: '{parsed_url.scheme}'. "
+                            f"僅允許 {', '.join(allowed_schemes)}"
+                        )
+                    }
+                )
 
     def __str__(self):
         region_str = self.get_region_display()

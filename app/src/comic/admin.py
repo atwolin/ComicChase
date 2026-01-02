@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 from django.contrib import admin
 from django.utils.html import format_html
 
@@ -69,8 +71,16 @@ class VolumeAdmin(admin.ModelAdmin):
     def cover_image_thumbnail(self, obj):
         """Display a thumbnail of the cover image in the admin list view."""
         if obj.image_url:
-            return format_html(
-                '<img src="{}" style="height: 100px; object-fit: contain;" />',
-                obj.image_url,
-            )
+            # Validate URL scheme to prevent XSS attacks (defense in depth)
+            parsed_url = urlparse(obj.image_url)
+            allowed_schemes = ["http", "https"]
+
+            if parsed_url.scheme and parsed_url.scheme.lower() in allowed_schemes:
+                return format_html(
+                    '<img src="{}" style="height: 100px; object-fit: contain;" />',
+                    obj.image_url,
+                )
+            else:
+                # Return error message if URL scheme is not allowed
+                return format_html('<span style="color: red;">⚠️ 不安全的 URL</span>')
         return "—"
