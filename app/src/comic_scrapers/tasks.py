@@ -229,27 +229,25 @@ def crawl_single_title_booksjp(self, title, last_release_date):
 @shared_task(acks_late=True)
 def crawl_orphan_volumes_eslite():
     """Schedule crawl tasks for all orphan volumes using ISBN."""
-    from celery import group
     from comic.models import Volume
 
     # Query all orphan volumes with ISBN
-    orphan_volumes = Volume.objects.filter(
+    orphan_isbns = Volume.objects.filter(
         series__isnull=True, isbn__isnull=False
     ).values_list("isbn", flat=True)
 
-    # Create task for each ISBN
-    tasks = []
-    for isbn in orphan_volumes:
-        task = crawl_single_isbn_eslite.s(isbn)  # pyright: ignore[reportCallIssue]
-        tasks.append(task)
+    if not orphan_isbns:
+        logger.info("No orphan volumes found for Eslite ISBN crawl")
+        return {"total_tasks": 0, "group_id": None}
 
-    # Execute tasks in parallel using group
-    job = group(tasks)
-    result = job.apply_async()  # pyright: ignore[reportCallIssue]
+    # Process in chunks of 20
+    chunck_size = 20
+    result = crawl_single_isbn_eslite.chunks(
+        [(isbn,) for isbn in orphan_isbns], chunck_size
+    ).apply_async()  # pyright: ignore[reportCallIssue]
 
-    logger.info(f"Scheduled {len(tasks)} Eslite ISBN crawl tasks")
-
-    return {"total_tasks": len(tasks), "group_id": result.id}
+    logger.info(f"Scheduled {len(orphan_isbns)} Eslite ISBN crawl tasks in chunks")
+    return {"total_tasks": len(orphan_isbns), "group_id": result.id}
 
 
 @shared_task(acks_late=True)
