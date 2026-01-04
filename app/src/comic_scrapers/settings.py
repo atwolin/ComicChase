@@ -98,14 +98,11 @@ FEED_EXPORT_ENCODING = "utf-8"
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
-os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings"
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.base")
 
 import django  # noqa: E402
 
 django.setup()
-
-# Set log file
-LOG_FILE = os.path.join(os.path.dirname(__file__), "logs", "scrapy.log")
 
 # Retry settings
 RETRY_TIMES = 3  # Maximum number of retries

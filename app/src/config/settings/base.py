@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "allauth.usersessions",
     "corsheaders",
     "drf_spectacular",
+    "django_celery_results",
     "apis.apps.ApisConfig",
     "accounts.apps.AccountsConfig",
     "comic.apps.ComicConfig",
@@ -104,7 +105,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "zh-TW"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Taipei"
 
 USE_I18N = True
 
@@ -153,6 +154,30 @@ HEADLESS_FRONTEND_URLS = {
     "socialaccount_login_error": "/account/provider/callback",
 }
 HEADLESS_SERVE_SPECIFICATION = True
+
+# Celery config
+CELERY_BROKER_URL = config("CELERY_BROKER_URL", default="amqp://")
+CELERY_RESULT_BACKEND = "django-db"
+CELERY_RESULT_EXTENDED = True
+CELERY_RESULT_EXPIRES = 60 * 60 * 24  # 1 day
+# Reliability for RabbitMQ
+CELERY_TASK_ACKS_LATE = True
+CELERY_TASK_REJECT_ON_WORKER_LOST = True
+# Worker
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 2
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+# Serializer
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TIMEZONE = "Asia/Taipei"
+CELERY_ENABLE_UTC = True
+# Router
+CELERY_TASK_ROUTES = (
+    [
+        ("comic_scrapers.tasks.*", {"queue": "crawler"}),
+    ],
+)
 
 # django-rest-framework config
 REST_FRAMEWORK = {

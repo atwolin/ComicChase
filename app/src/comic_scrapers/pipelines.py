@@ -19,6 +19,11 @@ class ComicScrapersPipeline:
     preventing blocking of the Scrapy reactor.
     """
 
+    ISBN_TW_REGEX = re.compile(r"ISBN13 / ([0-9]{13})")
+    DATE_REGEX = re.compile(r"([0-9]{4})年([0-9]{1,2})月([0-9]{1,2})日")
+    VOLUME_NUMBER_JP_REGEX = re.compile(r"[（(]?[0-9０-９]+[)）]?")
+    ISBN_JP_REGEX = re.compile(r"([0-9]{13})")
+
     def process_item(self, item, spider):
         """See base class."""
         # Process data from books.com.tw
@@ -27,6 +32,8 @@ class ComicScrapersPipeline:
 
         # Process data from eslite.com
         elif isinstance(item, OrphanMapItem):
+            if spider.name == "eslite_title_tw":
+                return deferToThread(self._process_eslite_title_item, item, spider)
             return deferToThread(self._process_orphan_map_item, item, spider)
 
         # Process data from books.or.jp
@@ -81,7 +88,7 @@ class ComicScrapersPipeline:
 
         except IntegrityError as e:
             spider.logger.warning(f"Duplicate data for ISBN {isbn_tw}: {str(e)}")
-            raise DropItem(f"Duplicate Volume: {isbn_tw}")
+            raise DropItem(f"Duplicate Volume: {isbn_tw}") from e
         except DropItem:
             raise
         except Exception as e:
@@ -89,7 +96,7 @@ class ComicScrapersPipeline:
                 f"Failed to process Orphan Volume with ISBN {isbn_tw}, error: {str(e)}",
                 exc_info=True,
             )
-            raise DropItem(f"Processing failed for Orphan Volume: {str(e)}")
+            raise DropItem(f"Processing failed for Orphan Volume: {str(e)}") from e
 
     def _get_book_title_tw(self, book_title: str):
         """Process book_title_tw to extract title and volume number
@@ -114,13 +121,10 @@ class ComicScrapersPipeline:
                 - variant (str or None): The variant information if present.
                 - volume_number (int or None): The extracted volume number if present.
                 - is_final_volume (bool): True if the volume is marked as final.
-                - latest_volume_tw (int or None): The latest volume number
-                                                  if this is a final volume.
         """
         parts = book_title.split(" ")
         # Series field
         series_name_tw = None
-        latest_volume_tw = None
         is_final_volume = False
         # Volume field
         variant = None
@@ -146,11 +150,7 @@ class ComicScrapersPipeline:
         # Update title_tw
         series_name_tw = " ".join(parts[:-1]).strip()
 
-        # Update latest_volume_tw if is final volume
-        if is_final_volume:
-            latest_volume_tw = volume_number
-
-        return series_name_tw, variant, volume_number, is_final_volume, latest_volume_tw
+        return series_name_tw, variant, volume_number, is_final_volume
 
     def _process_orphan_map_item(self, item: OrphanMapItem, spider):
         """Process OrphanMapItem to link existing Comics with Volumes in the database
@@ -185,22 +185,46 @@ class ComicScrapersPipeline:
 
             spider.logger.info(f"Processing Orphan Map Item for {title_jp}")
 
+            search_query = adapter.get("search_query")
+
+            # Use search_query to validate found ISBN
+            if search_query and isbn_tw and search_query != isbn_tw:
+                raise DropItem(
+                    f"Search query ISBN '{search_query}' does not "
+                    f"match found ISBN '{isbn_tw}'"
+                )
+
             # Process Volume title and volume number
+            title_tw = adapter.get("title_tw")
+            if not title_tw:
+                raise DropItem(f"No title_tw in OrphanMapItem: {adapter.items()}")
+
             (
                 series_name_tw,
                 variant,
                 volume_number,
                 is_final_volume,
-                latest_volume_tw,
-            ) = self._get_book_title_tw(adapter.get("title_tw"))
-            author_tw = adapter.get("author_tw").rsplit("\n", 1)[-1].strip()
-            release_date_tw = (
-                adapter.get("release_date_tw")
-                .rsplit("：", 1)[-1]
-                .strip()
-                .replace("/", "-")
+            ) = self._get_book_title_tw(title_tw)
+
+            author_tw_raw = adapter.get("author_tw")
+            author_tw = (
+                author_tw_raw.rsplit("\n", 1)[-1].strip() if author_tw_raw else ""
             )
-            publisher_tw = adapter.get("publisher_tw").rsplit("\n", 1)[-1].strip()
+
+            release_date_tw_raw = adapter.get("release_date_tw")
+            release_date_tw = (
+                release_date_tw_raw.rsplit("：", 1)[-1].strip().replace("/", "-")
+                if release_date_tw_raw
+                else ""
+            )
+
+            publisher_tw_raw = adapter.get("publisher_tw")
+            publisher_tw = (
+                publisher_tw_raw.rsplit("\n", 1)[-1].strip() if publisher_tw_raw else ""
+            )
+
+            # Extract image URL
+            image_url_tw = adapter.get("image_url_tw", "")
 
             # Start storing data into database
             # 1. Get or create Publisher
@@ -231,6 +255,7 @@ class ComicScrapersPipeline:
                 volume.volume_number = volume_number
                 volume.variant = variant or ""
                 volume.release_date = release_date_tw
+                volume.image_url = image_url_tw
                 volume.save()
                 spider.logger.info(f"Updated Volume: {volume}")
             else:
@@ -263,7 +288,7 @@ class ComicScrapersPipeline:
 
         except IntegrityError as e:
             spider.logger.warning(f"Duplicate data for {title_jp}: {str(e)}")
-            raise DropItem(f"Duplicate data: {str(e)}")
+            raise DropItem(f"Duplicate data: {str(e)}") from e
         except DropItem:
             raise
         except Exception as e:
@@ -271,9 +296,148 @@ class ComicScrapersPipeline:
                 f"Failed to process Orphan Map Item for {title_jp}, error: {str(e)}",
                 exc_info=True,
             )
-            raise DropItem(f"Processing failed for Orphan Map Item: {str(e)}")
+            raise DropItem(f"Processing failed for Orphan Map Item: {str(e)}") from e
 
-    DATE_REGEX = re.compile(r"([0-9]{4})年([0-9]{1,2})月([0-9]{1,2})日")
+    def _process_eslite_title_item(self, item: OrphanMapItem, spider):
+        """Process OrphanMapItem from EsliteTitleTwSpider
+
+        This method handles items scraped by title search, which typically
+        do not have an ISBN in the item fields but have it in product_desc.
+        New volumes should be created if they don't exist.
+
+        Args:
+            item (OrphanMapItem): The scraped item.
+            spider: The EsliteTitleTwSpider instance.
+        """
+        adapter = ItemAdapter(item)
+        title_jp = adapter.get("title_jp")
+        title_tw = adapter.get("title_tw")
+
+        try:
+            if not title_jp:
+                raise DropItem(f"No title_jp in item: {adapter.items()}")
+
+            spider.logger.info(f"Processing Eslite Title Item for {title_jp}")
+
+            search_query = adapter.get("search_query")
+            # Validate Title TW matches search query
+            # Note: We check if search_query is in title_tw
+            # because title_tw includes volume number etc.
+            if search_query and title_tw and (search_query not in title_tw):
+                raise DropItem(
+                    f"Title TW '{title_tw}' does not contain "
+                    f"search query '{search_query}'. Skipping."
+                )
+
+            # Extract ISBN from product_desc
+            isbn_tw = None
+            product_desc = adapter.get("product_desc")
+            if product_desc:
+                match = self.ISBN_TW_REGEX.search(product_desc)
+                if match:
+                    isbn_tw = match.group(1)
+
+            if not isbn_tw:
+                spider.logger.warning(
+                    f"Could not extract ISBN for {title_jp}, skipping."
+                )
+                return item
+
+            # Process Volume title and volume number
+            if not title_tw:
+                raise DropItem(f"No title_tw in item: {adapter.items()}")
+
+            (
+                series_name_tw,
+                variant,
+                volume_number,
+                is_final_volume,
+            ) = self._get_book_title_tw(title_tw)
+
+            release_date_tw_raw = adapter.get("release_date_tw")
+            release_date_tw = (
+                release_date_tw_raw.rsplit("：", 1)[-1].strip().replace("/", "-")
+                if release_date_tw_raw
+                else ""
+            )
+
+            publisher_tw_raw = adapter.get("publisher_tw")
+            publisher_tw = (
+                publisher_tw_raw.rsplit("\n", 1)[-1].strip() if publisher_tw_raw else ""
+            )
+
+            # Extract image URL
+            image_url_tw = adapter.get("image_url_tw", "")
+
+            # 1. Get or create Publisher
+            publisher, _ = Publisher.objects.get_or_create(
+                name=publisher_tw, region="TW"
+            )
+
+            # 2. Get existing Series
+            series = Series.objects.filter(title_tw=series_name_tw).first()
+            if not series:
+                spider.logger.warning(
+                    f"Series not found for title_tw: {series_name_tw}, "
+                    "skipping volume processing."
+                )
+                return item
+
+            # 3. Get or create Volume
+            volume, created = Volume.objects.get_or_create(
+                isbn=isbn_tw,
+                defaults={
+                    "series": series,
+                    "publisher": publisher,
+                    "region": "TW",
+                    "volume_number": volume_number,
+                    "variant": variant or "",
+                    "release_date": release_date_tw,
+                    "image_url": image_url_tw,
+                },
+            )
+
+            if created:
+                spider.logger.info(f"Created new Volume: {volume}")
+            else:
+                # Update existing volume with latest info
+                volume.series = series
+                volume.publisher = publisher
+                volume.volume_number = volume_number
+                volume.variant = variant or ""
+                volume.release_date = release_date_tw
+                volume.image_url = image_url_tw
+                volume.save()
+                spider.logger.info(f"Updated existing Volume: {volume}")
+
+            # Update series's latest_volume_tw
+            release_date_tw_obj = (
+                datetime.strptime(release_date_tw, "%Y-%m-%d").date()
+                if release_date_tw
+                else None
+            )
+
+            if (
+                is_final_volume
+                or series.latest_volume_tw is None
+                or (
+                    release_date_tw_obj
+                    and series.latest_volume_tw.release_date
+                    and release_date_tw_obj > series.latest_volume_tw.release_date
+                )
+            ):
+                series.latest_volume_tw = volume
+                series.save()
+                spider.logger.info(f"Updated Series latest_volume_tw: {series}")
+
+            return item
+
+        except Exception as e:
+            spider.logger.error(
+                f"Failed to process Eslite Title Item for {title_jp}: {e}",
+                exc_info=True,
+            )
+            raise DropItem(f"Processing title item failed: {e}") from e
 
     def _get_book_release_date_jp(self, product_desc: str):
         """Process product_desc to extract release date for the current volume.
@@ -296,8 +460,6 @@ class ComicScrapersPipeline:
             # Pad month and day with leading zeros to ensure 2 digits
             return f"{year}-{month.zfill(2)}-{day.zfill(2)}"
         return None
-
-    VOLUME_NUMBER_JP_REGEX = re.compile(r"[（(]?[0-9０-９]+[)）]?")
 
     def _get_book_title_jp(self, book_title: str, series_name_jp: str):
         """Process title to extract volume number for Japanese comics
@@ -329,8 +491,6 @@ class ComicScrapersPipeline:
             return variant, volume_number
         return None, None
 
-    ISBN_JP_REGEX = re.compile(r"([0-9]{13})")
-
     def _process_jp_comic_item(self, item: JpComicItem, spider):
         """Process JpComicItem to update or create Series and Volume entry.
 
@@ -353,7 +513,7 @@ class ComicScrapersPipeline:
         """
         adapter = ItemAdapter(item)
         detail_url = adapter.get("detail_url")
-        series_name_jp = adapter.get("series_name")
+        series_name_jp = adapter.get("search_query")
 
         try:
             if not detail_url:
@@ -362,12 +522,22 @@ class ComicScrapersPipeline:
                     f"\n{adapter.items()}\n{'-' * 50}"
                 )
 
-            spider.logger.info(f"Processing JP Comic Item: {series_name_jp}")
-            spider.logger.debug(
-                f"Processing JP Comic Item Title {adapter.get('title_jp')}"
-            )
+            if not series_name_jp:
+                raise DropItem(
+                    f"No search_query in JpComicItem:\n{adapter.items()}\n{'-' * 50}"
+                )
 
-            if not adapter.get("title_jp").startswith(series_name_jp):
+            spider.logger.info(f"Processing JP Comic Item: {series_name_jp}")
+
+            title_jp_raw = adapter.get("title_jp")
+            spider.logger.debug(f"Processing JP Comic Item Title {title_jp_raw}")
+
+            if not title_jp_raw:
+                raise DropItem(
+                    f"No title_jp in JpComicItem:\n{adapter.items()}\n{'-' * 50}"
+                )
+
+            if not title_jp_raw.startswith(series_name_jp):
                 raise DropItem(
                     f"Title JP does not start with series name in JpComicItem:"
                     f"\n{adapter.items()}\n{'-' * 50}"
@@ -380,16 +550,28 @@ class ComicScrapersPipeline:
                     f"Invalid ISBN_JP in JpComicItem: \n{adapter.items()}\n{'-' * 50}"
                 )
 
-            publisher_jp = adapter.get("publisher_jp").rsplit("出版社：", 1)[-1].strip()
-            author_jp = adapter.get("author_jp")[2:]
+            publisher_jp_raw = adapter.get("publisher_jp")
+            publisher_jp = (
+                publisher_jp_raw.rsplit("出版社：", 1)[-1].strip()
+                if publisher_jp_raw
+                else ""
+            )
+
+            author_jp_raw = adapter.get("author_jp")
+            author_jp = author_jp_raw[2:] if author_jp_raw else []
             author_jp_str = "; ".join(author_jp) if author_jp else ""
             # status_jp = ""
             variant, volume_number = self._get_book_title_jp(
-                adapter.get("title_jp"), series_name_jp
+                title_jp_raw, series_name_jp
             )
+
+            product_desc = adapter.get("product_desc")
             release_date_jp = self._get_book_release_date_jp(
-                adapter.get("product_desc")
+                product_desc if product_desc else ""
             )
+
+            # Extract image URL
+            image_url_jp = adapter.get("image_url_jp", "")
 
             # Start storing data into database
             # 1. Get or create Publisher
@@ -423,6 +605,7 @@ class ComicScrapersPipeline:
                     "volume_number": volume_number,
                     "variant": variant or "",
                     "release_date": release_date_jp,
+                    "image_url": image_url_jp,
                 },
             )
             if created_volume:
@@ -453,13 +636,13 @@ class ComicScrapersPipeline:
 
         except IntegrityError as e:
             spider.logger.warning(f"Duplicate data for {series_name_jp}: {str(e)}")
-            raise DropItem(f"Duplicate Volume: {str(e)}")
+            raise DropItem(f"Duplicate Volume: {str(e)}") from e
         except DropItem:
             raise
         except Exception as e:
             spider.logger.error(
-                f"Failed to process JP Comic Item for"
+                "Failed to process JP Comic Item for "
                 f"{series_name_jp}, error: {str(e)}",
                 exc_info=True,
             )
-            raise DropItem(f"Processing failed for JP Comic Item: {str(e)}")
+            raise DropItem(f"Processing failed for JP Comic Item: {str(e)}") from e
