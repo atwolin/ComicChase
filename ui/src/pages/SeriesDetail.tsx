@@ -1,25 +1,71 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { clsx } from 'clsx'
 import { Loading } from '@/components/Loading'
 import { ErrorDisplay } from '@/components/Error'
 import { useSeriesDetail } from '@/hooks/useSeries'
+import { useToggleSubscription } from '@/hooks/useSubscription'
+import { useRequireAuth } from '@/hooks/useRequireAuth'
+import type { Volume } from '@/api'
 
 import {
   SERIES_STATUS_COLORS as statusColors,
   SERIES_STATUS_LABELS as statusLabels,
   REGION_LABELS as regionLabels,
 } from '@/constants/series'
-import type { Volume } from '@/types'
 import { ROUTES } from '@/constants/routes'
 
 // 漫畫詳情頁面
 export const SeriesDetail = () => {
   const { id } = useParams()
+  const navigate = useNavigate()
   const parsedId = id ? parseInt(id, 10) : NaN
   const seriesId = Number.isNaN(parsedId) ? undefined : parsedId
 
   // 資料取得
   const { data: series, isLoading, error, refetch } = useSeriesDetail(seriesId)
+
+  // 認證狀態
+  const { isAuthenticated, navigateToLogin } = useRequireAuth()
+
+  // 追蹤功能（只在已登入時查詢）
+  const {
+    isSubscribed,
+    toggle: toggleSubscription,
+    isLoading: isTogglingSubscription,
+  } = useToggleSubscription(seriesId || 0, isAuthenticated)
+
+  // 處理追蹤按鈕點擊
+  const handleToggleSubscription = async () => {
+    // 檢查是否已登入
+    if (!isAuthenticated) {
+      // 顯示通知詢問是否要登入
+      const shouldLogin = window.confirm(
+        '您需要登入才能追蹤此系列\n\n是否前往登入頁面？'
+      )
+      if (shouldLogin) {
+        navigateToLogin()
+      }
+      return
+    }
+
+    // 已登入，執行追蹤/取消追蹤
+    try {
+      await toggleSubscription()
+    } catch (error) {
+      console.error('追蹤操作失敗:', error)
+      alert('操作失敗，請稍後再試')
+    }
+  }
+
+  // 處理返回按鈕
+  const handleBack = () => {
+    // 檢查是否有瀏覽器歷史
+    if (window.history.length > 1) {
+      navigate(-1) // 返回上一頁
+    } else {
+      navigate(ROUTES.SERIES_LIST) // 沒有歷史時返回列表頁
+    }
+  }
 
   // 載入中狀態
   if (isLoading || seriesId === undefined) {
@@ -34,7 +80,10 @@ export const SeriesDetail = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        <ErrorDisplay message="無法載入漫畫詳情" onRetry={() => refetch()} />
+        <ErrorDisplay
+          message="無法載入漫畫詳情，請檢查網路連線"
+          onRetry={refetch}
+        />
       </div>
     )
   }
@@ -46,12 +95,12 @@ export const SeriesDetail = () => {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <p className="text-gray-500 text-lg mb-4">找不到此漫畫</p>
-            <Link
-              to={ROUTES.SERIES_LIST}
+            <button
+              onClick={handleBack}
               className="text-indigo-600 hover:text-indigo-700 underline"
             >
-              返回列表
-            </Link>
+              返回
+            </button>
           </div>
         </div>
       </div>
@@ -65,9 +114,16 @@ export const SeriesDetail = () => {
   }
 
   const statusColorClass =
-    statusColors[series.status_japan] || statusColors.default
+    statusColors[series.status_jp as keyof typeof statusColors] ||
+    statusColors.default
   const statusText =
-    statusLabels[series.status_japan] || series.status_japan || '狀態不明'
+    statusLabels[series.status_jp as keyof typeof statusLabels] ||
+    series.status_jp ||
+    '狀態不明'
+
+  // 封面圖片邏輯：優先使用台版最新單行本封面，沒有的話用日版
+  const coverImageUrl =
+    series.latest_volume_tw_image || series.latest_volume_jp_image
 
   // JSX 渲染
   return (
@@ -77,8 +133,8 @@ export const SeriesDetail = () => {
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative container mx-auto px-4 py-8">
           {/* Back Button */}
-          <Link
-            to={ROUTES.SERIES_LIST}
+          <button
+            onClick={handleBack}
             className="inline-flex items-center text-white/90 hover:text-white mb-6 transition-colors"
           >
             <svg
@@ -95,7 +151,7 @@ export const SeriesDetail = () => {
               />
             </svg>
             返回列表
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -107,11 +163,19 @@ export const SeriesDetail = () => {
           {/* Header Section */}
           <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-8 border-b border-gray-200">
             <div className="flex flex-col md:flex-row gap-8">
-              {/* Cover Image Placeholder */}
+              {/* Cover Image */}
               <div className="flex-shrink-0">
-                <div className="w-48 h-64 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-xl shadow-lg flex items-center justify-center">
-                  <span className="text-white text-6xl">📚</span>
-                </div>
+                {coverImageUrl ? (
+                  <img
+                    src={coverImageUrl}
+                    alt={`${series.title_tw || series.title_jp} 封面`}
+                    className="w-48 h-64 object-cover rounded-xl shadow-lg"
+                  />
+                ) : (
+                  <div className="w-48 h-64 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-xl shadow-lg flex items-center justify-center">
+                    <span className="text-white text-6xl">📚</span>
+                  </div>
+                )}
               </div>
 
               {/* Title and Info */}
@@ -119,26 +183,98 @@ export const SeriesDetail = () => {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                      {series.traditional_chinese_title ||
-                        series.japanese_title ||
-                        '無標題'}
+                      {series.title_tw || series.title_jp || '無標題'}
                     </h1>
-                    {/* 狀態標籤位置 */}
-                    <span
-                      className={clsx(
-                        'inline-flex items-center px-4 py-1.5 text-sm font-semibold rounded-full border mb-4',
-                        statusColorClass
-                      )}
-                    >
-                      {statusText}
-                    </span>
-                    {/* ------------------ */}
-                    {series.traditional_chinese_title &&
-                      series.japanese_title && (
-                        <p className="text-xl text-gray-600 mb-4">
-                          {series.japanese_title}
-                        </p>
-                      )}
+
+                    {/* 狀態標籤和追蹤按鈕 */}
+                    <div className="flex items-center gap-3 mb-4 flex-wrap">
+                      {/* 狀態標籤 */}
+                      <span
+                        className={clsx(
+                          'inline-flex items-center px-4 py-1.5 text-sm font-semibold rounded-full border',
+                          statusColorClass
+                        )}
+                      >
+                        {statusText}
+                      </span>
+
+                      {/* 追蹤按鈕 */}
+                      <button
+                        onClick={handleToggleSubscription}
+                        disabled={isTogglingSubscription}
+                        className={clsx(
+                          'inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed',
+                          isAuthenticated && isSubscribed
+                            ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white hover:from-gray-700 hover:to-gray-800'
+                            : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700'
+                        )}
+                      >
+                        {isTogglingSubscription ? (
+                          <>
+                            <svg
+                              className="animate-spin h-4 w-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                            處理中...
+                          </>
+                        ) : isAuthenticated && isSubscribed ? (
+                          <>
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                            已追蹤
+                          </>
+                        ) : (
+                          <>
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4v16m8-8H4"
+                              />
+                            </svg>
+                            追蹤此系列
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {series.title_tw && series.title_jp && (
+                      <p className="text-xl text-gray-600 mb-4">
+                        {series.title_jp}
+                      </p>
+                    )}
                   </div>
                 </div>
 
