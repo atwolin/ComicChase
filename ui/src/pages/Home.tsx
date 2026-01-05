@@ -15,7 +15,7 @@ export const Home = () => {
   } = useSeriesList({
     ordering: '-id',
     page: 1,
-    page_size: 12,
+    // 注意：後端 API 目前不支持 page_size 參數，使用默認值
   })
 
   return (
