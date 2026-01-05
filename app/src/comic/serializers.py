@@ -29,6 +29,7 @@ class VolumeSerializer(serializers.ModelSerializer):
             "variant",
             "release_date",
             "isbn",
+            "image_url",
             "publisher",  # 出版社 ID (寫入用)
             "publisher_name",
         ]
