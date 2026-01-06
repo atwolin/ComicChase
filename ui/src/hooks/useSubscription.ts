@@ -40,7 +40,10 @@ export function useSubscriptions(
       console.log('[useSubscriptions] 正在獲取訂閱列表...')
       const { data } = await subscriptionsList({ query: params })
       console.log('[useSubscriptions] 訂閱列表:', data)
-      return data!
+      if (!data) {
+        throw new Error('API 未返回訂閱列表數據')
+      }
+      return data
     },
     enabled, // 只在啟用時查詢
   })
@@ -85,7 +88,10 @@ export function useSubscribe() {
           receive_line: false, // 預設不啟用 Line 通知
         },
       })
-      return data!
+      if (!data) {
+        throw new Error('API 未返回訂閱數據')
+      }
+      return data
     },
     onSuccess: () => {
       // 重新獲取訂閱列表
@@ -120,12 +126,29 @@ export function useUnsubscribe() {
 /**
  * 切換追蹤狀態（追蹤/取消）
  */
-export function useToggleSubscription(seriesId: number, enabled = true) {
-  const isSubscribed = useIsSubscribed(seriesId, enabled)
+export function useToggleSubscription(
+  seriesId: number | undefined,
+  enabled = true
+) {
+  // 只在有有效 seriesId 時啟用查詢
+  const shouldEnable = enabled && seriesId !== undefined
+  const isSubscribed = useIsSubscribed(seriesId ?? 0, shouldEnable)
   const subscribe = useSubscribe()
   const unsubscribe = useUnsubscribe()
 
   const toggle = async () => {
+    // 檢查是否有有效的 seriesId
+    if (!seriesId) {
+      console.warn('[useToggleSubscription] seriesId 無效，無法執行切換')
+      return
+    }
+
+    // 防止並發請求（race condition）
+    if (subscribe.isPending || unsubscribe.isPending) {
+      console.log('[useToggleSubscription] 操作進行中，忽略重複請求')
+      return
+    }
+
     console.log(
       '[useToggleSubscription] 開始切換, seriesId:',
       seriesId,

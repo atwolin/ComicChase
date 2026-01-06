@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { login } from '@/lib/allauth'
 import { useAuth } from '@/contexts/AuthContext'
@@ -14,12 +14,13 @@ export const Login = () => {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  // 如果已登入，重定向到首頁
-  if (isAuthenticated) {
-    const redirectTo = searchParams.get('redirect') || ROUTES.HOME
-    navigate(redirectTo, { replace: true })
-    return null
-  }
+  // 如果已登入，重定向到首頁（使用 useEffect 避免渲染期間的副作用）
+  useEffect(() => {
+    if (isAuthenticated) {
+      const redirectTo = searchParams.get('redirect') || ROUTES.HOME
+      navigate(redirectTo, { replace: true })
+    }
+  }, [isAuthenticated, navigate, searchParams])
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()

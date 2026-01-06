@@ -135,10 +135,8 @@ async function request(
   }
 
   // 如果認證狀態改變，觸發 Custom Event
-  if (
-    [401, 410].includes(result.status) ||
-    (result.status === 200 && result.meta?.is_authenticated)
-  ) {
+  // 包含：401/410（未認證/過期）以及所有 200 回應（登入、登出等）
+  if (result.status === 200 || [401, 410].includes(result.status)) {
     const event = new CustomEvent('allauth.auth.change', { detail: result })
     document.dispatchEvent(event)
   }

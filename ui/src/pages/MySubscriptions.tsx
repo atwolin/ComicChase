@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
 import { useQueries } from '@tanstack/react-query'
 import { useSubscriptions } from '@/hooks/useSubscription'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
@@ -35,17 +36,19 @@ export const MySubscriptions = () => {
             const { data } = await comicsSeriesRetrieve({
               path: { id: subscription.series },
             })
-            return data!
+            // 返回原始數據，讓下游過濾處理 undefined
+            return data
           },
         }))
       : [], // 如果沒有訂閱，返回空陣列
   })
 
-  // 未登入自動導向登入頁
-  if (!isAuthenticated) {
-    navigateToLogin()
-    return null
-  }
+  // 未登入自動導向登入頁（使用 useEffect 避免渲染期間的副作用）
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigateToLogin()
+    }
+  }, [isAuthenticated, navigateToLogin])
 
   if (isLoading) {
     return (

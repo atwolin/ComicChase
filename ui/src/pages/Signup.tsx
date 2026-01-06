@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { signUp } from '@/lib/allauth'
 import { useAuth } from '@/contexts/AuthContext'
@@ -14,11 +14,12 @@ export const Signup = () => {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  // 如果已登入，重定向到首頁
-  if (isAuthenticated) {
-    navigate(ROUTES.HOME, { replace: true })
-    return null
-  }
+  // 如果已登入，重定向到首頁（使用 useEffect 避免渲染期間的副作用）
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(ROUTES.HOME, { replace: true })
+    }
+  }, [isAuthenticated, navigate])
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()

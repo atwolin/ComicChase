@@ -91,7 +91,11 @@ export const Navbar = () => {
                   className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold">
-                    {user.email.charAt(0).toUpperCase()}
+                    {(
+                      user.email?.[0] ||
+                      user.display?.[0] ||
+                      '?'
+                    ).toUpperCase()}
                   </div>
                   <span className="text-gray-700 font-medium hidden sm:block">
                     {user.display || user.email}

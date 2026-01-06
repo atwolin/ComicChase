@@ -27,12 +27,12 @@ export const SeriesDetail = () => {
   // 認證狀態
   const { isAuthenticated, navigateToLogin } = useRequireAuth()
 
-  // 追蹤功能（只在已登入時查詢）
+  // 追蹤功能（只在已登入且有有效 seriesId 時查詢）
   const {
     isSubscribed,
     toggle: toggleSubscription,
     isLoading: isTogglingSubscription,
-  } = useToggleSubscription(seriesId || 0, isAuthenticated)
+  } = useToggleSubscription(seriesId, isAuthenticated)
 
   // 處理追蹤按鈕點擊
   const handleToggleSubscription = async () => {
