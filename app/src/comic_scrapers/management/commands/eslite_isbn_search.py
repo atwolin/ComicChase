@@ -18,16 +18,12 @@ class Command(BaseCommand):
         isbn = options.get("isbn")
 
         cmd = ["scrapy", "crawl", "eslite_isbn"]
-
-        if isbn:
-            self.stdout.write(f"Starting eslite.com ISBN search for: {isbn}")
-            cmd.extend(["-a", f"search_value={isbn}"])
-        else:
-            self.stdout.write("Starting eslite.com ISBN search...")
+        cmd.extend(["-a", f"search_value={isbn}"])
 
         # Get the directory containing scrapy.cfg (BASE_DIR from settings)
         scrapy_dir = str(settings.BASE_DIR)
 
+        self.stdout.write(f"Starting eslite.com ISBN search for: {isbn}")
         result = subprocess.run(cmd, capture_output=True, text=True, cwd=scrapy_dir)
 
         if result.returncode == 0:
