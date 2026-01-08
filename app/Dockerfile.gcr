@@ -23,7 +23,7 @@ RUN pip install --no-cache-dir -r requirements-gcr.txt
 
 COPY ./app/src ./
 
-RUN chmod +x entrypoint.gcr.sh wait-for-it.sh
+RUN chmod +x entrypoint.gcr.sh wait-for-it.sh run_crawler.sh
 
 # Set ownership and permissions
 RUN chown -R docker:docker-users /code/app
