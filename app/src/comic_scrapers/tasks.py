@@ -229,8 +229,13 @@ def crawl_single_title_booksjp(self, title, last_release_date):
 
 
 @shared_task(acks_late=True)
-def crawl_orphan_volumes_eslite():
-    """Schedule crawl tasks for all orphan volumes using ISBN."""
+def crawl_orphan_volumes_eslite(sync=False):
+    """Schedule crawl tasks for all orphan volumes using ISBN.
+
+    Args:
+        sync (bool): If True, execute synchronously (for Cloud Run Jobs).
+                     If False, use Celery workers (original behavior).
+    """
     from comic.models import Volume
 
     # Query all orphan volumes with ISBN
@@ -242,20 +247,44 @@ def crawl_orphan_volumes_eslite():
         logger.info("No orphan volumes found for Eslite ISBN crawl")
         return {"total_tasks": 0, "group_id": None}
 
-    # Process in chunks of 20
-    chunk_size = 20
-    result = crawl_single_isbn_eslite.chunks(
-        [(isbn,) for isbn in orphan_isbns], chunk_size
-    ).apply_async()  # pyright: ignore[reportCallIssue]
+    if not sync:
+        # Process in chunks of 20
+        chunk_size = 20
+        result = crawl_single_isbn_eslite.chunks(
+            [(isbn,) for isbn in orphan_isbns], chunk_size
+        ).apply_async()  # pyright: ignore[reportCallIssue]
 
-    logger.info(f"Scheduled {len(orphan_isbns)} Eslite ISBN crawl tasks in chunks")
-    return {"total_tasks": len(orphan_isbns), "group_id": result.id}
+        logger.info(f"Scheduled {len(orphan_isbns)} Eslite ISBN crawl tasks in chunks")
+        return {"total_tasks": len(orphan_isbns), "group_id": result.id}
+    else:
+        # For Cloud Run Jobs
+        logger.info(
+            f"Starting synchronous crawl for {len(orphan_isbns)} Eslite volumes"
+        )
+        completed = 0
+
+        for isbn in orphan_isbns:
+            try:
+                logger.info(f"Crawling {isbn}...")
+                call_command("eslite_isbn_search", isbn=isbn)
+                completed += 1
+            except Exception:
+                logger.exception(f"Failed to crawl {isbn}")
+
+        logger.info(f"Completed {completed}/{len(orphan_isbns)} volumes")
+        return {"total_tasks": len(orphan_isbns), "completed": completed}
 
 
 @shared_task(acks_late=True)
-def crawl_all_series_eslite():
-    """Schedule crawl tasks for all Eslite Traditional Chinese series."""
+def crawl_all_series_eslite(sync=False):
+    """Schedule crawl tasks for all Eslite Traditional Chinese series.
+
+    Args:
+        sync (bool): If True, execute synchronously (for Cloud Run Jobs).
+                     If False, use Celery workers (original behavior).
+    """
     from comic.models import Series
+    from django.core.management import call_command
 
     # Query all series with Traditional Chinese titles
     series_list = Series.objects.filter(title_tw__isnull=False).values(
@@ -274,18 +303,42 @@ def crawl_all_series_eslite():
         logger.info("No series found for Eslite crawl")
         return {"total_tasks": 0, "group_id": None}
 
-    # Process in chunks
-    chunk_size = 20
-    result = crawl_single_title_eslite.chunks(task_args, chunk_size).apply_async()  # pyright: ignore[reportCallIssue]
+    if not sync:
+        # Process in chunks
+        chunk_size = 20
+        result = crawl_single_title_eslite.chunks(task_args, chunk_size).apply_async()  # pyright: ignore[reportCallIssue]
 
-    logger.info(f"Scheduled {len(task_args)} Eslite crawl tasks in chunks")
+        logger.info(f"Scheduled {len(task_args)} Eslite crawl tasks in chunks")
+        return {"total_tasks": len(task_args), "group_id": result.id}
+    else:
+        # For Cloud Run Jobs
+        logger.info("Starting synchronous crawl for {len(task_args)} Eslite series")
+        completed = 0
 
-    return {"total_tasks": len(task_args), "group_id": result.id}
+        for title, last_date_str in task_args:
+            try:
+                logger.info(f"Crawling {title}...")
+                call_command(
+                    "eslite_title_search",
+                    title=title,
+                    last_release_date=last_date_str,
+                )
+                completed += 1
+            except Exception:
+                logger.exception(f"Failed to crawl {title}")
+
+        logger.info(f"Completed {completed}/{len(task_args)} series")
+        return {"total_tasks": len(task_args), "completed": completed}
 
 
 @shared_task(acks_late=True)
-def crawl_all_series_booksjp():
-    """Schedule crawl tasks for all Japanese comic series."""
+def crawl_all_series_booksjp(sync=False):
+    """Schedule crawl tasks for all Japanese comic series.
+
+    Args:
+        sync (bool): If True, execute synchronously (for Cloud Run Jobs).
+                     If False, use Celery workers (original behavior).
+    """
     from comic.models import Series
 
     # Query all series with Japanese titles
@@ -305,10 +358,29 @@ def crawl_all_series_booksjp():
         logger.info("No series found for BooksJP crawl")
         return {"total_tasks": 0, "group_id": None}
 
-    # Process in chunks
-    chunk_size = 20
-    result = crawl_single_title_booksjp.chunks(task_args, chunk_size).apply_async()  # pyright: ignore[reportCallIssue]
+    if not sync:
+        # Process in chunks
+        chunk_size = 20
+        result = crawl_single_title_booksjp.chunks(task_args, chunk_size).apply_async()  # pyright: ignore[reportCallIssue]
 
-    logger.info(f"Scheduled {len(task_args)} BooksJP crawl tasks in chunks")
+        logger.info(f"Scheduled {len(task_args)} BooksJP crawl tasks in chunks")
+        return {"total_tasks": len(task_args), "group_id": result.id}
+    else:
+        # For Cloud Run Jobs
+        logger.info("Starting synchronous crawl for {len(task_args)} BooksJP series")
+        completed = 0
 
-    return {"total_tasks": len(task_args), "group_id": result.id}
+        for title, last_date_str in task_args:
+            try:
+                logger.info(f"Crawling {title}...")
+                call_command(
+                    "books_jp_title_search",
+                    title=title,
+                    last_release_date=last_date_str,
+                )
+                completed += 1
+            except Exception:
+                logger.exception(f"Failed to crawl {title}")
+
+        logger.info(f"Completed {completed}/{len(task_args)} series")
+        return {"total_tasks": len(task_args), "completed": completed}
