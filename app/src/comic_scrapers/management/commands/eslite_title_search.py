@@ -11,6 +11,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--title",
             type=str,
+            required=True,
             help='Series title to crawl (e.g., "排球少年", "藍色時期")',
         )
         parser.add_argument(

@@ -11,6 +11,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--title",
             type=str,
+            required=True,
             help="Series title in Japanese to crawl",
         )
         parser.add_argument(

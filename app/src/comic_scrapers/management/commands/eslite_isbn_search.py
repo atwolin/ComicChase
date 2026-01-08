@@ -11,6 +11,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--isbn",
             type=str,
+            required=True,
             help="ISBN to search for",
         )
 

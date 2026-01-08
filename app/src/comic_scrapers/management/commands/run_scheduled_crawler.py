@@ -41,7 +41,8 @@ class Command(BaseCommand):
 
         try:
             if task_name == "bookstw_new":
-                result = tasks.crawl_new_volumes_bookstw()
+                async_result = tasks.crawl_new_volumes_bookstw.apply()
+                result = async_result.get()
             elif task_name == "eslite_all_series":
                 result = tasks.crawl_all_series_eslite(sync=True)
             elif task_name == "eslite_orphans":
