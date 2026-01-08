@@ -1,11 +1,6 @@
 
 FROM python:3.12-slim
 
-# TODO: Add frontend build stage to copy built files
-
-ARG USER_ID=1000
-ARG GID=1000
-
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
