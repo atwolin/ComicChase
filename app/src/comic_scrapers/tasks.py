@@ -284,7 +284,6 @@ def crawl_all_series_eslite(sync=False):
                      If False, use Celery workers (original behavior).
     """
     from comic.models import Series
-    from django.core.management import call_command
 
     # Query all series with Traditional Chinese titles
     series_list = Series.objects.filter(title_tw__isnull=False).values(
@@ -312,7 +311,7 @@ def crawl_all_series_eslite(sync=False):
         return {"total_tasks": len(task_args), "group_id": result.id}
     else:
         # For Cloud Run Jobs
-        logger.info("Starting synchronous crawl for {len(task_args)} Eslite series")
+        logger.info(f"Starting synchronous crawl for {len(task_args)} Eslite series")
         completed = 0
 
         for title, last_date_str in task_args:
@@ -367,7 +366,7 @@ def crawl_all_series_booksjp(sync=False):
         return {"total_tasks": len(task_args), "group_id": result.id}
     else:
         # For Cloud Run Jobs
-        logger.info("Starting synchronous crawl for {len(task_args)} BooksJP series")
+        logger.info(f"Starting synchronous crawl for {len(task_args)} BooksJP series")
         completed = 0
 
         for title, last_date_str in task_args:
