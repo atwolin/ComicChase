@@ -1,6 +1,6 @@
 import random
 
-from comic.models import Publisher, Series
+from comic.models import Series
 from django.core.management.base import BaseCommand
 
 
@@ -10,10 +10,6 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.stdout.write("正在清理舊資料...")
         Series.objects.all().delete()
-
-        publisher, _ = Publisher.objects.get_or_create(
-            name="測試出版社", region=Publisher.Region.JAPAN
-        )
 
         self.stdout.write("開始產生 10,000 筆資料...")
 
