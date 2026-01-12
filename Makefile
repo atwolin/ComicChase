@@ -44,9 +44,9 @@ rebuild: env-info ## Rebuild and start the Docker containers. Usage: make rebuil
 	@echo "♻️ Rebuilding and starting services..."
 	$(COMPOSE) up --build -d $(UP_OPTIONS)
 
-logs: ## View logs of the Docker containers. Usage: make logs [ENV=local|gce|gcr-test]
-	@echo "📜 Viewing logs..."
-	$(COMPOSE) logs
+logs: ## View logs of the Docker containers. Usage: make logs [SERV=service_name] [LINES=20]
+	@echo "📜 Viewing logs for $(if $(SERV),$(SERV),all services)..."
+	$(COMPOSE) logs --tail=$(if $(LINES),$(LINES),20) $(SERV)
 
 shell: ## Access the shell of the app container. Usage: make shell [ENV=local|gce|gcr-test]
 	@echo "🐚 Accessing app container shell..."

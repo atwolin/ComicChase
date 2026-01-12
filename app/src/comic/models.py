@@ -162,17 +162,37 @@ class Volume(models.Model):
     )
     release_date = models.DateField(_("發售日期"), null=True, blank=True)
     isbn = models.CharField(_("ISBN"), max_length=13, blank=True, default="")
+    image_url = models.URLField(_("封面圖片 URL"), blank=True, default="")
 
     class Meta:
         verbose_name = _("單行本")
         verbose_name_plural = _("單行本")
-        ordering = ["series", "volume_number", "region", "release_date"]
+        ordering = ["series", "region", "volume_number", "release_date"]
         constraints = [
             models.UniqueConstraint(
                 fields=["series", "volume_number", "region", "variant"],
                 name="unique_volume_variant",
             )
         ]
+
+    def clean(self):
+        """Validate model fields to prevent security issues."""
+        super().clean()
+
+        # Validate image_url scheme to prevent XSS attacks
+        if self.image_url:
+            parsed_url = urlparse(self.image_url)
+            allowed_schemes = ["http", "https"]
+
+            if parsed_url.scheme and parsed_url.scheme.lower() not in allowed_schemes:
+                raise ValidationError(
+                    {
+                        "image_url": _(
+                            f"不安全的 URL scheme: '{parsed_url.scheme}'. "
+                            f"僅允許 {', '.join(allowed_schemes)}"
+                        )
+                    }
+                )
 
     def __str__(self):
         region_str = self.get_region_display()

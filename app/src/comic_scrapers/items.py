@@ -7,12 +7,14 @@ class OrphanVolumeItem(scrapy.Item):
 
     Fields:
         isbn_tw: The ISBN of the volume in Taiwan
+        search_query: The target used to find the respective book
         source_url: The URL of the source page
     """
 
     # Anchor point field
     isbn_tw = scrapy.Field()
 
+    search_query = scrapy.Field()
     source_url = scrapy.Field()
 
 
@@ -27,6 +29,7 @@ class OrphanMapItem(scrapy.Item):
         author_tw: The author of the comic in Taiwan
         release_date_tw: The release date of the volume in Taiwan
         publisher_tw: The publisher of the volume in Taiwan
+        search_query: The target used to find the respective book
         search_url: The URL of the search results page
         detail_url: The URL of the book detail page
         product_desc: The product description of the volume
@@ -45,8 +48,10 @@ class OrphanMapItem(scrapy.Item):
     # Volume fields
     release_date_tw = scrapy.Field()
     publisher_tw = scrapy.Field()
+    image_url_tw = scrapy.Field()
 
     # Metadata fields
+    search_query = scrapy.Field()
     search_url = scrapy.Field()
     detail_url = scrapy.Field()
     product_desc = scrapy.Field()
@@ -60,7 +65,7 @@ class JpComicItem(scrapy.Item):
         title_jp: The title of the comic in Japanese
         author_jp: The author of the comic in Japanese
         publisher_jp: The publisher of the comic in Japan
-        series_name: The series name of the comic
+        search_query: The target used to find the respective book
         detail_url: The URL of the book detail page
         product_desc: The product description of the comic
     """
@@ -73,8 +78,9 @@ class JpComicItem(scrapy.Item):
 
     # Volume fields
     publisher_jp = scrapy.Field()
+    image_url_jp = scrapy.Field()
 
     # Metadata fields
-    series_name = scrapy.Field()
+    search_query = scrapy.Field()
     detail_url = scrapy.Field()
     product_desc = scrapy.Field()
