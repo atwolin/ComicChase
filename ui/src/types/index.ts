@@ -11,20 +11,25 @@ export interface Volume {
   variant: string
   release_date: string | null
   isbn: string | null
+  image_url: string | null
   publisher: number | null
   publisher_name: string | null
 }
 
 export interface Series {
   id: number
-  traditional_chinese_title: string | null
-  japanese_title: string
-  author: string
-  status_japan: 'ongoing' | 'completed' | 'hiatus'
+  title_tw: string
+  title_jp: string
+  author_tw: string
+  author_jp: string
+  author: string // 計算欄位：整合的作者名稱
+  status_jp: 'ongoing' | 'completed' | 'hiatus'
   genres?: string[]
   first_published_year?: number | null
   latest_volume_jp_number?: number | null
   latest_volume_tw_number?: number | null
+  latest_volume_jp_image?: string | null
+  latest_volume_tw_image?: string | null
   volumes?: Volume[]
   cover_image?: string | null
 }

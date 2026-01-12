@@ -24,7 +24,7 @@ export const SeriesList = () => {
       search: searchQuery || undefined,
       ordering: '-id', // 固定為預設排序：最新更新
       page,
-      page_size: 20,
+      // 注意：後端 API 目前不支持 page_size 參數，使用默認值 10
     }),
     [searchQuery, page]
   )
@@ -53,7 +53,7 @@ export const SeriesList = () => {
     return null
   }
 
-  const totalPages = Math.ceil(data.count / 20)
+  const totalPages = Math.ceil(data.count / 10) // 後端默認 page_size 是 10
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">

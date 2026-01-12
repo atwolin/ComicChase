@@ -29,6 +29,7 @@ class VolumeSerializer(serializers.ModelSerializer):
             "variant",
             "release_date",
             "isbn",
+            "image_url",
             "publisher",  # 出版社 ID (寫入用)
             "publisher_name",
         ]
@@ -39,24 +40,38 @@ class SeriesListSerializer(serializers.ModelSerializer):
     漫畫清單的序列化器
     """
 
-    traditional_chinese_title = serializers.CharField(source="title_tw")
-    japanese_title = serializers.CharField(source="title_jp")
-    status_japan = serializers.CharField(source="status_jp")
-
+    # 計算欄位：整合作者資訊
     author = serializers.SerializerMethodField()
+
+    # 計算欄位：最新單行本封面
+    latest_volume_jp_image = serializers.SerializerMethodField()
+    latest_volume_tw_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Series
         fields = [
             "id",
-            "traditional_chinese_title",
-            "japanese_title",
-            "author",
-            "status_japan",
+            "title_tw",
+            "title_jp",
+            "author_tw",
+            "author_jp",
+            "author",  # 計算欄位
+            "status_jp",
+            "latest_volume_jp_image",  # 計算欄位
+            "latest_volume_tw_image",  # 計算欄位
         ]
 
     def get_author(self, obj):
+        """整合的作者名稱（優先台灣譯名）"""
         return obj.author_tw or obj.author_jp
+
+    def get_latest_volume_jp_image(self, obj):
+        """日版最新單行本封面"""
+        return obj.latest_volume_jp.image_url if obj.latest_volume_jp else None
+
+    def get_latest_volume_tw_image(self, obj):
+        """台版最新單行本封面"""
+        return obj.latest_volume_tw.image_url if obj.latest_volume_tw else None
 
 
 class SeriesDetailSerializer(SeriesListSerializer):

@@ -226,3 +226,6 @@ logs/
 
 # SSL certificates
 app/src/ssl/*.key
+
+# Auto-generated API client
+ui/src/api/generated/
