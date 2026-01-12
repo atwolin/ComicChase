@@ -7,7 +7,7 @@ from django.contrib.postgres.operations import TrigramExtension
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('comic', '0006_series_series_title_tw_trgm_idx_and_more'),
+        ('comic', '0005_alter_series_options_alter_series_author_jp_and_more'),
         ('subscriptions', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
