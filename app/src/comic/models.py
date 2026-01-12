@@ -98,6 +98,16 @@ class Series(models.Model):
                 name="series_title_jp_trgm_idx",
                 opclasses=["gin_trgm_ops"],
             ),
+            GinIndex(
+                fields=["author_tw"],
+                name="series_author_tw_trgm_idx",
+                opclasses=["gin_trgm_ops"],
+            ),
+            GinIndex(
+                fields=["author_jp"],
+                name="series_author_jp_trgm_idx",
+                opclasses=["gin_trgm_ops"],
+            ),
         ]
 
     def __str__(self):
