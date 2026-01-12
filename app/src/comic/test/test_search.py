@@ -45,6 +45,9 @@ class SeriesSearchTests(APITestCase):
         # 當搜尋「進擊的巨人」時，進擊的巨人排在第一
         response = self.client.get(self.url, {"search": "進擊的巨人"})
 
+        self.assertTrue(
+            response.data["results"], "搜尋結果為空，可能是 Trigram 設定問題"
+        )
         first_result_title = response.data["results"][0]["traditional_chinese_title"]
         self.assertEqual(first_result_title, "進擊的巨人")
 
