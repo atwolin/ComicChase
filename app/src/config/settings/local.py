@@ -7,7 +7,10 @@ import sys  # noqa: E402
 # Use separate database backends:
 # - SQLite for unit tests (faster, isolated)
 # - PostgreSQL for development and production
-if "test" in sys.argv or "pytest" in sys.modules:
+# Allow overriding to use PostgreSQL for tests via TEST_WITH_POSTGRES env var
+if ("test" in sys.argv or "pytest" in sys.modules) and not config(
+    "TEST_WITH_POSTGRES", default=False, cast=bool
+):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
