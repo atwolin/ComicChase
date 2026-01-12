@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "django.contrib.postgres",
     "rest_framework",
     "allauth",
     "allauth.account",
@@ -41,7 +42,6 @@ INSTALLED_APPS = [
     "accounts.apps.AccountsConfig",
     "comic.apps.ComicConfig",
     "subscriptions.apps.SubscriptionsConfig",
-    "django.contrib.postgres",
     "comic_scrapers",
 ]
 
