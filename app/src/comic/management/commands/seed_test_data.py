@@ -8,6 +8,13 @@ class Command(BaseCommand):
     help = "產生 10,000 筆漫畫系列測試資料"
 
     def handle(self, *args, **kwargs):
+        from django.conf import settings
+
+        if not settings.DEBUG:
+            self.stderr.write(
+                self.style.ERROR("This command can only run with DEBUG=True")
+            )
+            return
         self.stdout.write("正在清理舊資料...")
         Series.objects.all().delete()
 
