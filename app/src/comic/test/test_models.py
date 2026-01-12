@@ -196,3 +196,28 @@ class VolumeModelTests(TestCase):
             isbn="9785555555555",
         )
         self.assertEqual(volume.variant, "")
+
+    def test_image_url_accepts_valid_url(self):
+        """測試 image_url 接受有效的 URL"""
+        test_url = "https://example.com/cover.jpg"
+        volume = Volume.objects.create(
+            series=self.series,
+            publisher=self.publisher_jp,
+            region=Volume.Region.JAPAN,
+            volume_number=9,
+            isbn="9787777777777",
+            image_url=test_url,
+        )
+        self.assertEqual(volume.image_url, test_url)
+
+    def test_image_url_is_optional(self):
+        """測試 image_url 為選填欄位"""
+        volume = Volume.objects.create(
+            series=self.series,
+            publisher=self.publisher_jp,
+            region=Volume.Region.TAIWAN,
+            volume_number=10,
+            isbn="9788888888888",
+            image_url="",
+        )
+        self.assertEqual(volume.image_url, "")

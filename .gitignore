@@ -198,7 +198,6 @@ activemq-data/
 # ==============================================================================
 
 # VS Code
-.vscode/
 .history/
 
 # JetBrains (PyCharm, IntelliJ, etc.)

@@ -3,7 +3,6 @@
 import json
 import os
 import unittest
-from unittest.mock import patch
 
 from scrapy.http import HtmlResponse, Request
 
@@ -94,8 +93,7 @@ class TestBooksTWSpiderParseVolumeInfo(unittest.TestCase):
         """Set up test fixtures."""
         self.spider = BooksTWSpider()
 
-    @patch("time.sleep", return_value=None)
-    def test_parse_volume_info_extracts_isbn_correctly(self, mock_sleep):
+    def test_parse_volume_info_extracts_isbn_correctly(self):
         """Test that parse_volume_info() correctly extracts ISBN from the page."""
         # Get sample response HTML with ISBN
         html_content = ""
@@ -125,10 +123,8 @@ class TestBooksTWSpiderParseVolumeInfo(unittest.TestCase):
             item["isbn_tw"], "9786260261665", "Should extract correct ISBN"
         )
         self.assertEqual(item["source_url"], url, "Should set correct source URL")
-        mock_sleep.assert_called_once_with(20)
 
-    @patch("time.sleep", return_value=None)
-    def test_parse_volume_info_handles_missing_isbn(self, mock_sleep):
+    def test_parse_volume_info_handles_missing_isbn(self):
         """Test that parse_volume_info() handles pages without ISBN gracefully."""
         # Create a mock response without ISBN
         html_content = """
@@ -163,10 +159,8 @@ class TestBooksTWSpiderParseVolumeInfo(unittest.TestCase):
         self.assertIsInstance(item, OrphanVolumeItem, "Should yield OrphanVolumeItem")
         self.assertIsNone(item["isbn_tw"], "ISBN should be None when not found")
         self.assertEqual(item["source_url"], url, "Should set correct source URL")
-        mock_sleep.assert_called_once_with(20)
 
-    @patch("time.sleep", return_value=None)
-    def test_parse_volume_info_epub_isbns_are_ignored(self, mock_sleep):
+    def test_parse_volume_info_epub_isbns_are_ignored(self):
         """Test that parse_volume_info() correctly ignores EPUB ISBNs."""
         # Get sample response HTML with EISBN
         html_content = ""
@@ -194,7 +188,6 @@ class TestBooksTWSpiderParseVolumeInfo(unittest.TestCase):
         self.assertNotIn(
             "isbn_tw", item, "Should not set isbn_tw field for EPUB volumes"
         )
-        mock_sleep.assert_called_once_with(20)
 
 
 if __name__ == "__main__":
