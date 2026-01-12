@@ -2,7 +2,6 @@
 
 from django.conf import settings
 from django.db import migrations, models
-from django.contrib.postgres.operations import TrigramExtension
 
 class Migration(migrations.Migration):
 
@@ -13,8 +12,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        TrigramExtension(),
-
         migrations.AlterModelOptions(
             name='subscription',
             options={'ordering': ['-created_at'], 'verbose_name': '使用者追蹤漫畫列表', 'verbose_name_plural': '使用者追蹤漫畫列表'},
