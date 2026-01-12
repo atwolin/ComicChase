@@ -7,9 +7,12 @@ class TrigramSearchFilter(BaseFilterBackend):
     使用 PostgreSQL pg_trgm 進行相似度搜尋
     """
 
+    similarity_threshold = 0.2
+
     def filter_queryset(self, request, queryset, view):
         search_query = request.query_params.get("search")
         search_fields = getattr(view, "search_fields", [])
+        threshold = getattr(view, "similarity_threshold", self.similarity_threshold)
 
         if not search_query or not search_fields:
             return queryset
@@ -26,7 +29,7 @@ class TrigramSearchFilter(BaseFilterBackend):
         if total_similarity is not None:
             return (
                 queryset.annotate(similarity=total_similarity)
-                .filter(similarity__gt=0.2)
+                .filter(similarity__gt=threshold)
                 .order_by("-similarity")
             )
 
