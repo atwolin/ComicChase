@@ -33,8 +33,8 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
             ).prefetch_related("volumes__publisher")
 
         # === 列表頁面 (List View) ===
-        # 只列 Series 本身的文字資訊，維持輕量化
-        return queryset
+        # 預先載入最新單行本關聯，避免 N+1 查詢
+        return queryset.select_related("latest_volume_jp", "latest_volume_tw")
 
     def get_serializer_class(self):
         """
