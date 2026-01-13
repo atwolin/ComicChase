@@ -13,8 +13,7 @@ WORKDIR /code/app
 
 # Create non-root user
 RUN groupadd -g $GID docker-users && \
-    useradd -m --no-log-init -s /bin/bash -u $USER_ID -g $GID docker && \
-    echo "docker:docker" | chpasswd
+    useradd -m --no-log-init -s /bin/bash -u $USER_ID -g $GID docker
 
 RUN pip install --upgrade pip
 COPY ./app/requirements-gcr.txt ./
@@ -22,7 +21,7 @@ RUN pip install --no-cache-dir -r requirements-gcr.txt
 
 COPY ./app/src ./
 
-RUN chmod +x entrypoint.gcr.sh wait-for-it.sh
+RUN chmod +x entrypoint.gcr.sh wait-for-it.sh run_crawler.sh
 
 # Set ownership and permissions
 RUN chown -R docker:docker-users /code/app
