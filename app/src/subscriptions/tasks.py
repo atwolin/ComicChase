@@ -45,9 +45,10 @@ def run_weekly_notification_flow(self, sync=False):
 
     # 偵測過去 7 天出版的新書
     last_week = timezone.now().date() - timedelta(days=7)
-    new_volumes = Volume.objects.filter(release_date__gte=last_week).select_related(
-        "series"
-    )
+    new_volumes = Volume.objects.filter(
+        release_date__gte=last_week,
+        series__isnull=False,
+    ).select_related("series")
 
     if not new_volumes.exists():
         logger.info(f"[{task_id}] 本週無新刊出版，將發送無新刊通知。")
