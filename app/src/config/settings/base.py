@@ -156,6 +156,14 @@ HEADLESS_FRONTEND_URLS = {
 }
 HEADLESS_SERVE_SPECIFICATION = True
 
+# CSRF config
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
 # Celery config
 CELERY_BROKER_URL = config("CELERY_BROKER_URL", default="amqp://")
 CELERY_RESULT_BACKEND = "django-db"

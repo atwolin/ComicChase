@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import type { Series } from '@/types'
+import type { SeriesList } from '@/api'
 import { clsx } from 'clsx'
 import { ROUTES } from '@/constants/routes'
 
@@ -9,17 +9,21 @@ import {
 } from '@/constants/series'
 
 interface SeriesCardProps {
-  series: Series
+  series: SeriesList
 }
 
 export const SeriesCard = ({ series }: SeriesCardProps) => {
-  // 定義 imageUrl。
-  // 後端還沒做圖片欄位叫做 'cover_image'，暫時設為 null
-  const imageUrl = series.cover_image || null
+  // 封面圖片邏輯：優先使用台版最新單行本封面，沒有的話用日版
+  const imageUrl =
+    series.latest_volume_tw_image || series.latest_volume_jp_image
 
   // 取得對應的狀態顏色和標籤
-  const statusColor = statusColors[series.status_japan] || statusColors.default
-  const statusLabel = statusLabels[series.status_japan] || series.status_japan
+  const statusColor =
+    statusColors[series.status_jp as keyof typeof statusColors] ||
+    statusColors.default
+  const statusLabel =
+    statusLabels[series.status_jp as keyof typeof statusLabels] ||
+    series.status_jp
 
   return (
     <Link
@@ -32,7 +36,7 @@ export const SeriesCard = ({ series }: SeriesCardProps) => {
           // 如果有爬到圖片，顯示圖片
           <img
             src={imageUrl}
-            alt="Comic Cover"
+            alt={`${series.title_tw || series.title_jp} 封面`}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
           />
         ) : (
@@ -49,7 +53,7 @@ export const SeriesCard = ({ series }: SeriesCardProps) => {
       <div className="p-5">
         <div className="flex justify-between items-start mb-3">
           <h3 className="text-lg font-bold text-gray-900 line-clamp-2 flex-1 group-hover:text-indigo-600 transition-colors">
-            {series.traditional_chinese_title || series.japanese_title}
+            {series.title_tw || series.title_jp}
           </h3>
           <span
             className={clsx(
@@ -61,40 +65,16 @@ export const SeriesCard = ({ series }: SeriesCardProps) => {
           </span>
         </div>
 
-        {series.traditional_chinese_title && series.japanese_title && (
+        {series.title_tw && series.title_jp && (
           <p className="text-sm text-gray-600 mb-3 line-clamp-1">
-            {series.japanese_title}
+            {series.title_jp}
           </p>
         )}
 
         <p className="text-sm text-gray-700 mb-4">作者：{series.author}</p>
 
-        <div className="flex flex-col gap-2 text-xs">
-          {series.latest_volume_jp_number && (
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-              <span className="text-gray-600">
-                日版：第{' '}
-                <span className="font-semibold text-gray-900">
-                  {series.latest_volume_jp_number}
-                </span>{' '}
-                卷
-              </span>
-            </div>
-          )}
-          {series.latest_volume_tw_number && (
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-              <span className="text-gray-600">
-                台版：第{' '}
-                <span className="font-semibold text-gray-900">
-                  {series.latest_volume_tw_number}
-                </span>{' '}
-                卷
-              </span>
-            </div>
-          )}
-        </div>
+        {/* 注意：SeriesList 類型沒有 latest_volume_jp_number 和 latest_volume_tw_number */}
+        {/* 這些信息只在 SeriesDetail 頁面可用 */}
       </div>
     </Link>
   )

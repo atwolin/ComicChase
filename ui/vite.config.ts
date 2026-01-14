@@ -19,6 +19,10 @@ export default defineConfig({
         target: process.env.VITE_PROXY_TARGET || 'http://localhost:8000' || 'http://backend:8000',
         changeOrigin: true,
       },
+      '/_allauth': {
+        target: process.env.VITE_PROXY_TARGET || 'http://localhost:8000' || 'http://backend:8000',
+        changeOrigin: true,
+      },
     },
   },
   test: {
