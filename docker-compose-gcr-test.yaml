@@ -2,8 +2,15 @@
 # This mimics Cloud Run environment as closely as possible
 
 services:
+  selenium:
+    image: selenium/standalone-chrome:136.0
+    restart: unless-stopped
+    hostname: selenium
+    ports:
+      - "4444:4444"
+
   db:
-    image: postgres:16
+    image: postgres:16.2
     environment:
       POSTGRES_DB: comicchase
       POSTGRES_USER: postgres
@@ -19,7 +26,7 @@ services:
       dockerfile: ./app/Dockerfile.gcr
       args:
         USER_ID: ${UID:-1000}
-        GROUP_ID: ${GID:-1000}
+        GID: ${GID:-1000}
     ports:
       - "8080:8080"
     environment:
@@ -33,7 +40,7 @@ services:
       # Django settings
       DJANGO_SETTINGS_MODULE: config.settings.gcr
       SECRET_KEY: test-secret-key-for-local-testing-only
-      DEBUG: "False"
+      DEBUG: "True"
       ALLOWED_HOSTS: localhost,127.0.0.1,0.0.0.0
       # GCS bucket (optional for local testing - empty string to disable)
       GS_BUCKET_NAME: ""
