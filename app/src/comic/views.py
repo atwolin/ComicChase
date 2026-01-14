@@ -1,5 +1,6 @@
 from rest_framework import filters, viewsets
 
+from .filters import TrigramSearchFilter
 from .models import Series
 from .serializers import SeriesDetailSerializer, SeriesListSerializer
 
@@ -9,14 +10,21 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
     提供漫畫列表和漫畫詳情
     """
 
-    # 優化查詢
-    queryset = Series.objects.all().prefetch_related("volumes")
+    queryset = Series.objects.all()
 
     # 搜尋搜尋與排序功能
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [TrigramSearchFilter, filters.OrderingFilter]
     search_fields = ["title_jp", "title_tw", "author_jp", "author_tw"]
     ordering_fields = ["title_tw", "title_jp"]
     ordering = ["title_tw"]  # 預設排序
+
+    def get_serializer_class(self):
+        """
+        選擇 'list' (列表) or 'retrieve' (詳情)
+        """
+        if self.action == "list":
+            return SeriesListSerializer
+        return SeriesDetailSerializer
 
     def get_queryset(self):
         """
@@ -27,19 +35,10 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
         if self.action == "retrieve":
             # === 詳細頁面 (Detail View) ===
             return queryset.select_related(
-                # 抓取關聯的「最新單行本」資訊，避免額外查詢
+                # 抓取最新單行本
                 "latest_volume_jp",
                 "latest_volume_tw",
-            ).prefetch_related("volumes__publisher")
+            ).prefetch_related("volumes", "volumes__publisher")
 
         # === 列表頁面 (List View) ===
-        # 預先載入最新單行本關聯，避免 N+1 查詢
-        return queryset.select_related("latest_volume_jp", "latest_volume_tw")
-
-    def get_serializer_class(self):
-        """
-        選擇 'list' (列表) or 'retrieve' (詳情)
-        """
-        if self.action == "list":
-            return SeriesListSerializer
-        return SeriesDetailSerializer
+        return queryset

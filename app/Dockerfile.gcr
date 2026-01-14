@@ -13,9 +13,7 @@ WORKDIR /code/app
 
 # Create non-root user
 RUN groupadd -g $GID docker-users && \
-    useradd -m --no-log-init -s /bin/bash -u $USER_ID -g $GID docker && \
-    echo "docker:docker" | chpasswd && \
-    adduser docker sudo
+    useradd -m --no-log-init -s /bin/bash -u $USER_ID -g $GID docker
 
 RUN pip install --upgrade pip
 COPY ./app/requirements-gcr.txt ./
@@ -23,7 +21,7 @@ RUN pip install --no-cache-dir -r requirements-gcr.txt
 
 COPY ./app/src ./
 
-RUN chmod +x entrypoint.gcr.sh wait-for-it.sh
+RUN chmod +x entrypoint.gcr.sh wait-for-it.sh run_crawler.sh
 
 # Set ownership and permissions
 RUN chown -R docker:docker-users /code/app
@@ -33,4 +31,3 @@ USER docker
 ENTRYPOINT [ "/code/app/entrypoint.gcr.sh" ]
 
 CMD exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 0 config.wsgi:application
-

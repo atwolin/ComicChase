@@ -1,6 +1,6 @@
 # Comic Scrapers
 
-Django management commands and Celery tasks for scraping comic data from various sources.
+Django management commands and Celery tasks for scraping comic data from various sources. Please make sure to run these commands in a Docker container.
 
 ## Available Management Commands
 
@@ -11,7 +11,7 @@ Crawls books.com.tw for orphan volumes (volumes not yet linked to a series).
 
 **Usage:**
 ```bash
-docker compose exec web python manage.py books_tw_new_releases
+python manage.py books_tw_new_releases
 ```
 
 **What it does:**
@@ -28,7 +28,7 @@ Crawls eslite.com to map a specific orphan Taiwanese volume using ISBN lookup.
 
 **Usage:**
 ```bash
-docker compose exec web python manage.py eslite_isbn_search --isbn "978xxxxxxxxxx"
+python manage.py eslite_isbn_search --isbn "978xxxxxxxxxx"
 ```
 
 **What it does:**
@@ -45,7 +45,7 @@ Crawls books.or.jp to update Japanese comic titles and author information for a 
 
 **Usage:**
 ```bash
-docker compose exec web python manage.py books_jp_title_search --title "Series Title JP" --last-release-date "YYYY-MM-DD"
+python manage.py books_jp_title_search --title "Series Title JP" --last-release-date "YYYY-MM-DD"
 ```
 
 **What it does:**
@@ -62,7 +62,7 @@ Crawls eslite.com to search and extract volumes for a specific series by Taiwane
 
 **Usage:**
 ```bash
-docker compose exec web python manage.py eslite_title_search --title "Series Title TW" --last-release-date "YYYY-MM-DD"
+python manage.py eslite_title_search --title "Series Title TW" --last-release-date "YYYY-MM-DD"
 ```
 
 **What it does:**
