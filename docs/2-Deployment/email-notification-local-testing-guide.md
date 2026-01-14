@@ -39,7 +39,7 @@ aws sesv2 list-email-identities --region ap-northeast-1
 ---
 
 
-### **4. 確認有測試用戶**
+### **3. 確認有測試用戶**
 
 ```python
 from django.contrib.auth import get_user_model
