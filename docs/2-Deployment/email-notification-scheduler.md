@@ -134,12 +134,11 @@ volumes_data = [
 ]
 
 # 測試發送到單一郵箱
-result = send_single_email_task(
-    None,  # self (Celery task instance)
-    user_email="test@example.com",
-    volumes_data=volumes_data,
-    sync=True
-)
+result = send_single_email_task.apply(kwargs={
+    "user_email": "test@example.com",
+    "volumes_data": volumes_data,
+    "sync": True
+}).result
 print(result)
 ```
 
