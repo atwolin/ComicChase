@@ -167,7 +167,7 @@ EMAIL_BACKEND = config(
     "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
 )
 # DEFAULT_FROM_EMAIL = "admin@comicchase.web.app"
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="DEFAULT_FROM_EMAIL")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
 
 # AWS SES Configuration
 # Django-SES specific settings
