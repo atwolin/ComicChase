@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "django_celery_results",
+    "django_ses",
     "rest_framework",
     "allauth",
     "allauth.account",
@@ -37,7 +39,6 @@ INSTALLED_APPS = [
     "allauth.usersessions",
     "corsheaders",
     "drf_spectacular",
-    "django_celery_results",
     "apis.apps.ApisConfig",
     "accounts.apps.AccountsConfig",
     "comic.apps.ComicConfig",
@@ -62,7 +63,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -132,9 +133,6 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
-# Email settings
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = "admin@comicchase.web.app"
 
 ACCOUNT_SESSION_REMEMBER = True
 ACCOUNT_EMAIL_VERIFICATION = "optional"  # TODO: set "mandatory" after email setup
@@ -162,6 +160,27 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# Email settings
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = config(
+    "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
+)
+# DEFAULT_FROM_EMAIL = "admin@comicchase.web.app"
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="DEFAULT_FROM_EMAIL")
+
+# AWS SES Configuration
+# Django-SES specific settings
+AWS_SES_REGION_NAME = config("AWS_SES_REGION_NAME", default="ap-northeast-1")
+AWS_SES_REGION_ENDPOINT = config(
+    "AWS_SES_REGION_ENDPOINT", default="email.ap-northeast-1.amazonaws.com"
+)
+# Boto3 requires this for proper credential scoping
+AWS_DEFAULT_REGION = config("AWS_DEFAULT_REGION", default="ap-northeast-1")
+AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default=None)
+AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default=None)
+# Use SES v1 API (more stable)
+USE_SES_V2 = False
 
 # Celery config
 CELERY_BROKER_URL = config("CELERY_BROKER_URL", default="amqp://")
