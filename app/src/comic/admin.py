@@ -1,7 +1,8 @@
 from urllib.parse import urlparse
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.utils.html import format_html
+from subscriptions.tasks import run_weekly_notification_flow
 
 from .models import Publisher, Series, Volume
 
@@ -39,6 +40,11 @@ class SeriesAdmin(admin.ModelAdmin):
     @admin.display(description="最新單行本 (台)")
     def latest_volume_tw_display(self, obj):
         return obj.latest_volume_tw
+
+    @admin.action(description="手動發送本週新書通知 (Celery)")
+    def trigger_weekly_digest(self, request, queryset):
+        run_weekly_notification_flow.delay()
+        self.message_user(request, "郵件通知任務已在背景啟動！", messages.SUCCESS)
 
 
 @admin.register(Volume)
