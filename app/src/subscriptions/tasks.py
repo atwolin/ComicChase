@@ -67,39 +67,38 @@ def run_weekly_notification_flow(self, sync=False):
 
     logger.info(f"[{task_id}] Found {len(volumes_data)} new volumes to notify")
 
-    # 取得所有有效使用者郵件地址
+    # 取得所有有效使用者的 ID 與郵件地址
     User = get_user_model()
-    recipient_emails = list(
-        User.objects.filter(is_active=True).values_list("email", flat=True)
-    )
+    recipients = list(User.objects.filter(is_active=True).values_list("id", "email"))
 
-    logger.info(f"[{task_id}] Found {len(recipient_emails)} active users")
+    logger.info(f"[{task_id}] Found {len(recipients)} active users")
 
     if sync:
         # 同步模式：直接循環發送（適用於 Cloud Run Jobs）
         success_count = 0
         failed_count = 0
 
-        for email in recipient_emails:
+        for user_id, email in recipients:
             if email:
                 try:
                     # 直接調用函數（不通過 Celery），不需要傳遞 self 參數
-                    send_single_email_task(email, volumes_data, sync=True)
+                    send_single_email_task(user_id, email, volumes_data, sync=True)
                     success_count += 1
                     logger.info(
-                        f"[{task_id}] Email sent to {email} "
-                        f"({success_count}/{len(recipient_emails)})"
+                        f"[{task_id}] Email sent to user_id={user_id} "
+                        f"({success_count}/{len(recipients)})"
                     )
                 except Exception as e:
                     failed_count += 1
                     logger.error(
-                        f"[{task_id}] Failed to send email to {email}: {str(e)}"
+                        f"[{task_id}] Failed to send email"
+                        f" to user_id={user_id}: {str(e)}"
                     )
 
         result = {
             "task_id": task_id,
             "status": "completed",
-            "total_recipients": len(recipient_emails),
+            "total_recipients": len(recipients),
             "success_count": success_count,
             "failed_count": failed_count,
             "volumes_count": len(volumes_data),
@@ -108,24 +107,25 @@ def run_weekly_notification_flow(self, sync=False):
         return result
     else:
         # 異步模式：使用 Celery（適用於本機開發）
-        for email in recipient_emails:
+        for user_id, email in recipients:
             if email:
-                send_single_email_task.delay(email, volumes_data)
+                send_single_email_task.delay(user_id, email, volumes_data)
 
         return {
             "task_id": task_id,
             "status": "dispatched",
-            "total_recipients": len(recipient_emails),
+            "total_recipients": len(recipients),
             "volumes_count": len(volumes_data),
         }
 
 
 @shared_task(bind=True, max_retries=3)
-def send_single_email_task(self, user_email, volumes_data, sync=False):
+def send_single_email_task(self, user_id, user_email, volumes_data, sync=False):
     """
     發送單一郵件通知
 
     Args:
+        user_id (int): 使用者 ID（用於日誌記錄）
         user_email (str): 收件人郵件地址
         volumes_data (list): 新書資料列表
         sync (bool): 是否使用同步模式執行
@@ -142,7 +142,7 @@ def send_single_email_task(self, user_email, volumes_data, sync=False):
 
     # 檢查渲染前的內容
     logger.info(
-        f"[{task_id}] Rendering template for {user_email} "
+        f"[{task_id}] Rendering template for user_id={user_id} "
         f"with {len(volumes_data)} items"
     )
     if volumes_data:
@@ -170,10 +170,10 @@ def send_single_email_task(self, user_email, volumes_data, sync=False):
     # 執行發送
     try:
         msg.send(fail_silently=False)
-        logger.info(f"[{task_id}] Email sent successfully to {user_email}")
-        return f"Email sent to {user_email}"
+        logger.info(f"[{task_id}] Email sent successfully to user_id={user_id}")
+        return f"Email sent to user_id={user_id}"
     except Exception as e:
-        logger.error(f"[{task_id}] SES Send Error for {user_email}: {str(e)}")
+        logger.error(f"[{task_id}] SES Send Error for user_id={user_id}: {str(e)}")
         if sync:
             # 同步模式：直接拋出異常
             raise
