@@ -45,6 +45,16 @@ if CORS_EXTRA_ORIGINS_STR:
         [origin.strip() for origin in CORS_EXTRA_ORIGINS_STR.split(",")]
     )
 
+# Enable credentials (cookies) for cross-origin requests
+CORS_ALLOW_CREDENTIALS = True
+
+# Session and CSRF cookie settings for cross-domain
+# Required for Firebase Hosting (comicchase.web.app) to authenticate with Cloud Run
+SESSION_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SECURE = True  # Required when SameSite=None
+CSRF_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SECURE = True
+
 CLOUDRUN_SERVICE_URLS = env("CLOUDRUN_SERVICE_URLS", default=None)
 if CLOUDRUN_SERVICE_URLS:
     # Remove the scheme from URLs for ALLOWED_HOSTS
