@@ -73,6 +73,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // 監聽認證狀態變更事件
     function onAuthChanged(e: Event) {
       const customEvent = e as CustomEvent<AuthResponse>
+      console.log('DEBUG - Auth Event Detail:', customEvent.detail) // 看看 meta.is_authenticated 是不是 true
       setAuth(prevAuth => {
         if (typeof prevAuth === 'undefined') {
           console.log('認證狀態已載入')
