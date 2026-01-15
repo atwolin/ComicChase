@@ -25,6 +25,7 @@ class VolumeInline(admin.TabularInline):
 
 @admin.register(Series)
 class SeriesAdmin(admin.ModelAdmin):
+    actions = ["trigger_weekly_digest"]
     list_display = (
         "title_tw",
         "title_jp",
