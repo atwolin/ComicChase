@@ -32,18 +32,20 @@ services:
     environment:
       # Cloud Run uses PORT=8080
       PORT: 8080
-      # Database connection in DATABASE_URL format (required by gcr.py settings)
-      DATABASE_URL: "postgres://postgres:postgres@db:5432/comicchase"
       # For local testing: provide SQL_HOST to trigger wait-for-it.sh
       SQL_HOST: db
       SQL_PORT: 5432
-      # Django settings
+      # Django settings module
       DJANGO_SETTINGS_MODULE: config.settings.gcr
-      SECRET_KEY: test-secret-key-for-local-testing-only
-      DEBUG: "True"
-      ALLOWED_HOSTS: localhost,127.0.0.1,0.0.0.0
-      # GCS bucket (optional for local testing - empty string to disable)
-      GS_BUCKET_NAME: ""
+      # APPLICATION_SETTINGS - simulating Cloud Run's Secret Manager
+      # In production, this comes from Secret Manager
+      # Format: multi-line string with KEY="VALUE" pairs (one per line)
+      APPLICATION_SETTINGS: |
+        DATABASE_URL="postgres://postgres:postgres@db:5432/comicchase"
+        SECRET_KEY="test-secret-key-for-local-testing-only"
+        DEBUG="True"
+        GS_BUCKET_NAME=""
+        DEFAULT_FROM_EMAIL="noreply@comicchase-test.local"
     depends_on:
       - db
 
