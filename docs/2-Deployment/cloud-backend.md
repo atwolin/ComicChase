@@ -151,6 +151,27 @@ SUPERUSER_SECRET_NAME=superuser_password
 echo -n "$(cat /dev/urandom | LC_ALL=C tr -dc '[:alpha:]'| fold -w 30 | head -n1)" | gcloud secrets create ${SUPERUSER_SECRET_NAME} --data-file -
 ```
 
+5. Add email notification settings:
+
+```bash
+# 1. 下載現有的 secret 到本地檔案
+gcloud secrets versions access latest --secret="application_settings" > .env.cloud
+
+# 2. 編輯 .env.cloud，加入 AWS 相關設定
+# 使用你喜歡的編輯器打開 .env.cloud，加入以下內容：
+# AWS_SES_REGION=your-ses-region
+# AWS_DEFAULT_REGION=your-default-region
+# AWS_SES_REGION_ENDPOINT=your-ses-region-endpoint
+# AWS_ACCESS_KEY_ID=your-access-key-id
+# AWS_SECRET_ACCESS_KEY=your-secret-access-key
+
+# 3. 更新 secret（建新版本）
+gcloud secrets versions add application_settings --data-file=.env.cloud
+
+# 4. 清理敏感檔案
+rm .env.cloud
+```
+
 ### Setting minimum permissions
 
 1. Assign the service account to the service:
