@@ -9,8 +9,7 @@ export const Signup = () => {
   const { isAuthenticated } = useAuth()
 
   const [email, setEmail] = useState('')
-  const [password1, setPassword1] = useState('')
-  const [password2, setPassword2] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -26,12 +25,7 @@ export const Signup = () => {
     setError('')
 
     // 前端驗證
-    if (password1 !== password2) {
-      setError('兩次輸入的密碼不一致')
-      return
-    }
-
-    if (password1.length < 8) {
+    if (password.length < 8) {
       setError('密碼長度至少需要 8 個字元')
       return
     }
@@ -39,7 +33,7 @@ export const Signup = () => {
     setIsLoading(true)
 
     try {
-      const result = await signUp(email, password1, password2)
+      const result = await signUp(email, password)
 
       if (result.status === 200) {
         // 註冊成功，Custom Event 會自動更新 AuthContext
@@ -103,44 +97,23 @@ export const Signup = () => {
             {/* 密碼輸入 */}
             <div>
               <label
-                htmlFor="password1"
+                htmlFor="password"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
                 密碼
               </label>
               <input
-                id="password1"
-                name="password1"
+                id="password"
+                name="password"
                 type="password"
                 required
-                value={password1}
-                onChange={e => setPassword1(e.target.value)}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 placeholder="••••••••"
                 disabled={isLoading}
               />
               <p className="mt-1 text-xs text-gray-500">至少 8 個字元</p>
-            </div>
-
-            {/* 確認密碼輸入 */}
-            <div>
-              <label
-                htmlFor="password2"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                確認密碼
-              </label>
-              <input
-                id="password2"
-                name="password2"
-                type="password"
-                required
-                value={password2}
-                onChange={e => setPassword2(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                placeholder="••••••••"
-                disabled={isLoading}
-              />
             </div>
 
             {/* 註冊按鈕 */}

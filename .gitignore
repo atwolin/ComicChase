@@ -229,3 +229,22 @@ app/src/ssl/*.key
 
 # Auto-generated API client
 ui/src/api/generated/
+
+# AWS CLI installer (large zip file)
+awscliv2.zip
+awscli-exe-*.zip
+
+# AWS CLI installation directory
+aws/
+awscli/
+
+# AWS credentials and config (should never be committed)
+.aws/
+
+# ==============================================================================
+# Zip Archives
+# ==============================================================================
+
+# Generic zip files (except specific ones needed for deployment)
+*.zip
+!deployment/**/*.zip

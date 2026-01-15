@@ -163,10 +163,9 @@ export async function login(
  */
 export async function signUp(
   email: string,
-  password1: string,
-  password2: string
+  password: string
 ): Promise<AuthResponse> {
-  return await request('POST', '/auth/signup', { email, password1, password2 })
+  return await request('POST', '/auth/signup', { email, password })
 }
 
 /**

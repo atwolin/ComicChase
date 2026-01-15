@@ -30,4 +30,8 @@ app.conf.beat_schedule = {
         # "schedule": crontab(minute=0, hour=5)
         "schedule": crontab(minute="02", hour="*"),  # TESTING: Every hour
     },
+    "send-weekly-digest-every-friday": {
+        "task": "subscriptions.tasks.run_weekly_notification_flow",
+        "schedule": crontab(hour=12, minute=0, day_of_week="friday"),
+    },
 }
