@@ -6,19 +6,34 @@ import environ
 
 from .base import *
 
-# SECURITY WARNING: don't run with debug turned on in production!
-# Change this to "False" when you are ready for production
-env = environ.Env(DEBUG=(bool, False))
+# ============================================================
+# Cloud Run Production Settings
+# ============================================================
 
+# Read APPLICATION_SETTINGS environment variable
+env = environ.Env()
 env.read_env(io.StringIO(os.environ.get("APPLICATION_SETTINGS", "")))
 
-# Default false. True allows default landing pages to be visible
-DEBUG = env("DEBUG")
+# ============================================================
+# Security Settings
+# ============================================================
 
-# Setting this value from django-environ
+# Default false. True allows default landing pages to be visible
+DEBUG = True
+# DJANGO_SECURE_SSL_REDIRECT = False
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# ============================================================
+# Django Core Settings
+# ============================================================
+
 SECRET_KEY = env("SECRET_KEY")
 
-# Get CORS origins from environment or use defaults
+# ============================================================
+# CORS & CSRF Settings
+# ============================================================
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:9000",
@@ -29,20 +44,20 @@ if CORS_EXTRA_ORIGINS_STR:
     CORS_ALLOWED_ORIGINS.extend(
         [origin.strip() for origin in CORS_EXTRA_ORIGINS_STR.split(",")]
     )
-CORS_ALLOW_CREDENTIALS = True
 
-# If defined, add service URLs to Django security settings
 CLOUDRUN_SERVICE_URLS = env("CLOUDRUN_SERVICE_URLS", default=None)
 if CLOUDRUN_SERVICE_URLS:
-    CSRF_TRUSTED_ORIGINS = [url.strip() for url in CLOUDRUN_SERVICE_URLS.split(",")]
     # Remove the scheme from URLs for ALLOWED_HOSTS
-    ALLOWED_HOSTS = [urlparse(url).netloc for url in CSRF_TRUSTED_ORIGINS]
+    ALLOWED_HOSTS = [urlparse(url).netloc for url in CLOUDRUN_SERVICE_URLS.split(",")]
+    CSRF_TRUSTED_ORIGINS = [url.strip() for url in CLOUDRUN_SERVICE_URLS.split(",")]
 else:
     ALLOWED_HOSTS = ["*"]
-    CSRF_TRUSTED_ORIGINS = ["https://*.run.app"]
+    CSRF_TRUSTED_ORIGINS = ["https://*.run.app", "https://comicchase.web.app"]
 
+# ============================================================
+# Database Settings
+# ============================================================
 
-# Set this value from django-environ
 DATABASES = {"default": env.db()}
 
 # Change database settings if using the Cloud SQL Auth Proxy
@@ -50,11 +65,14 @@ if env("USE_CLOUD_SQL_AUTH_PROXY", default=False):
     DATABASES["default"]["HOST"] = "127.0.0.1"
     DATABASES["default"]["PORT"] = 5432
 
-# Define static storage via django-storages[google]
+# ============================================================
+# Static Files & Storage
+# ============================================================
+
 GS_BUCKET_NAME = env("GS_BUCKET_NAME", default="")
 
-# Use GCS only if bucket name is provided, otherwise use local filesystem
 if GS_BUCKET_NAME:
+    # For deployment
     STATICFILES_DIRS = []
     GS_DEFAULT_ACL = "publicRead"
     STORAGES = {
