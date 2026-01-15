@@ -32,9 +32,9 @@ services:
     environment:
       # Cloud Run uses PORT=8080
       PORT: 8080
-      # For local testing: provide SQL_HOST to trigger wait-for-it.sh
-      SQL_HOST: db
-      SQL_PORT: 5432
+      # For local testing: provide DB_HOST to trigger wait-for-it.sh
+      DB_HOST: db
+      DB_PORT: 5432
       # Django settings module
       DJANGO_SETTINGS_MODULE: config.settings.gcr
       # APPLICATION_SETTINGS - simulating Cloud Run's Secret Manager
