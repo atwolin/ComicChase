@@ -37,14 +37,25 @@
 - 各個單行本支援特殊版本（特裝版、首刷限定等）
 
 ## 系統架構
+![system_architecture](assets/system_architecture.png)
+
+### ER Diagram
+主要功能的資料庫 schema  \
+![core_models](assets/schema_core.png)
+
+使用者相關的資料庫 schema（來自 [django-allauth](https://github.com/pennersr/django-allauth)）\
+![user_models](assets/schema_user.png)
+
 
 ## 技術堆疊
 
+- **Frontend:** React 18, tailwindcss
 - **Backend:** Django 5.2
 - **Database:** PostgreSQL 16
 - **Scraper:** Scrapy + Selenium
-- **CI/CD**: Pre-commit hooks (Linting with ruff/pyright)
 - **Container:** Docker
+- **CI/CD**: Pre-commit hooks (Linting with ruff), Google Cloud Build
+- **Deployment:** Google Cloud Run + Firebase Hosting
 
 ## 用於開發的安裝說明
 
@@ -54,33 +65,73 @@
 ComicChase/
 ├── app/                        # 後端應用程式
 │   ├── src/
+│   │   ├── accounts/           # Django app - 使用者帳號管理
+│   │   ├── apis/               # Django app - API 相關功能
 │   │   ├── comic/              # Django app - 漫畫模型和 API
 │   │   ├── comic_scrapers/     # Scrapy 爬蟲
 │   │   ├── config/             # Django 設定
-│   │   ├── settings/           # Django 環境設定
+│   │   │   ├── settings/       # Django 環境設定
+│   │   │   ├── gunicorn/       # Gunicorn 設定
+│   │   │   └── nginx/          # Nginx 設定
+│   │   ├── subscriptions/      # Django app - 訂閱功能
+│   │   ├── templates/          # Django 模板
+│   │   ├── static/             # 靜態檔案
 │   │   ├── manage.py           # Django 管理腳本
 │   │   ├── scrapy.cfg          # Scrapy 設定
+│   │   ├── supervisord.conf    # Supervisor 設定
+│   │   ├── entrypoint.sh       # Docker 進入點腳本
+│   │   ├── entrypoint.gce.sh   # GCE 進入點腳本
+│   │   ├── entrypoint.gcr.sh   # GCR 進入點腳本
+│   │   ├── run_crawler.sh      # 爬蟲執行腳本
+│   │   ├── run_email.sh        # Email 發送腳本
 │   │   └── wait-for-it.sh      # 資料庫等待腳本
-│   ├── Dockerfile              # 後端 Docker 設定
-│   └── requirements.txt        # Python 依賴套件
+│   ├── Dockerfile              # 後端 Local Docker 設定
+│   ├── Dockerfile.gce          # Google Compute Engine 部署 Docker 設定
+│   ├── Dockerfile.gcr          # Google Cloud Run 部署 Docker 設定
+│   ├── requirements.txt        # Python 依賴套件
+│   └── requirements-gcr.txt    # GCR Python 依賴套件
 ├── ui/                         # 前端應用程式
-│   ├── src/                    # 前端原始碼
-│   └── Dockerfile              # 前端 Docker 設定
-├── docs/                       # 文檔和 GitHub issues
+│   ├── src/
+│   │   ├── api/                # API 客戶端
+│   │   ├── components/         # React 元件
+│   │   ├── pages/              # 頁面元件
+│   │   ├── contexts/           # React Contexts
+│   │   ├── hooks/              # 自訂 Hooks
+│   │   ├── lib/                # 工具函式庫
+│   │   ├── types/              # TypeScript 型別定義
+│   │   ├── App.tsx             # 主要應用程式元件
+│   │   └── main.tsx            # 應用程式進入點
+│   ├── Dockerfile              # 前端 Local Docker 設定
+│   ├── Dockerfile.gce          # Google Compute Engine 部署 Docker 設定
+│   ├── Dockerfile.prod         # Google Cloud Run Docker 設定
+│   ├── firebase.json           # Firebase 設定
+│   ├── vite.config.ts          # Vite 設定
+│   ├── tailwind.config.js      # Tailwind CSS 設定
+│   └── package.json            # Node.js 依賴套件
+├── docs/                       # 文檔
+│   ├── 1-development/          # 開發文檔
+│   ├── 2-Deployment/           # 部署文檔
+│   └── 3-Backend/              # 後端文檔
+├── scripts/                    # 工具腳本
+│   └── check_zombie_processes.sh
 ├── assets/                     # 專案資源（logo 等）
-├── src/                        # Scrapy 爬蟲獨立目錄
 ├── docker-compose.yml          # Docker 服務編排
-└── pyproject.toml              # Python 專案設定
+├── docker-compose-gce.yaml     # GCE Docker 編排
+├── docker-compose-gcr-test.yaml # GCR 測試 Docker 編排
+├── cloudmigrate.yaml           # GCR 遷移設定
+├── Makefile                    # Make 指令
+├── pyproject.toml              # Python 專案設定
+├── pyrightconfig.json          # Pyright 設定
+└── package.json                # 根目錄 Node.js 設定
 ```
 
 ### Prerequisites
 
 - Docker >= 28.5.2 & Docker Compose >= v2.39.2
-- Python >= 3.12
 
 ### 使用 Docker 進行安裝
 
-1. Clone 專案並安裝 Python dependencies
+1. Clone 專案並安裝 linters
 
 ```bash
 git clone https://github.com/atwolin/ComicChase.git
@@ -90,60 +141,77 @@ pre-commit install
 
 2. 設定環境變數
 
-```bash
-# 建立 .env.example 檔案並寫入環境變數
-cat > .env.example << EOF
-SECRET_KEY=your-secret-key-here
-DEBUG=True
-POSTGRES_DB=comic_db
-POSTGRES_USER=comic_user
-POSTGRES_PASSWORD=your-password
-DB_HOST=db
-DB_PORT=5432
-EOF
+   1. 開發環境
+      ```bash
+      # 修改 .env.example 檔案裡的環境變數
+      nano .env.example
 
-# 複製為實際使用的 .env 檔案
-cp .env.example .env
-```
+      # 複製為實際使用的 .env 檔案
+      cp .env.example .env
+      rm .env.example
+      ```
+
+   2. Google Compute Engine 部署
+      ```bash
+      # 修改 .env.gce 檔案裡的環境變數
+      nano .env.gce
+      ```
 
 3. 啟動 Docker
 
-   > 啟動服務
-   >
-   > ```bash
-   > docker compose up -d
-   > ```
-   >
-   > 執行資料庫遷移
-   >
-   > ```bash
-   > docker compose exec web python /code/manage.py migrate
-   > ```
-   >
-   > 建立管理員帳號
-   >
-   > ```bash
-   > docker compose exec web python /code/manage.py createsuperuser
-   > ```
-   >
-   > 存取應用程式
-   >
-   > - Django 後端: http://localhost:8000
-   > - Django Admin: http://localhost:8000/admin
-   > - Selenium Grid: http://localhost:4444
+   1. 啟動服務
+      ```bash
+      make rebuild
+      ```
+
+   2. 建立管理員帳號
+      ```bash
+      make manage cmd="createsuperuser"
+      ```
+
+可存取的微服務：
+   - Django Admin: http://localhost:8000/admin
+   - Selenium Grid: http://localhost:4444
+   - Flower: http://localhost:5555
+   - RabbitMQ: http://localhost:15672
+   - UI: http://localhost:3000
 
 ### 環境變數說明
 
 - `.env.example`:
 
 ```env
+# 預設用於 Docker 的 UID/GID
+UID=1000
+GID=1000
+
+# 用於開發環境的 Django 設定
+DJANGO_SETTINGS_MODULE=config.settings.local
 SECRET_KEY=your-secret-key-here
 DEBUG=True
-POSTGRES_DB=comic_db
-POSTGRES_USER=comic_user
-POSTGRES_PASSWORD=your-password
+DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+
+# PostgreSQL 資料庫設定
+POSTGRES_DB=your-db-name
+POSTGRES_USER=your-db-user
+POSTGRES_PASSWORD=your-db-password
 DB_HOST=db
 DB_PORT=5432
-```
 
-- `docker-compose.yaml`
+# Email settings
+EMAIL_BACKEND=django_ses.SESBackend
+DEFAULT_FROM_EMAIL=your-email@your-domain.com
+AWS_SES_REGION=your-ses-region
+AWS_DEFAULT_REGION=your-default-region
+AWS_SES_REGION_ENDPOINT=your-ses-region-endpoint
+AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_SECRET_ACCESS_KEY=your-secret-access-key
+
+# Celery 設定
+CELERY_BROKER_URL=amqp://admin:admin@rabbitmq:5672/staging_vhost
+
+# RabbitMQ 設定
+RABBITMQ_DEFAULT_USER=your-broker-user
+RABBITMQ_DEFAULT_PASS=your-broker-password
+RABBITMQ_DEFAULT_VHOST=staging_vhost
+```
