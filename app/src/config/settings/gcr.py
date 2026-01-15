@@ -64,6 +64,11 @@ else:
     ALLOWED_HOSTS = ["*"]
     CSRF_TRUSTED_ORIGINS = ["https://*.run.app"]
 
+# Add Firebase Hosting URL to CSRF trusted origins
+# This is required because Firebase Hosting proxies requests to Cloud Run
+# but the Origin/Referer header remains as the Firebase Hosting URL
+CSRF_TRUSTED_ORIGINS.append("https://comicchase.web.app")
+
 # ============================================================
 # Database Settings
 # ============================================================
