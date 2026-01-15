@@ -107,13 +107,12 @@ python app/src/manage.py shell
 ```python
 from subscriptions.tasks import run_weekly_notification_flow
 
-# 同步執行（模擬 Cloud Run Jobs）
-result = run_weekly_notification_flow(sync=True)
-print(result)
+# Option 1: Use apply() for synchronous execution with task context
+result = run_weekly_notification_flow.apply(kwargs={"sync": True})
+print(result.result)
 
-# 異步執行（使用 Celery，需要 Worker 運行）
-result = run_weekly_notification_flow(sync=False)
-print(result)
+# Option 2: If you need truly direct invocation, the task handles missing self.request gracefully
+# (falls back to "sync-execution" task_id), so current docs may still work
 ```
 
 ---
