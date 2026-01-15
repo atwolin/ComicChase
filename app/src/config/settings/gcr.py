@@ -50,9 +50,9 @@ CORS_ALLOW_CREDENTIALS = True
 
 # Session and CSRF cookie settings for cross-domain
 # Required for Firebase Hosting (comicchase.web.app) to authenticate with Cloud Run
-SESSION_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SECURE = True  # Required when SameSite=None
-CSRF_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SECURE = True
 
 CLOUDRUN_SERVICE_URLS = env("CLOUDRUN_SERVICE_URLS", default=None)
