@@ -57,12 +57,12 @@ CSRF_COOKIE_SECURE = True
 
 CLOUDRUN_SERVICE_URLS = env("CLOUDRUN_SERVICE_URLS", default=None)
 if CLOUDRUN_SERVICE_URLS:
-    # Remove the scheme from URLs for ALLOWED_HOSTS
-    ALLOWED_HOSTS = [urlparse(url).netloc for url in CLOUDRUN_SERVICE_URLS.split(",")]
     CSRF_TRUSTED_ORIGINS = [url.strip() for url in CLOUDRUN_SERVICE_URLS.split(",")]
+    # Remove the scheme from URLs for ALLOWED_HOSTS
+    ALLOWED_HOSTS = [urlparse(url).netloc for url in CSRF_TRUSTED_ORIGINS]
 else:
     ALLOWED_HOSTS = ["*"]
-    CSRF_TRUSTED_ORIGINS = ["https://*.run.app", "https://comicchase.web.app"]
+    CSRF_TRUSTED_ORIGINS = ["https://*.run.app"]
 
 # ============================================================
 # Database Settings
