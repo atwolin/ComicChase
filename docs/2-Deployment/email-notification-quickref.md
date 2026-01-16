@@ -48,7 +48,7 @@ gcloud run jobs create email-weekly-digest-job \
   --service-account ${SERVICE_ACCOUNT} \
   --set-env-vars EMAIL_TASK=weekly_digest \
   --set-cloudsql-instances ${PROJECT_ID}:${REGION}:${INSTANCE_NAME} \
-  --set-secrets application_settings=application_settings:latest \
+  --set-secrets APPLICATION_SETTINGS=application_settings:latest \
   --memory 512Mi \
   --cpu 1 \
   --max-retries 2 \
@@ -223,5 +223,5 @@ send_single_email_task(
 
 ---
 
-**快速參考版本：** 1.0  
+**快速參考版本：** 1.0
 **最後更新：** 2026-01-13

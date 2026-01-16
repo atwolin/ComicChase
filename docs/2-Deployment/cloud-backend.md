@@ -267,3 +267,32 @@ gcloud run deploy comicchase-service \
     --region ${REGION} \
     --image ${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/comicchase-service
 ```
+
+### Enable and disable the Cloud SQL instance
+
+1. Enable the Cloud SQL instance:
+
+```bash
+gcloud sql instances patch comic-instance --activation-policy=ALWAYS
+
+# Or more explicitly:
+gcloud sql instances patch comic-instance \
+    --activation-policy=ALWAYS \
+    --project=${PROJECT_ID}
+```
+
+2. Disable the Cloud SQL instance:
+
+```bash
+gcloud sql instances patch ${INSTANCE_NAME} \
+    --disable-public-ip
+```
+
+3. Check the status of the Cloud SQL instance:
+
+```bash
+gcloud sql instances describe ${INSTANCE_NAME} --format="value(state)"
+
+# Whole information
+gcloud sql instances describe ${INSTANCE_NAME}
+```

@@ -197,8 +197,8 @@ gcloud run jobs create bookstw-daily-crawler \
   --region ${REGION} \
   --set-env-vars "CRAWLER_TASK=bookstw_new" \
   --set-env-vars "DJANGO_SETTINGS_MODULE=config.settings.gcr" \
-  --set-secrets "application_settings=application_settings:latest" \
-  --add-cloudsql-instances ${CLOUDSQL_INSTANCE} \
+  --set-secrets "APPLICATION_SETTINGS=application_settings:latest" \
+  --set-cloudsql-instances ${CLOUDSQL_INSTANCE} \
   --service-account ${SERVICE_ACCOUNT} \
   --task-timeout 60m \
   --max-retries 2 \
@@ -225,8 +225,8 @@ gcloud run jobs create eslite-title-crawler \
   --region ${REGION} \
   --set-env-vars "CRAWLER_TASK=eslite_all_series" \
   --set-env-vars "DJANGO_SETTINGS_MODULE=config.settings.gcr" \
-  --set-secrets "application_settings=application_settings:latest" \
-  --add-cloudsql-instances ${CLOUDSQL_INSTANCE} \
+  --set-secrets "APPLICATION_SETTINGS=application_settings:latest" \
+  --set-cloudsql-instances ${CLOUDSQL_INSTANCE} \
   --service-account ${SERVICE_ACCOUNT} \
   --task-timeout 2h \
   --max-retries 1 \
@@ -251,8 +251,8 @@ gcloud run jobs create booksjp-title-crawler \
   --region ${REGION} \
   --set-env-vars "CRAWLER_TASK=booksjp_all_series" \
   --set-env-vars "DJANGO_SETTINGS_MODULE=config.settings.gcr" \
-  --set-secrets "application_settings=application_settings:latest" \
-  --add-cloudsql-instances ${CLOUDSQL_INSTANCE} \
+  --set-secrets "APPLICATION_SETTINGS=application_settings:latest" \
+  --set-cloudsql-instances ${CLOUDSQL_INSTANCE} \
   --service-account ${SERVICE_ACCOUNT} \
   --task-timeout 2h \
   --max-retries 1 \
@@ -272,8 +272,8 @@ gcloud run jobs create eslite-orphan-crawler \
   --region ${REGION} \
   --set-env-vars "CRAWLER_TASK=eslite_orphans" \
   --set-env-vars "DJANGO_SETTINGS_MODULE=config.settings.gcr" \
-  --set-secrets "application_settings=application_settings:latest" \
-  --add-cloudsql-instances ${CLOUDSQL_INSTANCE} \
+  --set-secrets "APPLICATION_SETTINGS=application_settings:latest" \
+  --set-cloudsql-instances ${CLOUDSQL_INSTANCE} \
   --service-account ${SERVICE_ACCOUNT} \
   --task-timeout 1h \
   --max-retries 2 \

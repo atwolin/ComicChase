@@ -119,8 +119,8 @@ Edit `ui/firebase.json` to add rewrites for SPA routing and API proxy:
 #### 6. Build and deploy
 
 ```bash
-# Rebuild with production environment
-npm run build
+# Build with GCR-specific environment
+npm run build:gcr
 
 # Deploy to Firebase Hosting
 firebase deploy --only hosting
@@ -143,7 +143,7 @@ firebase hosting:channel:deploy production --expires 7d
 cd ui
 
 # Make your changes, then rebuild
-npm run build
+npm run build:gcr
 
 # Redeploy
 firebase deploy --only hosting
