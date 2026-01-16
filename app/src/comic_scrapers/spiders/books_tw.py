@@ -44,6 +44,7 @@ class BooksTWSpider(scrapy.Spider):
             # TESTING
             for url in urls[:10]:
                 yield scrapy.Request(url, self.parse_volume_info)
+            # TODO: remove after email job scheduled
 
         except Exception as e:
             self.logger.error(
