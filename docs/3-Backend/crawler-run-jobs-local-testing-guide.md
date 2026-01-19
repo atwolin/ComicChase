@@ -31,7 +31,7 @@
 
 ```bash
 # 1. 確認在專案根目錄
-cd /home/atwolin/Documents/Programming/Projects/ComicChase
+cd /path/to/ComicChase  # 替換為您的專案路徑
 
 # 2. 確認 Docker Compose 環境正在運行
 docker-compose ps
@@ -78,7 +78,7 @@ python manage.py run_scheduled_crawler --task eslite_orphan_volumes
 
 ### **預期輸出**
 
-```
+```text
 === Starting scheduled task: bookstw_new ===
 Starting synchronous crawl for books.com.tw
 Crawling new releases...
@@ -127,7 +127,7 @@ bash run_crawler.sh
 
 ### **預期輸出**
 
-```
+```text
 =========================================
 Cloud Run Crawler Job
 =========================================
@@ -445,26 +445,26 @@ python manage.py shell
 
 ### **基本功能測試**
 
-- [x] `python manage.py run_scheduled_crawler --task bookstw_new` 執行成功
-- [x] `python manage.py run_scheduled_crawler --task eslite_all_series` 執行成功
-- [x] `python manage.py run_scheduled_crawler --task booksjp_all_series` 執行成功
-- [x] `python manage.py run_scheduled_crawler --task eslite_orphan_volumes` 執行成功
+- [ ] `python manage.py run_scheduled_crawler --task bookstw_new` 執行成功
+- [ ] `python manage.py run_scheduled_crawler --task eslite_all_series` 執行成功
+- [ ] `python manage.py run_scheduled_crawler --task booksjp_all_series` 執行成功
+- [ ] `python manage.py run_scheduled_crawler --task eslite_orphan_volumes` 執行成功
 
 ### **Shell 腳本測試**
 
-- [x] `CRAWLER_TASK=bookstw_new bash run_crawler.sh` 執行成功
-- [x] 錯誤的任務名稱會正確報錯
+- [ ] `CRAWLER_TASK=bookstw_new bash run_crawler.sh` 執行成功
+- [ ] 錯誤的任務名稱會正確報錯
 
 ### **資料完整性測試**
 
-- [x] 爬蟲資料正確寫入資料庫
-- [x] 沒有產生重複資料
-- [x] `Series` 和 `Volume` 關聯正確
+- [ ] 爬蟲資料正確寫入資料庫
+- [ ] 沒有產生重複資料
+- [ ] `Series` 和 `Volume` 關聯正確
 
 ### **向後兼容測試**
 
-- [x] 原有的 Celery 非同步執行仍然正常（`sync=False`）
-- [x] 現有的 management commands 仍然可用
+- [ ] 原有的 Celery 非同步執行仍然正常（`sync=False`）
+- [ ] 現有的 management commands 仍然可用
 
 ---
 

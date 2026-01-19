@@ -10,6 +10,22 @@
 
 ---
 
+> **⚠️ 重要更新（2026-01）**
+>
+> **Firebase Hosting 無法直接代理到 GCE！** 本文檔中 Phase 2 的部分配置示例已過時並且無法運作。
+>
+> **正確方案**：前端直接調用 GCE API + CORS 配置
+>
+> **👉 請參閱最新的配置指南：[Firebase + GCE 配置完整指南](./firebase-gce-config-guide.md)**
+>
+> 該指南包含：
+> - Firebase Hosting 限制的詳細說明
+> - 正確的 CORS 配置步驟
+> - 完整的部署流程
+> - 替代方案比較
+
+---
+
 ## 🏗️ 架構概覽
 
 ### **部署架構圖**
@@ -202,9 +218,101 @@ LOGGING = {
 
 ---
 
-### Phase 2: 修改 Firebase Hosting 設定
+### Phase 2: Firebase Hosting 配置
 
-#### **重要說明：目前的 firebase.json 與 GCE 的差異**
+#### ⚠️ 重要限制說明
+
+**Firebase Hosting 無法直接代理到 GCE！**
+
+Firebase Hosting 的 `run` rewrite 配置：
+- ✅ **只能指向 Cloud Run 服務**（同一 GCP 專案）
+- ❌ **不能使用外部 URL** 或 GCE 地址
+- ❌ **`serviceId` 只接受 Cloud Run 服務名稱**
+
+**錯誤示例（無法運作）：**
+```json
+{
+  "rewrites": [{
+    "source": "/api/**",
+    "run": {
+      "serviceId": "https://api.comicchase.com.tw"  // ❌ 這不會運作！
+    }
+  }]
+}
+```
+
+---
+
+#### ✅ 正確方案：直接 API 調用 + CORS
+
+對於 GCE 部署，推薦使用以下架構：
+
+1. **Firebase Hosting** - 只託管前端靜態文件
+2. **前端直接調用 GCE API** - `https://api.comicchase.com.tw`
+3. **CORS 配置** - 在 `gce.py` 中已配置
+
+**簡化配置：**
+
+`ui/firebase.gce.json`:
+```json
+{
+  "hosting": {
+    "public": "dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000, immutable"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**前端 API 配置：**
+```typescript
+// ui/src/config.ts
+const API_BASE_URL = import.meta.env.PROD
+  ? 'https://api.comicchase.com.tw'
+  : 'http://localhost:8000';
+```
+
+**部署：**
+```bash
+cd ui
+npm run build
+firebase deploy --only hosting --config firebase.gce.json
+```
+
+---
+
+#### 📖 詳細配置指南
+
+完整的配置步驟、CORS 設定、替代方案和驗證方法，請參考：
+
+**👉 [Firebase + GCE 配置完整指南](./firebase-gce-config-guide.md)**
+
+該指南包含：
+- Firebase Hosting 限制的詳細說明
+- 完整的 CORS 配置步驟
+- 替代方案（Cloud Load Balancer、Cloud Run 代理）
+- 驗證和調試方法
+
+---
+
+
+
 
 專案目前的 `ui/firebase.json` 設定為 **Cloud Run (gcr.py)** 專用：
 
@@ -657,13 +765,11 @@ DJANGO_SETTINGS_MODULE=config.settings.gce
 SECRET_KEY=your-production-secret-key-here-change-this
 
 # Database
-POSTGRES_DB=comicchase_db
-POSTGRES_USER=comicchase_user
-POSTGRES_PASSWORD=your-secure-password-here
-
-# Database connection (for Django)
 DB_HOST=db
 DB_PORT=5432
+POSTGRES_DB=comicchase_db
+POSTGRES_PASSWORD=your-secure-password-here
+POSTGRES_USER=comicchase_user
 
 # Celery
 CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//

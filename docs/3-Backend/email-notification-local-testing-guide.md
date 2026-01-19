@@ -399,7 +399,7 @@ else:
 
 ### **問題 3: AWS Credentials 錯誤**
 
-**症狀：** 
+**症狀：**
 
 ```
 botocore.exceptions.NoCredentialsError: Unable to locate credentials
@@ -438,7 +438,7 @@ export $(cat .env | xargs)
 
 **症狀：** 郵件中的漫畫圖片無法顯示
 
-**原因：** 
+**原因：**
 
 - 圖片 URL 無效
 - 圖片需要認證
@@ -546,20 +546,20 @@ docker-compose logs -f web
 
 ### **基本功能測試**
 
-- [x] `python manage.py run_scheduled_email --task weekly_digest` 執行成功
-- [x] `EMAIL_TASK=weekly_digest bash run_email.sh` 執行成功
-- [x] 郵件成功發送並收到
+- [ ] `python manage.py run_scheduled_email --task weekly_digest` 執行成功
+- [ ] `EMAIL_TASK=weekly_digest bash run_email.sh` 執行成功
+- [ ] 郵件成功發送並收到
 
 ### **資料完整性測試**
 
-- [x] 正確偵測新書資料
-- [x] 正確取得用戶列表
-- [x] 郵件內容正確渲染
+- [ ] 正確偵測新書資料
+- [ ] 正確取得用戶列表
+- [ ] 郵件內容正確渲染
 
 ### **向後兼容測試**
 
-- [x] 原有的 Celery 非同步執行仍然正常
-- [x] 與爬蟲任務整合正常
+- [ ] 原有的 Celery 非同步執行仍然正常
+- [ ] 與爬蟲任務整合正常
 
 ---
 
@@ -592,6 +592,6 @@ docker-compose logs -f web
 
 ---
 
-**文件版本：** 1.0  
-**最後更新：** 2026-01-13  
+**文件版本：** 1.0
+**最後更新：** 2026-01-13
 **作者：** ComicChase Development Team

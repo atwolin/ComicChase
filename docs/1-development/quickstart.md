@@ -31,37 +31,37 @@ cp .env.example .env
 
 # 快速設定（使用預設值）
 cat > .env << 'EOF'
-UID=1000
 GID=1000
+UID=1000
 
 # Django settings
-DJANGO_SETTINGS_MODULE=config.settings.local
-SECRET_KEY=dev-secret-key-change-in-production
 DEBUG=True
 DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+DJANGO_SETTINGS_MODULE=config.settings.local
+SECRET_KEY=dev-secret-key-change-in-production
 
 # Database settings
-POSTGRES_DB=comicchase_dev
-POSTGRES_USER=comicchase
-POSTGRES_PASSWORD=comicchase123
 DB_HOST=db
 DB_PORT=5432
+POSTGRES_DB=comicchase_dev
+POSTGRES_PASSWORD=comicchase123
+POSTGRES_USER=comicchase
 
 # Email settings
-EMAIL_BACKEND=django_ses.SESBackend
-DEFAULT_FROM_EMAIL=your-email@your-domain.com
-AWS_SES_REGION=your-ses-region
-AWS_DEFAULT_REGION=your-default-region
-AWS_SES_REGION_ENDPOINT=your-ses-region-endpoint
 AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_DEFAULT_REGION=your-default-region
 AWS_SECRET_ACCESS_KEY=your-secret-access-key
+AWS_SES_REGION=your-ses-region
+AWS_SES_REGION_ENDPOINT=your-ses-region-endpoint
+DEFAULT_FROM_EMAIL=your-email@your-domain.com
+EMAIL_BACKEND=django_ses.SESBackend
 
 # Celery settings
 CELERY_BROKER_URL=amqp://admin:admin@rabbitmq:5672/staging_vhost
 
 # RabbitMQ settings
-RABBITMQ_DEFAULT_USER=admin
 RABBITMQ_DEFAULT_PASS=admin
+RABBITMQ_DEFAULT_USER=admin
 RABBITMQ_DEFAULT_VHOST=staging_vhost
 EOF
 ```
@@ -101,12 +101,12 @@ exit
 
 | 服務 | URL | 說明 |
 |------|-----|------|
-| 🎨 **前端** | http://localhost:3000 | React 應用程式 |
-| 🔧 **Django Admin** | http://localhost:8000/admin | 後台管理 (使用你剛建立的帳號登入) |
-| 📖 **API 文件** | http://localhost:8000/api/schema/swagger-ui/ | Swagger UI |
-| 🌼 **Flower** | http://localhost:5555 | Celery 任務監控 |
-| 🐰 **RabbitMQ** | http://localhost:15672 | 訊息佇列管理介面 (帳密: admin/admin) |
-| 🌐 **Selenium Grid** | http://localhost:4444 | 瀏覽器自動化網格 |
+| 🎨 **前端** | <http://localhost:3000> | React 應用程式 |
+| 🔧 **Django Admin** | <http://localhost:8000/admin> | 後台管理 (使用你剛建立的帳號登入) |
+| 📖 **API 文件** | <http://localhost:8000/api/schema/swagger-ui/> | Swagger UI |
+| 🌼 **Flower** | <http://localhost:5555> | Celery 任務監控 |
+| 🐰 **RabbitMQ** | <http://localhost:15672> | 訊息佇列管理介面 (帳密: admin/admin) |
+| 🌐 **Selenium Grid** | <http://localhost:4444> | 瀏覽器自動化網格 |
 
 ---
 
@@ -167,6 +167,6 @@ npm install
 ## 參考資源
 
 - **詳細環境需求**: [requirements.md](./requirements.md)
-- **API 文件**: http://localhost:8000/api/schema/swagger-ui/ (啟動服務後)
+- **API 文件**: <http://localhost:8000/api/schema/swagger-ui/> (啟動服務後)
 - **系統架構圖**: [README.md](../../README.md#系統架構)
 - **部署指南**: [docs/2-Deployment/](../2-Deployment/)

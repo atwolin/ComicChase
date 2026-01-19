@@ -154,21 +154,21 @@ echo -n "$(cat /dev/urandom | LC_ALL=C tr -dc '[:alpha:]'| fold -w 30 | head -n1
 5. Add email notification settings:
 
 ```bash
-# 1. 下載現有的 secret 到本地檔案
+# 1. Download the current secret to a local file
 gcloud secrets versions access latest --secret="application_settings" > .env.cloud
 
-# 2. 編輯 .env.cloud，加入 AWS 相關設定
-# 使用你喜歡的編輯器打開 .env.cloud，加入以下內容：
+# 2. Edit .env.cloud, add AWS related settings
+# Use your preferred editor to open .env.cloud and add the following content:
 # AWS_SES_REGION=your-ses-region
 # AWS_DEFAULT_REGION=your-default-region
 # AWS_SES_REGION_ENDPOINT=your-ses-region-endpoint
 # AWS_ACCESS_KEY_ID=your-access-key-id
 # AWS_SECRET_ACCESS_KEY=your-secret-access-key
 
-# 3. 更新 secret（建新版本）
+# 3. Update secret (create new version)
 gcloud secrets versions add application_settings --data-file=.env.cloud
 
-# 4. 清理敏感檔案
+# 4. Clean up sensitive file
 rm .env.cloud
 ```
 
@@ -281,11 +281,12 @@ gcloud sql instances patch comic-instance \
     --project=${PROJECT_ID}
 ```
 
-2. Disable the Cloud SQL instance:
+2. Stop the Cloud SQL instance to pause billing:
 
 ```bash
 gcloud sql instances patch ${INSTANCE_NAME} \
-    --disable-public-ip
+    --activation-policy=NEVER \
+    --project=${PROJECT_ID}
 ```
 
 3. Check the status of the Cloud SQL instance:

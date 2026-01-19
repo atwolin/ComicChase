@@ -170,11 +170,11 @@ pre-commit install
       ```
 
 可存取的微服務：
-   - Django Admin: http://localhost:8000/admin
-   - Selenium Grid: http://localhost:4444
-   - Flower: http://localhost:5555
-   - RabbitMQ: http://localhost:15672
-   - UI: http://localhost:3000
+   - Django Admin: <http://localhost:8000/admin>
+   - Selenium Grid: <http://localhost:4444>
+   - Flower: <http://localhost:5555>
+   - RabbitMQ: <http://localhost:15672>
+   - UI: <http://localhost:3000>
 
 ### 環境變數說明
 
@@ -182,36 +182,36 @@ pre-commit install
 
 ```env
 # 預設用於 Docker 的 UID/GID
-UID=1000
 GID=1000
+UID=1000
 
 # 用於開發環境的 Django 設定
-DJANGO_SETTINGS_MODULE=config.settings.local
-SECRET_KEY=your-secret-key-here
 DEBUG=True
 DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+DJANGO_SETTINGS_MODULE=config.settings.local
+SECRET_KEY=your-secret-key-here
 
 # PostgreSQL 資料庫設定
-POSTGRES_DB=your-db-name
-POSTGRES_USER=your-db-user
-POSTGRES_PASSWORD=your-db-password
 DB_HOST=db
 DB_PORT=5432
+POSTGRES_DB=your-db-name
+POSTGRES_PASSWORD=your-db-password
+POSTGRES_USER=your-db-user
 
 # Email settings
-EMAIL_BACKEND=django_ses.SESBackend
-DEFAULT_FROM_EMAIL=your-email@your-domain.com
-AWS_SES_REGION=your-ses-region
-AWS_DEFAULT_REGION=your-default-region
-AWS_SES_REGION_ENDPOINT=your-ses-region-endpoint
 AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_DEFAULT_REGION=your-default-region
 AWS_SECRET_ACCESS_KEY=your-secret-access-key
+AWS_SES_REGION=your-ses-region
+AWS_SES_REGION_ENDPOINT=your-ses-region-endpoint
+DEFAULT_FROM_EMAIL=your-email@your-domain.com
+EMAIL_BACKEND=django_ses.SESBackend
 
 # Celery 設定
 CELERY_BROKER_URL=amqp://admin:admin@rabbitmq:5672/staging_vhost
 
 # RabbitMQ 設定
-RABBITMQ_DEFAULT_USER=your-broker-user
 RABBITMQ_DEFAULT_PASS=your-broker-password
+RABBITMQ_DEFAULT_USER=your-broker-user
 RABBITMQ_DEFAULT_VHOST=staging_vhost
 ```
