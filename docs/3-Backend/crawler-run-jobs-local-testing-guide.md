@@ -73,7 +73,7 @@ python manage.py run_scheduled_crawler --task eslite_all_series
 python manage.py run_scheduled_crawler --task booksjp_all_series
 
 # 測試 Eslite orphan volumes 爬蟲
-python manage.py run_scheduled_crawler --task eslite_orphan_volumes
+python manage.py run_scheduled_crawler --task eslite_orphans
 ```
 
 ### **預期輸出**
@@ -113,7 +113,7 @@ python manage.py shell
 ### **Step 1: 設定環境變數**
 
 ```bash
-# 在 app container 內
+# 在 container 內
 export CRAWLER_TASK=bookstw_new
 export DJANGO_SETTINGS_MODULE=config.settings.local  # 本機使用 local settings
 ```
@@ -121,6 +121,7 @@ export DJANGO_SETTINGS_MODULE=config.settings.local  # 本機使用 local settin
 ### **Step 2: 執行 Shell 腳本**
 
 ```bash
+# 在 container 內
 cd /code/app  # 或您的專案路徑
 bash run_crawler.sh
 ```
@@ -233,7 +234,7 @@ echo "Local Test: Cloud Run Crawler Job"
 echo "========================================="
 
 # 測試所有任務
-TASKS=("bookstw_new" "eslite_all_series" "booksjp_all_series" "eslite_orphan_volumes")
+TASKS=("bookstw_new" "eslite_all_series" "booksjp_all_series" "eslite_orphans")
 
 for task in "${TASKS[@]}"; do
     echo ""
@@ -281,7 +282,7 @@ chmod +x test_crawler_job.sh
 ### **功能測試**
 
 - [ ] `run_scheduled_crawler.py` 可正確執行
-- [ ] 所有 4 個任務（bookstw_new, eslite_all_series, booksjp_all_series, eslite_orphan_volumes）都能執行
+- [ ] 所有 4 個任務（bookstw_new, eslite_all_series, booksjp_all_series, eslite_orphans）都能執行
 - [ ] `run_crawler.sh` 腳本可正常運作
 - [ ] 環境變數 `CRAWLER_TASK` 正確傳遞
 - [ ] 錯誤的 `CRAWLER_TASK` 會正確報錯
@@ -330,7 +331,7 @@ export PYTHONPATH=/code/app/src:$PYTHONPATH
 
 ### **問題 2: 資料庫連線失敗**
 
-```
+```text
 django.db.utils.OperationalError: could not connect to server
 ```
 
@@ -353,7 +354,7 @@ python manage.py dbshell
 
 ### **問題 3: Selenium WebDriver 錯誤**
 
-```
+```text
 selenium.common.exceptions.WebDriverException: Chrome not found
 ```
 
@@ -448,7 +449,7 @@ python manage.py shell
 - [ ] `python manage.py run_scheduled_crawler --task bookstw_new` 執行成功
 - [ ] `python manage.py run_scheduled_crawler --task eslite_all_series` 執行成功
 - [ ] `python manage.py run_scheduled_crawler --task booksjp_all_series` 執行成功
-- [ ] `python manage.py run_scheduled_crawler --task eslite_orphan_volumes` 執行成功
+- [ ] `python manage.py run_scheduled_crawler --task eslite_orphans` 執行成功
 
 ### **Shell 腳本測試**
 

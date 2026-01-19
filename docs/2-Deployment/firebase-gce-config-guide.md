@@ -85,7 +85,7 @@ const API_BASE_URL = import.meta.env.PROD
 export { API_BASE_URL };
 ```
 
-### 步驟 3：確認 CORS 配置
+### 步驟 4：確認 CORS 配置
 
 確認 `app/src/config/settings/gce.py` 包含：
 
@@ -104,7 +104,7 @@ ALLOWED_HOSTS = [
 ]
 ```
 
-### 步驟 4：部署
+### 步驟 5：部署
 
 ```bash
 cd ui
@@ -116,7 +116,7 @@ npm run build:gce
 firebase deploy --only hosting --config firebase.gce.json
 ```
 
-### 步驟 5：驗證
+### 步驟 6：驗證
 
 1. **訪問 Firebase Hosting**：`https://comicchase.web.app`
 2. **打開瀏覽器開發者工具 → Network**
