@@ -40,7 +40,7 @@ SECURE_HSTS_PRELOAD = env("DJANGO_SECURE_HSTS_PRELOAD")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG", default=False)
 
-ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS", default="").split(",")
+ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
 
 # ==========================================================
 # Application definition

@@ -28,6 +28,7 @@ ADMINS = [("atwolin", "tzhuchien@nlplab.cc")]
 
 ALLOWED_HOSTS = [
     "comicchase.web.app",  # Firebase Hosting
+    "api.comicchase.com.tw",  # GCE API domain
 ]
 
 # ============================================================
