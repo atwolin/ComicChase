@@ -63,14 +63,12 @@ else:
     # Fail explicitly if CLOUDRUN_SERVICE_URLS is not configured
     raise ValueError("CLOUDRUN_SERVICE_URLS must be set in production")
 
-# Add Firebase Hosting URL to CSRF trusted origins
-# This is required because Firebase Hosting proxies requests to Cloud Run
-# but the Origin/Referer header remains as the Firebase Hosting URL
-CSRF_TRUSTED_ORIGINS.append("https://comicchase.web.app")
-
 # ============================================================
 # Database Settings
 # ============================================================
+
+# Use DATABASE_URL for Cloud Run
+DATABASES = {"default": env.db()}
 
 # Change database settings if using the Cloud SQL Auth Proxy
 if env("USE_CLOUD_SQL_AUTH_PROXY", default=False):
