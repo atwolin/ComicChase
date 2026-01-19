@@ -2,12 +2,10 @@ name: Backend CI
 
 on:
   push:
-    branches: ["*"]
     paths:
       - "app/**"
       - ".github/workflows/backend-ci.yml"
   pull_request:
-    branches: ["*"]
     paths:
       - "app/**"
       - ".github/workflows/backend-ci.yml"
@@ -18,7 +16,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16
+        image: postgres:16.2
         env:
           POSTGRES_DB: test_comicchase
           POSTGRES_USER: test_user
@@ -29,7 +27,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5432:5432
+          - 5433:5432
 
     steps:
       - name: Checkout code
@@ -61,14 +59,13 @@ jobs:
       - name: Run Django tests
         working-directory: ./app/src
         env:
-          DJANGO_SETTINGS_MODULE: config.settings.base
+          DJANGO_SETTINGS_MODULE: config.settings.local
           SECRET_KEY: test-secret-key-for-ci-only-not-for-production
-          DEBUG: "False"
           DB_HOST: localhost
-          DB_PORT: 5432
-          DB_NAME: test_comicchase
-          DB_USER: test_user
-          DB_PASSWORD: test_password
+          DB_PORT: 5433
+          POSTGRES_DB: test_comicchase
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
           CELERY_BROKER_URL: "memory://"
           DEFAULT_FROM_EMAIL: "test@example.com"
         run: |
