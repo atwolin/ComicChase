@@ -5,6 +5,7 @@ from .base import *
 # ============================================================
 
 DEBUG = True
+SECRET_KEY = env("SECRET_KEY")
 
 # Turn off security features for local development
 SECURE_SSL_REDIRECT = False

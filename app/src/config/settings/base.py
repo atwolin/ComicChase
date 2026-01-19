@@ -25,7 +25,7 @@ env.read_env()
 # Security Settings (Secure by Default)
 # ==========================================================
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("SECRET_KEY")
+
 # HTTPS/SSL Settings
 SECURE_SSL_REDIRECT = env("DJANGO_SECURE_SSL_REDIRECT")
 CSRF_COOKIE_SECURE = env("DJANGO_CSRF_COOKIE_SECURE")
