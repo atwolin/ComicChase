@@ -25,14 +25,12 @@ class SeriesSearchTests(APITestCase):
         """
         測試搜尋「巨人」時，是否能正確命中包含相似字根的標題
         """
-        response = self.client.get(self.url, {"search": "巨人"})
+        response = self.client.get(self.url, {"search": "巨人"}, follow=True)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 2)
 
-        titles = [
-            item["traditional_chinese_title"] for item in response.data["results"]
-        ]
+        titles = [item["title_tw"] for item in response.data["results"]]
         self.assertIn("進擊的巨人", titles)
         self.assertIn("巨人族的新娘", titles)
         # 預期「海賊王」不會出現
@@ -43,12 +41,12 @@ class SeriesSearchTests(APITestCase):
         測試搜尋結果是否按照相似度分數由高到低排序
         """
         # 當搜尋「進擊的巨人」時，進擊的巨人排在第一
-        response = self.client.get(self.url, {"search": "進擊的巨人"})
+        response = self.client.get(self.url, {"search": "進擊的巨人"}, follow=True)
 
         self.assertTrue(
             response.data["results"], "搜尋結果為空，可能是 Trigram 設定問題"
         )
-        first_result_title = response.data["results"][0]["traditional_chinese_title"]
+        first_result_title = response.data["results"][0]["title_tw"]
         self.assertEqual(first_result_title, "進擊的巨人")
 
     def test_search_threshold_filtering(self):
@@ -56,7 +54,7 @@ class SeriesSearchTests(APITestCase):
         測試相似度門檻是否有效過濾無關資料
         """
         # 搜尋一個完全無關的詞
-        response = self.client.get(self.url, {"search": "計算機概論"})
+        response = self.client.get(self.url, {"search": "計算機概論"}, follow=True)
 
         self.assertEqual(len(response.data["results"]), 0)
 
@@ -64,5 +62,5 @@ class SeriesSearchTests(APITestCase):
         """
         測試當搜尋參數為空時，應回傳原始 QuerySet (不進行相似度過濾）
         """
-        response = self.client.get(self.url, {"search": ""})
+        response = self.client.get(self.url, {"search": ""}, follow=True)
         self.assertEqual(len(response.data["results"]), 3)
