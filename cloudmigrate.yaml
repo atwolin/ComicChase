@@ -105,9 +105,9 @@ substitutions:
   _SECRET_SETTINGS_NAME: application_settings
   _ARTIFACT_REGISTRY: cloud-run-source-deploy
   _IMAGE_NAME: ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/${_SERVICE_NAME}
-  _ADMIN_USERNAME: admin
-  _ADMIN_EMAIL: admin@example.com
-  _ADMIN_PASSWORD_NAME: superuser_password
+  # _ADMIN_USERNAME: admin
+  # _ADMIN_EMAIL: admin@example.com
+  # _ADMIN_PASSWORD_NAME: superuser_password
 
 images:
   - "${_IMAGE_NAME}"
