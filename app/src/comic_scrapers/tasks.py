@@ -252,7 +252,7 @@ def crawl_orphan_volumes_eslite(sync=False):
         chunk_size = 20
         result = crawl_single_isbn_eslite.chunks(
             [(isbn,) for isbn in orphan_isbns], chunk_size
-        ).apply_async(queue="crawler")  # pyright: ignore[reportCallIssue]
+        ).apply_async()  # pyright: ignore[reportCallIssue]
 
         logger.info(f"Scheduled {len(orphan_isbns)} Eslite ISBN crawl tasks in chunks")
         return {"total_tasks": len(orphan_isbns), "group_id": result.id}
@@ -305,9 +305,7 @@ def crawl_all_series_eslite(sync=False):
     if not sync:
         # Process in chunks
         chunk_size = 20
-        result = crawl_single_title_eslite.chunks(task_args, chunk_size).apply_async(
-            queue="crawler"
-        )  # pyright: ignore[reportCallIssue]
+        result = crawl_single_title_eslite.chunks(task_args, chunk_size).apply_async()  # pyright: ignore[reportCallIssue]
 
         logger.info(f"Scheduled {len(task_args)} Eslite crawl tasks in chunks")
         return {"total_tasks": len(task_args), "group_id": result.id}
@@ -362,9 +360,7 @@ def crawl_all_series_booksjp(sync=False):
     if not sync:
         # Process in chunks
         chunk_size = 20
-        result = crawl_single_title_booksjp.chunks(task_args, chunk_size).apply_async(
-            queue="crawler"
-        )  # pyright: ignore[reportCallIssue]
+        result = crawl_single_title_booksjp.chunks(task_args, chunk_size).apply_async()  # pyright: ignore[reportCallIssue]
 
         logger.info(f"Scheduled {len(task_args)} BooksJP crawl tasks in chunks")
         return {"total_tasks": len(task_args), "group_id": result.id}
