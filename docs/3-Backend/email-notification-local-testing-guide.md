@@ -76,7 +76,7 @@ if active_users.count() == 0:
 #### **在 WSL 終端機執行**
 
 ```bash
-cd /mnt/c/Users/ameli/ComicChase
+cd /path/to/ComicChase  # Replace with your project path
 
 # 執行郵件任務
 python app/src/manage.py run_scheduled_email --task weekly_digest
@@ -124,7 +124,7 @@ Duration: 30.00 seconds
 #### **執行步驟**
 
 ```bash
-cd /mnt/c/Users/ameli/ComicChase
+cd /path/to/ComicChase  # Replace with your project path
 
 # 賦予執行權限（如果需要）
 chmod +x app/src/run_email.sh
@@ -215,7 +215,7 @@ print(result)
 
 ```bash
 # 在另一個終端機啟動 Celery Worker
-cd /mnt/c/Users/ameli/ComicChase
+cd /path/to/ComicChase  # Replace with your project path
 celery -A config worker -l info
 ```
 

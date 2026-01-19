@@ -1072,24 +1072,10 @@ firebase login
 firebase deploy --only hosting
 ```
 
-#### 4.3 設定 Firebase Rewrite
+#### 4.3 部署 Firebase Hosting
 
-確認 `firebase.json` 的 rewrite 指向正確的 GCE URL：
-
-```json
-{
-  "rewrites": [
-    {
-      "source": "/api/**",
-      "run": {
-        "serviceId": "https://api.comicchase.com.tw"
-      }
-    }
-  ]
-}
-```
-
-然後重新部署：
+由於 Firebase Hosting 無法代理到 GCE，前端將直接調用 GCE API。
+確保前端 API 配置指向 `https://api.comicchase.com.tw`，然後部署：
 
 ```bash
 firebase deploy --only hosting

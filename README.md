@@ -143,12 +143,11 @@ pre-commit install
 
    1. 開發環境
       ```bash
-      # 修改 .env.example 檔案裡的環境變數
-      nano .env.example
-
-      # 複製為實際使用的 .env 檔案
+      # 複製 .env.example 作為實際使用的 .env 檔案
       cp .env.example .env
-      rm .env.example
+
+      # 修改 .env 檔案裡的環境變數
+      nano .env
       ```
 
    2. Google Compute Engine 部署
@@ -170,11 +169,11 @@ pre-commit install
       ```
 
 可存取的微服務：
-   - Django Admin: <http://localhost:8000/admin>
-   - Selenium Grid: <http://localhost:4444>
-   - Flower: <http://localhost:5555>
-   - RabbitMQ: <http://localhost:15672>
-   - UI: <http://localhost:3000>
+- Django Admin: <http://localhost:8000/admin>
+- Selenium Grid: <http://localhost:4444>
+- Flower: <http://localhost:5555>
+- RabbitMQ: <http://localhost:15672>
+- UI: <http://localhost:3000>
 
 ### 環境變數說明
 

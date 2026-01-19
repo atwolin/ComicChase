@@ -43,7 +43,7 @@
 
 ```bash
 # 進入 WSL 終端機
-cd /mnt/c/Users/ameli/ComicChase
+cd /path/to/ComicChase  # Replace with your project path
 
 # 執行每週摘要郵件任務
 python app/src/manage.py run_scheduled_email --task weekly_digest
@@ -84,7 +84,7 @@ Duration: 90.00 seconds
 
 ```bash
 # 在 WSL 終端機
-cd /mnt/c/Users/ameli/ComicChase
+cd /path/to/ComicChase  # Replace with your project path
 
 # 設定環境變數並執行
 export EMAIL_TASK=weekly_digest

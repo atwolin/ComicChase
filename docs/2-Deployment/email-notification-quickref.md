@@ -10,7 +10,7 @@
 
 ```bash
 # 在 WSL 終端機執行
-cd /mnt/c/Users/ameli/ComicChase
+cd /path/to/ComicChase  # Replace with your project path
 
 # 方法 1: Django Management Command
 python app/src/manage.py run_scheduled_email --task weekly_digest

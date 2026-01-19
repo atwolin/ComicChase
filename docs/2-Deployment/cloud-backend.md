@@ -273,11 +273,11 @@ gcloud run deploy comicchase-service \
 1. Enable the Cloud SQL instance:
 
 ```bash
-gcloud sql instances patch comic-instance --activation-policy=ALWAYS
+gcloud sql instances patch ${INSTANCE_NAME} --activation-policy=always
 
 # Or more explicitly:
-gcloud sql instances patch comic-instance \
-    --activation-policy=ALWAYS \
+gcloud sql instances patch ${INSTANCE_NAME} \
+    --activation-policy=always \
     --project=${PROJECT_ID}
 ```
 
@@ -285,7 +285,7 @@ gcloud sql instances patch comic-instance \
 
 ```bash
 gcloud sql instances patch ${INSTANCE_NAME} \
-    --activation-policy=NEVER \
+    --activation-policy=never \
     --project=${PROJECT_ID}
 ```
 

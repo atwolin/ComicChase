@@ -72,7 +72,7 @@ VITE_API_BASE_URL=https://api.comicchase.com.tw/api
 }
 ```
 
-### 步驟 2：前端 API 配置
+### 步驟 3：前端 API 配置
 
 確保前端的 API 基礎 URL 指向 GCE：
 
@@ -122,7 +122,7 @@ firebase deploy --only hosting --config firebase.gce.json
 2. **打開瀏覽器開發者工具 → Network**
 3. **觸發 API 請求**，確認請求直接發送到 `https://api.comicchase.com.tw`
 4. **檢查 Response Headers**：
-   ```
+   ```http
    access-control-allow-origin: https://comicchase.web.app
    access-control-allow-credentials: true
    ```

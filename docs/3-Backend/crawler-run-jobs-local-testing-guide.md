@@ -310,7 +310,7 @@ chmod +x test_crawler_job.sh
 
 ### **問題 1: ModuleNotFoundError**
 
-```
+```text
 ModuleNotFoundError: No module named 'comic_scrapers'
 ```
 
