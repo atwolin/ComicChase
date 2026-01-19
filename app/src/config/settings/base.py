@@ -26,7 +26,7 @@ env.read_env()
 # Security Settings (Secure by Default)
 # ==========================================================
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("SECRET_KEY", default="django-insecure-test-key-for-development-only")
+SECRET_KEY = env("SECRET_KEY")
 # HTTPS/SSL Settings
 SECURE_SSL_REDIRECT = env("DJANGO_SECURE_SSL_REDIRECT")
 CSRF_COOKIE_SECURE = env("DJANGO_CSRF_COOKIE_SECURE")
@@ -40,7 +40,7 @@ SECURE_HSTS_PRELOAD = env("DJANGO_SECURE_HSTS_PRELOAD")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG", default=False)
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS", default="").split(",")
 
 # ==========================================================
 # Application definition
@@ -104,6 +104,17 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": env("POSTGRES_DB"),
+        "USER": env("POSTGRES_USER"),
+        "PASSWORD": env("POSTGRES_PASSWORD"),
+        "HOST": env("DB_HOST"),
+        "PORT": env("DB_PORT", cast=int),
+    }
+}
+
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -140,7 +151,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "/django-static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = []
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type

@@ -6,6 +6,7 @@ from .base import *
 
 # Inherit from base settings includes
 # - DEBUG = False
+# - SECRET_KEY = env("SECRET_KEY")
 # - SECURE_SSL_REDIRECT = True
 # - CSRF_COOKIE_SECURE = True
 # - SESSION_COOKIE_SECURE = True
@@ -18,7 +19,6 @@ SECURE_PROXY_SSL_HEADER = (
     "HTTP_X_FORWARDED_PROTO",
     "https",
 )  # Trust X-Forwarded-Proto from Nginx
-SECRET_KEY = config("SECRET_KEY")
 
 ADMINS = [("atwolin", "tzhuchien@nlplab.cc")]
 

@@ -19,7 +19,7 @@ env.read_env(io.StringIO(os.environ.get("APPLICATION_SETTINGS", "")))
 # ============================================================
 
 # Default false. True allows default landing pages to be visible
-DEBUG = True
+# DEBUG = True
 # DJANGO_SECURE_SSL_REDIRECT = False
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -48,10 +48,9 @@ if CORS_EXTRA_ORIGINS_STR:
 # Enable credentials (cookies) for cross-origin requests
 CORS_ALLOW_CREDENTIALS = True
 
-# Session and CSRF cookie settings for cross-domain
-# Required for Firebase Hosting (comicchase.web.app) to authenticate with Cloud Run
+# Secure=True ensures cookies are only sent over HTTPS
 SESSION_COOKIE_SAMESITE = "Lax"
-SESSION_COOKIE_SECURE = True  # Required when SameSite=None
+SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SECURE = True
 
@@ -61,8 +60,8 @@ if CLOUDRUN_SERVICE_URLS:
     # Remove the scheme from URLs for ALLOWED_HOSTS
     ALLOWED_HOSTS = [urlparse(url).netloc for url in CSRF_TRUSTED_ORIGINS]
 else:
-    ALLOWED_HOSTS = ["*"]
-    CSRF_TRUSTED_ORIGINS = ["https://*.run.app"]
+    # Fail explicitly if CLOUDRUN_SERVICE_URLS is not configured
+    raise ValueError("CLOUDRUN_SERVICE_URLS must be set in production")
 
 # Add Firebase Hosting URL to CSRF trusted origins
 # This is required because Firebase Hosting proxies requests to Cloud Run
@@ -72,8 +71,6 @@ CSRF_TRUSTED_ORIGINS.append("https://comicchase.web.app")
 # ============================================================
 # Database Settings
 # ============================================================
-
-DATABASES = {"default": env.db()}
 
 # Change database settings if using the Cloud SQL Auth Proxy
 if env("USE_CLOUD_SQL_AUTH_PROXY", default=False):
