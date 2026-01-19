@@ -60,8 +60,8 @@ if CLOUDRUN_SERVICE_URLS:
     # Remove the scheme from URLs for ALLOWED_HOSTS
     ALLOWED_HOSTS = [urlparse(url).netloc for url in CSRF_TRUSTED_ORIGINS]
 else:
-    # Fail explicitly if CLOUDRUN_SERVICE_URLS is not configured
-    raise ValueError("CLOUDRUN_SERVICE_URLS must be set in production")
+    CSRF_TRUSTED_ORIGINS = ["https://*.run.app", "https://comicchase.web.app"]
+    ALLOWED_HOSTS = ["*.run.app", "comicchase.web.app"]
 
 # ============================================================
 # Database Settings
