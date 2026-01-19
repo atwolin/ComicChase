@@ -1,9 +1,6 @@
 #!/bin/bash
 set -e
 
-DB_HOST=${DB_HOST:-db}
-DB_PORT=${DB_PORT:-5432}
-
 # Wait for database
 ./wait-for-it.sh "$DB_HOST:$DB_PORT" --timeout=15 --strict -- echo "Database is ready"
 

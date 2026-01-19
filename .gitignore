@@ -97,6 +97,7 @@ __pypackages__/
 # Environments
 .env
 .env.gce
+.env.gcr-test
 .envrc
 .venv
 env/
