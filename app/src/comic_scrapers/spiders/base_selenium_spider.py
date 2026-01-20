@@ -1,3 +1,4 @@
+import os
 import re
 import time
 from abc import ABC, abstractmethod
@@ -63,8 +64,9 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
     def __init__(self, search_value=None, last_release_date=None, *args, **kwargs):
         """Initialize the spider with Selenium WebDriver.
 
-        Sets up Chrome WebDriver with remote connection to Selenium Grid,
-        and initializes search-related attributes.
+        Supports two modes based on SELENIUM_HUB_URL environment variable:
+        - Remote mode: Connects to Selenium Grid (local Docker Compose)
+        - Local mode: Uses local ChromeDriver (Cloud Run environment)
 
         Args:
             search_value (str): Single search value (e.g., title, ISBN) to crawl.
@@ -77,9 +79,22 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--start-maximized")
 
-        self.driver = webdriver.Remote(
-            command_executor="http://selenium:4444/wd/hub", options=chrome_options
-        )
+        # Check environment variable to determine WebDriver mode
+        selenium_hub_url = os.getenv("SELENIUM_HUB_URL", "")
+
+        if selenium_hub_url:
+            # development: Connect to Selenium Grid (local development)
+            self.logger.info(f"Using Remote WebDriver: {selenium_hub_url}")
+            self.driver = webdriver.Remote(
+                command_executor=selenium_hub_url, options=chrome_options
+            )
+        else:
+            # production: Use local ChromeDriver (Cloud Run)
+            chrome_options.add_argument("--headless")  # Headless mode for cloud
+            chrome_options.add_argument("--disable-gpu")  # Disable GPU for headless
+            self.logger.info("Using Local ChromeDriver")
+            self.driver = webdriver.Chrome(options=chrome_options)
+
         self.wait = WebDriverWait(self.driver, 10)
 
         # Search configuration
