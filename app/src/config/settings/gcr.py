@@ -50,11 +50,14 @@ if CORS_EXTRA_ORIGINS_STR:
 # Enable credentials (cookies) for cross-origin requests
 CORS_ALLOW_CREDENTIALS = True
 
-# Secure=True ensures cookies are only sent over HTTPS
-SESSION_COOKIE_SAMESITE = "Lax"
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SAMESITE = "Lax"
-CSRF_COOKIE_SECURE = True
+# IMPORTANT: Using SameSite=None to allow cross-origin cookies between
+# Firebase Hosting (comicchase.web.app) and Cloud Run (*.run.app)
+# This is a temporary solution until a custom domain is configured.
+# Security consideration: SameSite=None increases CSRF attack surface.
+SESSION_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SECURE = True  # Required when using SameSite=None
+CSRF_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SECURE = True  # Required when using SameSite=None
 
 CLOUDRUN_SERVICE_URLS = env("CLOUDRUN_SERVICE_URLS", default=None)
 if CLOUDRUN_SERVICE_URLS:
