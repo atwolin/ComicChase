@@ -35,14 +35,16 @@ SECRET_KEY = env("SECRET_KEY")
 # ============================================================
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:9000",
     "https://comicchase.web.app",
 ]
 CORS_EXTRA_ORIGINS_STR = env("CORS_EXTRA_ORIGINS", default="")
 if CORS_EXTRA_ORIGINS_STR:
     CORS_ALLOWED_ORIGINS.extend(
-        [origin.strip() for origin in CORS_EXTRA_ORIGINS_STR.split(",")]
+        [
+            origin.strip()
+            for origin in CORS_EXTRA_ORIGINS_STR.split(",")
+            if origin.strip()
+        ]
     )
 
 # Enable credentials (cookies) for cross-origin requests
@@ -56,12 +58,20 @@ CSRF_COOKIE_SECURE = True
 
 CLOUDRUN_SERVICE_URLS = env("CLOUDRUN_SERVICE_URLS", default=None)
 if CLOUDRUN_SERVICE_URLS:
-    CSRF_TRUSTED_ORIGINS = [url.strip() for url in CLOUDRUN_SERVICE_URLS.split(",")]
+    raw_urls = [u.strip() for u in CLOUDRUN_SERVICE_URLS.split(",") if u.strip()]
+    CSRF_TRUSTED_ORIGINS = [u if "://" in u else f"https://{u}" for u in raw_urls]
     # Remove the scheme from URLs for ALLOWED_HOSTS
     ALLOWED_HOSTS = [urlparse(url).netloc for url in CSRF_TRUSTED_ORIGINS]
+    if not all(ALLOWED_HOSTS):
+        raise ImproperlyConfigured(
+            "CLOUDRUN_SERVICE_URLS must contain full URLs with scheme"
+        )
 else:
     CSRF_TRUSTED_ORIGINS = ["https://*.run.app", "https://comicchase.web.app"]
-    ALLOWED_HOSTS = ["*.run.app", "comicchase.web.app"]
+    ALLOWED_HOSTS = [
+        ".run.app",
+        "comicchase.web.app",
+    ]  # Use .run.app (leading dot) for subdomain wildcard
 
 # ============================================================
 # Database Settings
@@ -80,6 +90,7 @@ if env("USE_CLOUD_SQL_AUTH_PROXY", default=False):
 # ============================================================
 
 GS_BUCKET_NAME = env("GS_BUCKET_NAME", default="")
+ALLOW_LOCAL_STORAGE = env("ALLOW_LOCAL_STORAGE", default=False)
 
 if GS_BUCKET_NAME:
     # For deployment
@@ -93,7 +104,7 @@ if GS_BUCKET_NAME:
             "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
         },
     }
-else:
+elif ALLOW_LOCAL_STORAGE:
     # Local filesystem storage for testing with WhiteNoise
     STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
     MEDIA_ROOT = os.path.join(BASE_DIR, "media")
@@ -106,4 +117,10 @@ else:
         },
     }
     # Add WhiteNoise middleware for local testing
-    MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
+    if "whitenoise.middleware.WhiteNoiseMiddleware" not in MIDDLEWARE:
+        MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
+else:
+    raise ValueError(
+        "GS_BUCKET_NAME must be set for Cloud Run storage, "
+        "or set ALLOW_LOCAL_STORAGE=true for local testing"
+    )
