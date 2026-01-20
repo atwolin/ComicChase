@@ -20,7 +20,11 @@ env.read_env(io.StringIO(os.environ.get("APPLICATION_SETTINGS", "")))
 
 # Default false. True allows default landing pages to be visible
 # DEBUG = True
-# DJANGO_SECURE_SSL_REDIRECT = False
+
+# IMPORTANT: Disable SSL redirect for Cloud Run
+# Cloud Run handles TLS termination at the load balancer level,
+# so Django should not try to redirect HTTP to HTTPS
+SECURE_SSL_REDIRECT = False
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
