@@ -35,7 +35,10 @@ SECRET_KEY = env("SECRET_KEY")
 # ============================================================
 
 CORS_ALLOWED_ORIGINS = [
-    "https://comicchase.web.app",
+    "https://comicchase.site",
+    "https://www.comicchase.site",
+    "https://api.comicchase.site",
+    "https://comicchase.web.app",  # Firebase default domain (fallback)
 ]
 CORS_EXTRA_ORIGINS_STR = env("CORS_EXTRA_ORIGINS", default="")
 if CORS_EXTRA_ORIGINS_STR:
@@ -50,14 +53,18 @@ if CORS_EXTRA_ORIGINS_STR:
 # Enable credentials (cookies) for cross-origin requests
 CORS_ALLOW_CREDENTIALS = True
 
-# IMPORTANT: Using SameSite=None to allow cross-origin cookies between
-# Firebase Hosting (comicchase.web.app) and Cloud Run (*.run.app)
-# This is a temporary solution until a custom domain is configured.
-# Security consideration: SameSite=None increases CSRF attack surface.
-SESSION_COOKIE_SAMESITE = "None"
-SESSION_COOKIE_SECURE = True  # Required when using SameSite=None
-CSRF_COOKIE_SAMESITE = "None"
-CSRF_COOKIE_SECURE = True  # Required when using SameSite=None
+# Cookie settings for same root domain (comicchase.site)
+# Using api.comicchase.site for Cloud Run enables cookie sharing across subdomains
+# Set cookie domain to .comicchase.site to share cookies between subdomains
+SESSION_COOKIE_DOMAIN = env("SESSION_COOKIE_DOMAIN", default=".comicchase.site")
+CSRF_COOKIE_DOMAIN = env("CSRF_COOKIE_DOMAIN", default=".comicchase.site")
+
+# SameSite=Lax is more secure and works for same-site requests
+# (subdomains of the same root domain are considered same-site)
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SECURE = True
 
 CLOUDRUN_SERVICE_URLS = env("CLOUDRUN_SERVICE_URLS", default=None)
 if CLOUDRUN_SERVICE_URLS:
@@ -70,15 +77,23 @@ if CLOUDRUN_SERVICE_URLS:
             "CLOUDRUN_SERVICE_URLS must contain full URLs with scheme"
         )
 else:
-    CSRF_TRUSTED_ORIGINS = ["https://*.run.app", "https://comicchase.web.app"]
+    CSRF_TRUSTED_ORIGINS = [
+        "https://comicchase.site",
+        "https://www.comicchase.site",
+        "https://api.comicchase.site",
+        "https://*.run.app",
+        "https://comicchase.web.app",  # Firebase default domain (fallback)
+    ]
     ALLOWED_HOSTS = [
-        ".run.app",
-        "comicchase.web.app",
-    ]  # Use .run.app (leading dot) for subdomain wildcard
+        "comicchase.site",
+        "www.comicchase.site",
+        "api.comicchase.site",
+        ".run.app",  # Use leading dot for subdomain wildcard
+        "comicchase.web.app",  # Firebase default domain (fallback)
+    ]
 
-# CRITICAL: Tell Django to use the X-Forwarded-Host header from Firebase Hosting
-# This ensures django-allauth generates URLs
-# with comicchase.web.app instead of *.run.app
+# CRITICAL: Tell Django to use the X-Forwarded-Host header
+# This ensures django-allauth generates URLs with the correct domain
 # Without this, session cookies will be set for the wrong domain, causing 409 errors
 USE_X_FORWARDED_HOST = True
 
