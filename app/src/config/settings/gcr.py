@@ -76,6 +76,12 @@ else:
         "comicchase.web.app",
     ]  # Use .run.app (leading dot) for subdomain wildcard
 
+# CRITICAL: Tell Django to use the X-Forwarded-Host header from Firebase Hosting
+# This ensures django-allauth generates URLs
+# with comicchase.web.app instead of *.run.app
+# Without this, session cookies will be set for the wrong domain, causing 409 errors
+USE_X_FORWARDED_HOST = True
+
 # ============================================================
 # Database Settings
 # ============================================================
