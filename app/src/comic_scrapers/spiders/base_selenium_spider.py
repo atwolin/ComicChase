@@ -190,7 +190,13 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
             search_box: The WebElement for the search input.
             topic_item (str): The search query.
         """
-        search_box.click()
+        # Use JavaScript to ensure element is visible and clickable
+        # This avoids ElementClickInterceptedException in headless mode
+        self.driver.execute_script("arguments[0].scrollIntoView(true);", search_box)
+        time.sleep(0.5)  # Brief pause for scroll animation
+
+        # Click using JavaScript instead of Selenium's click()
+        self.driver.execute_script("arguments[0].click();", search_box)
 
         # Clear the search box
         search_box.send_keys(Keys.CONTROL + "a")  # Select all
