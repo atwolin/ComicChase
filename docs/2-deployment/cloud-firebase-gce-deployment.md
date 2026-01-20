@@ -3,6 +3,7 @@
 ## 📋 文件目的
 
 本文件說明如何將 ComicChase 專案部署為：
+
 - **Frontend**: Firebase Hosting (全球 CDN)
 - **Backend**: Google Compute Engine (VM)
 
@@ -19,6 +20,7 @@
 > **👉 請參閱最新的配置指南：[Firebase + GCE 配置完整指南](./firebase-gce-config-guide.md)**
 >
 > 該指南包含：
+>
 > - Firebase Hosting 限制的詳細說明
 > - 正確的 CORS 配置步驟
 > - 完整的部署流程
@@ -30,7 +32,7 @@
 
 ### **部署架構圖**
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                        使用者請求                            │
 └───────────────────────┬─────────────────────────────────────┘
@@ -68,7 +70,7 @@
 ### **URL 設計**
 
 | 請求路徑 | 處理方式 | 說明 |
-|---------|---------|------|
+| --------- | --------- | ------ |
 | `https://comicchase.web.app/` | Firebase CDN | 首頁、React App |
 | `https://comicchase.web.app/series/123` | Firebase CDN | 前端路由 |
 | `https://comicchase.web.app/api/**` | Firebase Rewrite → GCE | API 請求 |
@@ -81,7 +83,7 @@
 ### **相較於純 GCE（Nginx 同時服務前後端）**
 
 | 項目 | 純 GCE | Firebase + GCE | 優勢 |
-|------|--------|---------------|------|
+| ------ | -------- | --------------- | ------ |
 | **全球 CDN** | ❌ 單點台灣 | ✅ 全球 CDN | 海外使用者快 |
 | **SSL 管理** | ⚠️ 手動 Certbot | ✅ 自動更新 | 省時省力 |
 | **前端部署** | ⚠️ 需重建 Docker | ✅ `firebase deploy` 即時 | 快速部署 |
@@ -225,11 +227,13 @@ LOGGING = {
 **Firebase Hosting 無法直接代理到 GCE！**
 
 Firebase Hosting 的 `run` rewrite 配置：
+
 - ✅ **只能指向 Cloud Run 服務**（同一 GCP 專案）
 - ❌ **不能使用外部 URL** 或 GCE 地址
 - ❌ **`serviceId` 只接受 Cloud Run 服務名稱**
 
 **錯誤示例（無法運作）：**
+
 ```json
 {
   "rewrites": [{
@@ -254,6 +258,7 @@ Firebase Hosting 的 `run` rewrite 配置：
 **簡化配置：**
 
 `ui/firebase.gce.json`:
+
 ```json
 {
   "hosting": {
@@ -281,6 +286,7 @@ Firebase Hosting 的 `run` rewrite 配置：
 ```
 
 **前端 API 配置：**
+
 ```typescript
 // ui/src/config.ts
 const API_BASE_URL = import.meta.env.PROD
@@ -289,6 +295,7 @@ const API_BASE_URL = import.meta.env.PROD
 ```
 
 **部署：**
+
 ```bash
 cd ui
 npm run build
@@ -304,6 +311,7 @@ firebase deploy --only hosting --config firebase.gce.json
 **👉 [Firebase + GCE 配置完整指南](./firebase-gce-config-guide.md)**
 
 該指南包含：
+
 - Firebase Hosting 限制的詳細說明
 - 完整的 CORS 配置步驟
 - 替代方案（Cloud Load Balancer、Cloud Run 代理）
@@ -409,6 +417,7 @@ server {
 ```
 
 **重點變化：**
+
 - ✅ 移除前端 React 相關的 location（由 Firebase 提供）
 - ✅ 保留 `/api/`, `/admin/`, `/django-static/`
 - ✅ 新增 health check endpoint
@@ -508,6 +517,7 @@ volumes:
 ```
 
 **重點變化：**
+
 - ❌ 移除 `ui` service（前端由 Firebase 提供）
 - ✅ 新增 `rabbitmq` service（Celery broker）
 - ✅ 新增 `celery` worker service
@@ -559,6 +569,7 @@ SELENIUM_PORT=4444
 ```
 
 **使用方式：**
+
 ```bash
 # 複製範例檔案
 cp .env.gce.example .env.gce
@@ -654,11 +665,13 @@ nano .env.gce
 ```
 
 **必須修改的項目：**
+
 - `SECRET_KEY`：產生新的 secret key
 - `POSTGRES_PASSWORD`：資料庫密碼
 - 其他敏感資訊
 
 產生 SECRET_KEY：
+
 ```bash
 python3 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
@@ -683,7 +696,7 @@ sudo chown -R $USER:$USER app/src/ssl
 
 Let's Encrypt 憑證有效期為 **90 天**，需要定期更新。Certbot 提供了自動化機制。
 
-**方法 1：使用 systemd timer（推薦）✅**
+##### 方法 1：使用 systemd timer（推薦）✅
 
 Certbot 安裝後會自動設定 systemd timer，**每天檢查兩次**憑證是否需要更新。
 
@@ -700,6 +713,7 @@ sudo systemctl list-timers | grep certbot
 ```
 
 **為什麼每天檢查？**
+
 - ✅ **零成本檢查**：`certbot renew` 在憑證剩餘效期 > 30 天時會立即退出（不消耗資源）
 - ✅ **即時更新**：一旦進入更新窗口（剩餘 ≤ 30 天），隔天就會自動更新
 - ✅ **失敗重試**：如果某天更新失敗（網路問題），隔天會自動重試
@@ -745,7 +759,7 @@ sudo certbot renew --dry-run
 
 ---
 
-**方法 2：使用 cron job（備選）**
+##### 方法 2：使用 cron job（備選
 
 如果因為某些原因不想用 systemd timer，可以手動設定 cron job：
 
@@ -864,6 +878,7 @@ curl https://api.comicchase.com.tw/api/comics/series/
 訪問：`https://comicchase.web.app`
 
 確認：
+
 - ✅ 首頁正常載入
 - ✅ API 請求成功（檢查 Network tab）
 - ✅ 登入功能正常
@@ -921,7 +936,7 @@ docker compose -f docker-compose-gce.yaml exec backend python manage.py migrate
 ### GCE VM
 
 | 項目 | 規格 | 月費用（USD）* |
-|------|------|--------------|
+| ------ | ------ | -------------- |
 | VM Instance | e2-medium (2 vCPU, 4GB RAM) | ~$24.27 |
 | Persistent Disk | 30GB SSD | ~$5.10 |
 | External IP | 固定 IP | ~$2.88 |
@@ -932,7 +947,7 @@ docker compose -f docker-compose-gce.yaml exec backend python manage.py migrate
 ### Firebase Hosting
 
 | 項目 | 免費額度 | 超額費用 |
-|------|---------|---------|
+| ------ | --------- | --------- |
 | 儲存空間 | 10 GB | $0.026/GB |
 | 傳輸量 | 360 MB/day | $0.15/GB |
 
@@ -966,6 +981,7 @@ docker compose -f docker-compose-gce.yaml exec db pg_dump -U comicchase_user com
 ### 3. 監控與告警
 
 使用 Google Cloud Monitoring 設定告警：
+
 - CPU 使用率 > 80%
 - 記憶體使用率 > 80%
 - Disk 使用率 > 80%
@@ -978,6 +994,7 @@ sudo nano /etc/docker/daemon.json
 ```
 
 加入：
+
 ```json
 {
   "log-driver": "json-file",
@@ -997,6 +1014,7 @@ sudo nano /etc/docker/daemon.json
 **症狀：** Frontend 無法存取 API
 
 **解決：**
+
 ```python
 # gce.py
 CORS_ALLOWED_ORIGINS = [
@@ -1009,6 +1027,7 @@ CORS_ALLOWED_ORIGINS = [
 **症狀：** POST 請求回傳 403
 
 **解決：**
+
 ```python
 # gce.py
 CSRF_TRUSTED_ORIGINS = [
@@ -1019,6 +1038,7 @@ CSRF_TRUSTED_ORIGINS = [
 ### 問題 3: SSL 憑證過期
 
 **解決：**
+
 ```bash
 # 手動更新
 sudo certbot renew
@@ -1033,6 +1053,7 @@ docker compose -f docker-compose-gce.yaml restart nginx
 ### 問題 4: Celery Worker 沒有執行任務
 
 **檢查：**
+
 ```bash
 # 查看 Celery logs
 docker compose -f docker-compose-gce.yaml logs -f celery

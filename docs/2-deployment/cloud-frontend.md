@@ -393,7 +393,7 @@ gcloud run deploy comicchase-frontend \
 ## Comparison: Firebase Hosting vs Cloud Run
 
 | Feature | Firebase Hosting | Cloud Run |
-|---------|-----------------|-----------|
+| --------- | ----------------- | ----------- |
 | **Setup Complexity** | Simple | Moderate |
 | **Cost** | Lower (generous free tier) | Higher (pay per request) |
 | **CDN** | Built-in global CDN | Needs Cloud CDN setup |

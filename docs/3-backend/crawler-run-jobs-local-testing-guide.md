@@ -12,7 +12,7 @@
 ## ✅ 可以在本機測試的項目
 
 | 測試項目 | 本機可測試 | 說明 |
-|---------|-----------|------|
+| --------- | ----------- | ------ |
 | ✅ Management Command | 是 | `python manage.py run_scheduled_crawler` |
 | ✅ Tasks.py 同步執行 | 是 | 直接呼叫 `tasks.crawl_all_series_eslite(sync=True)` |
 | ✅ Shell 腳本邏輯 | 是 | 使用環境變數執行 `run_crawler.sh` |
@@ -126,7 +126,7 @@ cd /code/app  # 或您的專案路徑
 bash run_crawler.sh
 ```
 
-### **預期輸出**
+#### 預期輸出
 
 ```text
 =========================================
@@ -474,6 +474,7 @@ python manage.py shell
 當所有本機測試都通過後，您可以：
 
 1. **提交程式碼**
+
    ```bash
    git add .
    git commit -m "Add Cloud Run Jobs scheduler support with sync execution mode"
@@ -481,11 +482,13 @@ python manage.py shell
    ```
 
 2. **建置 Docker Image**
+
    ```bash
    docker build -f app/Dockerfile.gcr -t gcr.io/YOUR_PROJECT/comicchase-backend:latest .
    ```
 
 3. **推送到 GCR**
+
    ```bash
    docker push gcr.io/YOUR_PROJECT/comicchase-backend:latest
    ```

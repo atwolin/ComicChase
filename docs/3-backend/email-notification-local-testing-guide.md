@@ -38,7 +38,6 @@ aws sesv2 list-email-identities --region ap-northeast-1
 
 ---
 
-
 ### **3. 確認有測試用戶**
 
 ```python
@@ -137,7 +136,7 @@ bash app/src/run_email.sh
 EMAIL_TASK=weekly_digest bash app/src/run_email.sh
 ```
 
-#### **預期輸出**
+##### 預期輸出
 
 ```bash
 ===========================================
@@ -259,7 +258,7 @@ print(result)
 
 **預期輸出：**
 
-```
+```bash
 Email sent to your-verified-email@example.com
 ```
 
@@ -331,31 +330,31 @@ print(result)
 
 1. **檢查 AWS SES 驗證狀態**
 
-```bash
-aws ses get-identity-verification-attributes \
-  --identities your-email@example.com \
-  --region us-east-1
-```
+    ```bash
+    aws ses get-identity-verification-attributes \
+    --identities your-email@example.com \
+    --region us-east-1
+    ```
 
 2. **檢查 AWS SES 沙盒模式**
 
-```bash
-aws sesv2 get-account --region us-east-1
-```
+    ```bash
+    aws sesv2 get-account --region us-east-1
+    ```
 
-如果在沙盒模式，只能發送到已驗證的郵箱。
+    如果在沙盒模式，只能發送到已驗證的郵箱。
 
 3. **檢查收件人郵箱**
 
-- 檢查垃圾郵件資料夾
-- 確認郵箱地址正確
+    - 檢查垃圾郵件資料夾
+    - 確認郵箱地址正確
 
 4. **查看詳細錯誤日誌**
 
-```bash
-# 在執行任務時查看 Django 日誌
-python app/src/manage.py run_scheduled_email --task weekly_digest --verbosity 2
-```
+    ```bash
+    # 在執行任務時查看 Django 日誌
+    python app/src/manage.py run_scheduled_email --task weekly_digest --verbosity 2
+    ```
 
 ---
 
@@ -401,7 +400,7 @@ else:
 
 **症狀：**
 
-```
+```bash
 botocore.exceptions.NoCredentialsError: Unable to locate credentials
 ```
 
@@ -414,13 +413,13 @@ echo $AWS_ACCESS_KEY_ID
 echo $AWS_SECRET_ACCESS_KEY
 ```
 
-2. **檢查 `.env` 文件**
+1. **檢查 `.env` 文件**
 
 ```bash
 cat .env | grep AWS
 ```
 
-3. **重新載入環境變數**
+1. **重新載入環境變數**
 
 ```bash
 # 如果使用 docker-compose
@@ -468,7 +467,7 @@ print(f"Status: {response.status_code}")
 
 **症狀：**
 
-```
+```bash
 django.db.utils.OperationalError: could not connect to server
 ```
 
@@ -544,19 +543,19 @@ docker-compose logs -f web
 
 在部署到雲端之前，確保以下測試都通過：
 
-### **基本功能測試**
+### 基本功能測試
 
 - [ ] `python manage.py run_scheduled_email --task weekly_digest` 執行成功
 - [ ] `EMAIL_TASK=weekly_digest bash run_email.sh` 執行成功
 - [ ] 郵件成功發送並收到
 
-### **資料完整性測試**
+### 資料完整性測試
 
 - [ ] 正確偵測新書資料
 - [ ] 正確取得用戶列表
 - [ ] 郵件內容正確渲染
 
-### **向後兼容測試**
+### 向後兼容測試
 
 - [ ] 原有的 Celery 非同步執行仍然正常
 - [ ] 與爬蟲任務整合正常
@@ -568,6 +567,7 @@ docker-compose logs -f web
 當所有本機測試都通過後，您可以：
 
 1. **提交程式碼**
+
    ```bash
    git add .
    git commit -m "Add email notification scheduler with Cloud Run Jobs support"
@@ -575,6 +575,7 @@ docker-compose logs -f web
    ```
 
 2. **建置 Docker Image**
+
    ```bash
    docker build -f app/Dockerfile \
      -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/comicchase-service .

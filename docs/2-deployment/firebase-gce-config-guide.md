@@ -3,6 +3,7 @@
 ## ⚠️ 重要：Firebase Hosting 的限制
 
 Firebase Hosting 的 `run` rewrite 配置：
+
 - ✅ **只能指向 Cloud Run 服務**（在同一個 GCP 專案中）
 - ❌ **不能使用外部 URL** 或 GCE 服務器地址
 - ❌ **`serviceId` 只接受 Cloud Run 服務名稱**，不接受完整 URL
@@ -122,6 +123,7 @@ firebase deploy --only hosting --config firebase.gce.json
 2. **打開瀏覽器開發者工具 → Network**
 3. **觸發 API 請求**，確認請求直接發送到 `https://api.comicchase.com.tw`
 4. **檢查 Response Headers**：
+
    ```http
    access-control-allow-origin: https://comicchase.web.app
    access-control-allow-credentials: true
@@ -150,6 +152,7 @@ firebase deploy --only hosting --config firebase.gce.json
 4. Firebase Hosting 作為 CDN
 
 **適合：**
+
 - 需要複雜的流量控制
 - 多個 backend 服務
 - 需要在 Load Balancer 層面處理 SSL
@@ -189,6 +192,7 @@ app.listen(port);
 ```
 
 **缺點：**
+
 - 額外的複雜性和成本
 - 增加延遲
 - 需要維護額外服務
@@ -198,7 +202,7 @@ app.listen(port);
 ## 總結
 
 | 方案 | 複雜度 | 成本 | 延遲 | 推薦度 |
-|------|--------|------|------|--------|
+| ------ | -------- | ------ | ------ | -------- |
 | 直接 API 調用 + CORS | 低 | 低 | 最低 | ⭐⭐⭐⭐⭐ |
 | Cloud Load Balancer | 高 | 中 | 低 | ⭐⭐⭐ |
 | Cloud Run 代理 | 中 | 中 | 中 | ⭐⭐ |

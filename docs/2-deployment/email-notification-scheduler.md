@@ -20,12 +20,12 @@
 ### **可用的郵件任務**
 
 | 任務名稱 | 說明 | 建議頻率 |
-|---------|------|---------|
+| --------- | ------ | --------- |
 | `weekly_digest` | 發送每週漫畫新出版清單給所有訂閱用戶 | 每週一次 |
 
 ### **任務執行流程**
 
-```
+```text
 1. 偵測過去 7 天內的新出版漫畫
 2. 取得所有 active 用戶的郵件地址
 3. 渲染 HTML 郵件模板
@@ -230,7 +230,7 @@ gcloud logging read \
 
 **預期日誌內容：**
 
-```
+```bash
 TIMESTAMP                      TEXT_PAYLOAD
 2026-01-13T14:00:00.000Z      ==========================================
 2026-01-13T14:00:00.100Z      Cloud Run Email Notification Job
@@ -349,7 +349,8 @@ aws ses list-verified-email-addresses --region us-east-1
 ```
 
 在 AWS Console 查看詳細資訊：
-- **SES Dashboard**: https://console.aws.amazon.com/ses/
+
+- **SES Dashboard**: <https://console.aws.amazon.com/ses/>
 - **CloudWatch Metrics**: 監控發送成功率、退信率等
 
 ---
@@ -436,30 +437,26 @@ gcloud logging read \
 
 **檢查步驟：**
 
-1. **確認 AWS SES 設定**
+  1. **確認 AWS SES 設定**
+    ```bash
+    # 檢查 SES 驗證狀態
+    aws ses get-identity-verification-attributes \
+      --identities <your-verified-email@example.com> \
+      --region us-east-1
+    # 檢查 SES 是否在沙盒模式
+    aws ses get-account-sending-enabled --region us-east-1
+    ```
 
-```bash
-# 檢查 SES 驗證狀態
-aws ses get-identity-verification-attributes \
-  --identities your-verified-email@example.com \
-  --region us-east-1
+  2. **查看 Django 日誌**
+    ```bash
+    gcloud logging read \
+      "resource.type=cloud_run_job AND textPayload=~'SES Send Error'" \
+      --limit 20
+    ```
 
-# 檢查 SES 是否在沙盒模式
-aws ses get-account-sending-enabled --region us-east-1
-```
-
-2. **查看 Django 日誌**
-
-```bash
-gcloud logging read \
-  "resource.type=cloud_run_job AND textPayload=~'SES Send Error'" \
-  --limit 20
-```
-
-3. **檢查收件人郵箱**
-
-- 檢查垃圾郵件資料夾
-- 確認收件人郵箱有效
+  3. **檢查收件人郵箱**
+    - 檢查垃圾郵件資料夾
+    - 確認收件人郵箱有效
 
 ---
 
@@ -500,15 +497,14 @@ gcloud run jobs update email-weekly-digest-job \
 
 **解決方法：**
 
-1. **增加 timeout 時間**
+  1. **增加 timeout 時間**
+    ```bash
+    gcloud run jobs update email-weekly-digest-job \
+      --region ${REGION} \
+      --task-timeout 60m
+    ```
 
-```bash
-gcloud run jobs update email-weekly-digest-job \
-  --region ${REGION} \
-  --task-timeout 60m
-```
-
-2. **批次發送**：修改 `subscriptions/tasks.py` 實現批次發送
+  2. **批次發送**：修改 `subscriptions/tasks.py` 實現批次發送
 
 ---
 
@@ -554,29 +550,34 @@ gcloud run jobs execute email-weekly-digest-job --region ${REGION}
 ### **架構優勢**
 
 ✅ **完全獨立運行**
+
 - Cloud Run Jobs 與 Web Service 完全分離
 - 即使 Web Service scale to zero，郵件仍準時發送
 
 ✅ **成本極低**
+
 - 按實際執行時間計費
 - 預估每月 ~$0.03 USD
 
 ✅ **零維護**
+
 - 無需管理 Celery Worker
 - Google Cloud 負責基礎設施管理
 
 ✅ **高可靠性**
+
 - 自動重試機制
 - Cloud Logging 完整記錄
 
 ✅ **易於擴展**
+
 - 需要新增郵件任務？只需創建新 Job 和 Scheduler
 
 ### **定時排程總覽**
 
 | 郵件任務 | 頻率 | Cron | 執行時間（台北） | 預估執行時長 |
 | -------- | ---- | ---- | --------------- | ----------- |
-| **每週摘要** | 每週 | "0 12 * * 5" | 週五 12:00 | ~5 分鐘 |
+| **每週摘要** | 每週 | "0 12 ** 5" | 週五 12:00 | ~5 分鐘 |
 
 ---
 

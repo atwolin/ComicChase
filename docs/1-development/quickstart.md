@@ -100,7 +100,7 @@ exit
 開啟瀏覽器，存取以下網址：
 
 | 服務 | URL | 說明 |
-|------|-----|------|
+| ------ | ----- | ------ |
 | 🎨 **前端** | <http://localhost:3000> | React 應用程式 |
 | 🔧 **Django Admin** | <http://localhost:8000/admin> | 後台管理 (使用你剛建立的帳號登入) |
 | 📖 **API 文件** | <http://localhost:8000/api/schema/swagger-ui/> | Swagger UI |
@@ -157,6 +157,7 @@ pre-commit run --all-files
 ```
 
 **前端 hooks 需要 Node.js 依賴:**
+
 ```bash
 cd ui
 npm install
