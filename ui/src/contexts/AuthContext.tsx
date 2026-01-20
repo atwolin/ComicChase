@@ -87,17 +87,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
     document.addEventListener('allauth.auth.change', onAuthChanged)
 
     // 初始化：獲取認證狀態和設定
+    console.log('[AuthContext] 開始載入認證狀態...')
     getAuth()
-      .then(data => setAuth(data))
+      .then(data => {
+        console.log('[AuthContext] 認證狀態載入成功:', data)
+        setAuth(data)
+      })
       .catch(e => {
-        console.error('獲取認證狀態失敗:', e)
+        console.error('[AuthContext] 獲取認證狀態失敗:', e)
         setAuth({ status: 500 } as AuthResponse)
       })
 
+    console.log('[AuthContext] 開始載入設定...')
     getConfig()
-      .then(data => setConfig(data))
+      .then(data => {
+        console.log('[AuthContext] 設定載入成功:', data)
+        setConfig(data)
+      })
       .catch(e => {
-        console.error('獲取設定失敗:', e)
+        console.error('[AuthContext] 獲取設定失敗:', e)
       })
 
     // 清理函數

@@ -41,7 +41,9 @@ export interface AuthResponse {
 // 設定
 // ============================================================
 
-const BASE_URL = '/_allauth/browser/v1'
+import { env } from '@/config/env'
+
+const BASE_URL = env.allauthBaseUrl
 const ACCEPT_JSON = {
   accept: 'application/json',
 }
