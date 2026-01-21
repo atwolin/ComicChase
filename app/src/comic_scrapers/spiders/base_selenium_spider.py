@@ -417,7 +417,7 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
         self.apply_search_filters(is_first_page)
 
         # Wait for search results page to fully load
-        time.sleep(2)
+        time.sleep(3)
 
         # Get book detail urls and release dates
         urls = None
@@ -488,6 +488,14 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
                 current_release_date = self._get_book_release_date(
                     release_date_texts[i]
                 )
+
+            self.logger.debug(
+                f"parse_search_results(): Current release date: {current_release_date}"
+            )
+            self.logger.debug(
+                f"parse_search_results(): Last release date: {last_release_date}, "
+                "type: {type(last_release_date)}"
+            )
 
             if current_release_date and last_release_date:
                 if current_release_date <= last_release_date:
@@ -565,10 +573,10 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
             yield from self.parse_search_results(
                 search_value, last_release_date, prev_url
             )
-        except selenium_exceptions.TimeoutException as e:
-            self.logger.error(
-                "parse_search_results(): Timeout because no next button found"
-                f" for {self.search_field_name} {search_value}: {e}"
+        except selenium_exceptions.TimeoutException:
+            self.logger.info(
+                "parse_search_results(): No next page button found (last page reached)"
+                f" for {self.search_field_name} {search_value}"
             )
 
     def parse_detail_info(self, url, item: Item):
