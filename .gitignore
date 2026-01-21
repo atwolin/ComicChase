@@ -242,6 +242,13 @@ awscli/
 # AWS credentials and config (should never be committed)
 .aws/
 
+# Google Cloud service account keys (NEVER commit these!)
+google-credentials.json
+
+# Local config files with real credentials (keep templates, ignore local versions)
+local-trust-policy.json
+local.config.template.json
+
 # ==============================================================================
 # Zip Archives
 # ==============================================================================
