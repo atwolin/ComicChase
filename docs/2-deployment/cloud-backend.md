@@ -18,16 +18,9 @@ SERVICE_ACCOUNT=$(gcloud iam service-accounts list \
     --filter cloudrun-serviceaccount \
     --format "value(email)")                         # Service Account
 INSTANCE_NAME=comic-instance                         # Cloud SQL Instance Name
-DATABASE_NAME=dj-database                            # Database Name
-DATABASE_USERNAME=dj-user                            # Database Username
-DATABASE_PASSWORD=$(openssl rand -base64 24)         # Database Password (auto-generated)
 ARTIFACT_REGISTRY=${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy  # Artifact Registry URL
 GS_BUCKET_NAME=${PROJECT_ID}-media                   # Media Storage Bucket Name
 SECRET_NAME=application_settings                     # Application Settings Secret Name
-SUPERUSER_SECRET_NAME=superuser_password             # Superuser Password
-CLOUDRUN_SERVICE_URLS=$(gcloud run services describe comicchase-service \
-    --region ${REGION}  \
-    --format "value(metadata.annotations[\"run.googleapis.com/urls\"])" | tr -d '"[]')
 ```
 
 ## Steps
@@ -195,6 +188,68 @@ REGION=us-central1
     # 4. Clean up sensitive file
     rm .env.cloud
     ```
+
+### DNS settings
+
+1. Varify via Cloud Console
+
+    ```bash
+    # 1. Add the domain for verification
+    gcloud domains verify api.comicchase.site
+
+    # This will provide you with a TXT record to add to your DNS
+    ```
+
+    Add this TXT record in Namecheap:
+
+    | Type | Host | Value |
+    | ------ | ------ | ------- |
+    | TXT | api | google-site-verification=XXXXXXXXXXXXXXXXXXXX |
+
+2. Check if verification is complete
+
+    ```bash
+    gcloud domains list-user-verified
+    ```
+
+3. Map the domain to Cloud Run
+
+    ```bash
+    gcloud beta run domain-mappings create \
+    --service comicchase-service \
+    --domain api.comicchase.site \
+    --region us-central1
+    ```
+
+4. Check the mapping status
+
+    ```bash
+    gcloud beta run domain-mappings describe \
+    --domain api.comicchase.site \
+    --region us-central1
+    ```
+
+5. Add A records in Namecheap:
+
+    ```bash
+    gcloud beta run domain-mappings describe \
+    --domain api.comicchase.site \
+    --region us-central1
+    ```
+
+6. Check the status of the mapping
+
+    ```bash
+    # Verify DNS is working
+    dig api.comicchase.site
+
+    # Check certificate status
+    gcloud beta run domain-mappings describe \
+    --domain api.comicchase.site \
+    --region us-central1
+    ```
+
+    Once you see certificateStatus: ACTIVE, the SSL certificate is ready and <https://api.comicchase.site> will work.
 
 ### Setting minimum permissions
 

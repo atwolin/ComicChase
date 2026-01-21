@@ -29,8 +29,8 @@ SECRET_KEY = env("SECRET_KEY", default="django-insecure-test-key-for-development
 
 # HTTPS/SSL Settings
 SECURE_SSL_REDIRECT = env("DJANGO_SECURE_SSL_REDIRECT")
-CSRF_COOKIE_SECURE = env("DJANGO_CSRF_COOKIE_SECURE")
-SESSION_COOKIE_SECURE = env("DJANGO_SESSION_COOKIE_SECURE")
+# CSRF_COOKIE_SECURE = env("DJANGO_CSRF_COOKIE_SECURE")
+# SESSION_COOKIE_SECURE = env("DJANGO_SESSION_COOKIE_SECURE")
 
 # HSTS (HTTP Strict Transport Security)
 SECURE_HSTS_SECONDS = env("DJANGO_SECURE_HSTS_SECONDS")
@@ -251,6 +251,9 @@ CELERY_TASK_ROUTES = (
 # ============================================================
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ],

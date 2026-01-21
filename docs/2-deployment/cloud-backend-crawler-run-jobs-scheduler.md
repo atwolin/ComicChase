@@ -357,6 +357,14 @@ gcloud scheduler jobs create http eslite-orphan-schedule \
 
 - `0 4 1 * *` = 每月 1 日凌晨 4:00
 
+### **Step 8: 更新**
+
+```bash
+gcloud run jobs update eslite-orphan-crawler --image ${IMAGE} --region ${REGION}
+gcloud run jobs update eslite-title-crawler --image ${IMAGE} --region ${REGION}
+gcloud run jobs update booksjp-title-crawler --image ${IMAGE} --region ${REGION}
+```
+
 ---
 
 ## 🧪 測試與驗證
