@@ -246,3 +246,105 @@ gcloud run deploy comicchase-service \
     --region ${REGION} \
     --image ${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/comicchase-service
 ```
+
+---
+
+## Email Notification (Google-to-AWS Federation)
+
+Send emails via AWS SES using Google Cloud Workload Identity Federation.
+
+### Architecture
+
+```
+Google OAuth → AWS STS (AssumeRole) → AWS SES (SendEmail)
+```
+
+### Prerequisites
+
+1. AWS OIDC Provider configured (`accounts.google.com`)
+2. AWS IAM Role with SES permissions
+3. Verified email addresses in AWS SES
+
+### Set up AWS OIDC Provider
+
+```bash
+aws iam create-open-id-connect-provider \
+    --url https://accounts.google.com \
+    --client-id-list "YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com" \
+    --thumbprint-list "GOOGLE_CERT_THUMBPRINT"
+```
+
+### Create IAM Role with Trust Policy
+
+Create `trust-policy.json`:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": {
+      "Federated": "arn:aws:iam::YOUR_ACCOUNT_ID:oidc-provider/accounts.google.com"
+    },
+    "Action": "sts:AssumeRoleWithWebIdentity",
+    "Condition": {
+      "ForAnyValue:StringEquals": {
+        "accounts.google.com:aud": [
+          "YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com",
+          "YOUR_SERVICE_ACCOUNT_UNIQUE_ID"
+        ]
+      }
+    }
+  }]
+}
+```
+
+Create the role:
+
+```bash
+aws iam create-role \
+    --role-name GoogleFederationRole \
+    --assume-role-policy-document file://trust-policy.json
+```
+
+### Attach SES permissions
+
+```bash
+aws iam put-role-policy \
+    --role-name GoogleFederationRole \
+    --policy-name SESPolicy \
+    --policy-document '{
+      "Version": "2012-10-17",
+      "Statement": [{
+        "Effect": "Allow",
+        "Action": ["ses:SendEmail", "ses:SendRawEmail"],
+        "Resource": "*"
+      }]
+    }'
+```
+
+### Verify email addresses
+
+```bash
+aws ses verify-email-identity --email-address sender@example.com
+aws ses verify-email-identity --email-address recipient@example.com
+```
+
+### Environment variables
+
+Add to `.env`:
+
+```bash
+AWS_ROLE_ARN=arn:aws:iam::YOUR_ACCOUNT_ID:role/GoogleFederationRole
+AWS_OIDC_PROVIDER_ARN=arn:aws:iam::YOUR_ACCOUNT_ID:oidc-provider/accounts.google.com
+GOOGLE_SA_CLIENT_ID=YOUR_SERVICE_ACCOUNT_UNIQUE_ID
+GOOGLE_SERVICE_ACCOUNT=YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com
+```
+
+### Test email sending
+
+```bash
+python send_email_via_google_aws.py
+```
+
+> For detailed troubleshooting, see `README_EMAIL_FEDERATION.md`.
