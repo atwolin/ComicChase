@@ -2,6 +2,7 @@ import os
 import re
 import time
 from abc import ABC, abstractmethod
+from urllib.parse import urlsplit
 
 import scrapy
 from scrapy.http import HtmlResponse
@@ -84,19 +85,23 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
 
         if selenium_hub_url:
             # development: Connect to Selenium Grid (local development)
-            self.logger.info(f"Using Remote WebDriver: {selenium_hub_url}")
+            host = urlsplit(selenium_hub_url).hostname or "<unknown>"
+            self.logger.info(f"Using Remote WebDriver: {host}")
             self.driver = webdriver.Remote(
                 command_executor=selenium_hub_url, options=chrome_options
             )
         else:
             # production: Use local ChromeDriver (Cloud Run)
+            user_agent = os.getenv(
+                "SELENIUM_USER_AGENT",
+                "Mozilla/5.0 (X11; Linux x86_64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/136.0.0.0 Safari/537.36",
+            )
+            chrome_options.add_argument(f"--user-agent={user_agent}")
             chrome_options.add_argument("--headless")  # Headless mode for cloud
             chrome_options.add_argument("--disable-gpu")  # Disable GPU for headless
             chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-            chrome_options.add_argument(
-                "--user-agent=Mozilla/5.0 (X11; Linux x86_64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
-            )
             chrome_options.add_experimental_option(
                 "excludeSwitches", ["enable-automation"]
             )
@@ -494,7 +499,7 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
             )
             self.logger.debug(
                 f"parse_search_results(): Last release date: {last_release_date}, "
-                "type: {type(last_release_date)}"
+                f"type: {type(last_release_date)}"
             )
 
             if current_release_date and last_release_date:
