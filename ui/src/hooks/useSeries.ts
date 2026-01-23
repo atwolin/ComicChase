@@ -34,7 +34,7 @@ export const useSeriesList = (params?: UseSeriesListParams) => {
         const { data } = await comicsSeriesList({
           query: params,
         })
-        console.log('[useSeriesList] 漫畫列表請求成功，資料:', data)
+        console.log('[useSeriesList] 漫畫列表請求成功')
         return data!
       } catch (error) {
         console.error('[useSeriesList] 漫畫列表請求失敗:', error)

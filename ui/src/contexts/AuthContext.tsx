@@ -90,7 +90,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     console.log('[AuthContext] 開始載入認證狀態...')
     getAuth()
       .then(data => {
-        console.log('[AuthContext] 認證狀態載入成功:', data)
+        console.log('[AuthContext] 認證狀態載入成功', {
+          status: data.status,
+          isAuthenticated: data.meta?.is_authenticated,
+        })
         setAuth(data)
       })
       .catch(e => {
@@ -101,7 +104,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     console.log('[AuthContext] 開始載入設定...')
     getConfig()
       .then(data => {
-        console.log('[AuthContext] 設定載入成功:', data)
+        console.log('[AuthContext] 設定載入成功', { status: data.status })
         setConfig(data)
       })
       .catch(e => {

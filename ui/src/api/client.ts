@@ -38,13 +38,15 @@ apiClient.interceptors.response.use(
     const url = error.config?.url || 'unknown'
     const status = error.response?.status
 
-    console.error('[API Client] 錯誤攔截器觸發:', {
-      url,
-      status,
-      message: error.message,
-      config: error.config,
-      response: error.response,
-    })
+    if (env.isDevelopment) {
+      console.error('[API Client] 錯誤攔截器觸發:', {
+        url,
+        status,
+        message: error.message,
+        config: error.config,
+        response: error.response,
+      })
+    }
 
     // 統一錯誤處理
     if (error.response?.status === 401) {

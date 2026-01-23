@@ -13,7 +13,7 @@ import { getCSRFToken } from '@/lib/django'
 // 配置 API Client
 // ============================================================
 
-// 創建自定義 fetch 函數，自動添加 credentials
+// 建立自定義 fetch 函數，自動添加 credentials
 // 這樣所有請求都會包含 cookies (session, CSRF token 等)
 const customFetch: typeof fetch = (input, init) => {
   // 確保 init 存在
