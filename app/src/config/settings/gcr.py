@@ -3,6 +3,7 @@ import os
 from urllib.parse import urlparse
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 from .base import *
 
@@ -81,20 +82,7 @@ if CLOUDRUN_SERVICE_URLS:
             "CLOUDRUN_SERVICE_URLS must contain full URLs with scheme"
         )
 else:
-    CSRF_TRUSTED_ORIGINS = [
-        "https://comicchase.site",
-        "https://www.comicchase.site",
-        "https://api.comicchase.site",
-        "https://*.run.app",
-        "https://comicchase.web.app",  # Firebase default domain (fallback)
-    ]
-    ALLOWED_HOSTS = [
-        "comicchase.site",
-        "www.comicchase.site",
-        "api.comicchase.site",
-        ".run.app",  # Use leading dot for subdomain wildcard
-        "comicchase.web.app",  # Firebase default domain (fallback)
-    ]
+    raise ImproperlyConfigured("CLOUDRUN_SERVICE_URLS is required for Cloud Run")
 
 # CRITICAL: Tell Django to use the X-Forwarded-Host header
 # This ensures django-allauth generates URLs with the correct domain
@@ -109,7 +97,7 @@ USE_X_FORWARDED_HOST = True
 DATABASES = {"default": env.db()}
 
 # Change database settings if using the Cloud SQL Auth Proxy
-if env("USE_CLOUD_SQL_AUTH_PROXY", default=False):
+if env.bool("USE_CLOUD_SQL_AUTH_PROXY", default=False):
     DATABASES["default"]["HOST"] = "127.0.0.1"
     DATABASES["default"]["PORT"] = 5432
 
@@ -118,7 +106,7 @@ if env("USE_CLOUD_SQL_AUTH_PROXY", default=False):
 # ============================================================
 
 GS_BUCKET_NAME = env("GS_BUCKET_NAME", default="")
-ALLOW_LOCAL_STORAGE = env("ALLOW_LOCAL_STORAGE", default=False)
+ALLOW_LOCAL_STORAGE = env.bool("ALLOW_LOCAL_STORAGE", default=False)
 
 if GS_BUCKET_NAME:
     # For deployment

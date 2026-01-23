@@ -16,10 +16,10 @@ RUN groupadd -g $GID docker-users && \
     useradd -m --no-log-init -s /bin/bash -u $USER_ID -g $GID docker
 
 # Install Chrome and ChromeDriver for Selenium support
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
     chromium-driver \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives
 
 RUN pip install --upgrade pip
 COPY ./app/requirements-gcr.txt ./
