@@ -31,7 +31,7 @@ EMAIL_TASK=weekly_digest bash app/src/run_email.sh
 
 ## ☁️ Cloud Run Jobs 部署
 
-### **創建 Cloud Run Job**
+### **建立 Cloud Run Job**
 
 ```bash
 # 設定環境變數
@@ -41,7 +41,7 @@ SERVICE_ACCOUNT=$(gcloud iam service-accounts list --filter cloudrun-serviceacco
 IMAGE=${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/comicchase-service
 INSTANCE_NAME=comic-instance
 
-# 創建 Job
+# 建立 Job
 gcloud run jobs create email-weekly-digest-job \
   --image ${IMAGE} \
   --region ${REGION} \
@@ -62,7 +62,7 @@ gcloud run jobs execute email-weekly-digest-job --region ${REGION}
 
 ---
 
-### **創建 Cloud Scheduler**
+### **建立 Cloud Scheduler**
 
 ```bash
 # 每週一早上 9:00 發送（台北時間）

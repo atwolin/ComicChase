@@ -73,7 +73,7 @@ python manage.py run_scheduled_crawler --task eslite_all_series
 python manage.py run_scheduled_crawler --task booksjp_all_series
 
 # 測試 Eslite orphan volumes 爬蟲
-python manage.py run_scheduled_crawler --task eslite_orphans
+python manage.py run_scheduled_crawler --task eslite_orphan_volumes
 ```
 
 ### **預期輸出**
@@ -149,7 +149,7 @@ Finished: 2026-01-06 23:57:00 CST
 
 ```bash
 # 測試 Orphan Volumes
-export CRAWLER_TASK=eslite_orphans
+export CRAWLER_TASK=eslite_orphan_volumes
 bash run_crawler.sh
 
 # 測試 Eslite
@@ -219,7 +219,7 @@ print(result)
 
 完整模擬 Cloud Run Jobs 的執行環境。
 
-### **Step 1: 創建測試腳本**
+### **Step 1: 建立測試腳本**
 
 **檔案：** `test_crawler_job.sh`
 
@@ -234,7 +234,7 @@ echo "Local Test: Cloud Run Crawler Job"
 echo "========================================="
 
 # 測試所有任務
-TASKS=("bookstw_new" "eslite_all_series" "booksjp_all_series" "eslite_orphans")
+TASKS=("bookstw_new" "eslite_all_series" "booksjp_all_series" "eslite_orphan_volumes")
 
 for task in "${TASKS[@]}"; do
     echo ""
@@ -449,7 +449,7 @@ python manage.py shell
 - [ ] `python manage.py run_scheduled_crawler --task bookstw_new` 執行成功
 - [ ] `python manage.py run_scheduled_crawler --task eslite_all_series` 執行成功
 - [ ] `python manage.py run_scheduled_crawler --task booksjp_all_series` 執行成功
-- [ ] `python manage.py run_scheduled_crawler --task eslite_orphans` 執行成功
+- [ ] `python manage.py run_scheduled_crawler --task eslite_orphan_volumes` 執行成功
 
 ### **Shell 腳本測試**
 
@@ -494,16 +494,3 @@ python manage.py shell
    ```
 
 4. **部署到 Cloud Run Jobs**（參考 `cloud-run-jobs-scheduler.md`）
-
----
-
-## 📚 相關文件
-
-- [cloud-run-jobs-scheduler.md](./cloud-run-jobs-scheduler.md) - 雲端部署完整指南
-- [Project README](../../README.md) - 專案總覽
-
----
-
-**文件版本：** 1.0
-**最後更新：** 2026-01-06
-**作者：** ComicChase Development Team

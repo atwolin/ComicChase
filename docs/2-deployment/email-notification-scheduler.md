@@ -162,7 +162,7 @@ IMAGE=${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/comicchase-
 
 ### **Step 1: 建立 Cloud Run Job**
 
-創建用於執行郵件通知的 Cloud Run Job：
+建立用於執行郵件通知的 Cloud Run Job：
 
 ```bash
 # 建立 weekly_digest Job
@@ -249,12 +249,12 @@ TIMESTAMP                      TEXT_PAYLOAD
 
 ## ⏰ Cloud Scheduler 設置
 
-### **創建定期排程**
+### **建立定期排程**
 
 設置每週自動執行郵件通知：
 
 ```bash
-# 創建 Cloud Scheduler Job
+# 建立 Cloud Scheduler Job
 # 每週一早上 9:00 發送（台北時間）
 gcloud scheduler jobs create http email-weekly-digest-schedule \
   --location ${REGION} \
@@ -375,8 +375,8 @@ aws ses list-verified-email-addresses --region us-east-1
 
 按**實際執行時間**計費：
 
-- **CPU**: $0.00002400 / vCPU-second
-- **記憶體**: $0.00000250 / GiB-second
+- **CPU**: $0.000018 / vCPU-second
+- **記憶體**: $0.000002 / GiB-second
 
 ### **範例計算（每週執行 1 次）**
 
@@ -387,8 +387,8 @@ aws ses list-verified-email-addresses --region us-east-1
 
 **成本：**
 
-- CPU: 4 × 300 × 1 × $0.00002400 = **$0.03**
-- 記憶體: 4 × 300 × 0.5 × $0.00000250 = **$0.0015**
+- CPU: 4 × 300 × 1 × $0.000018 = **$0.03**
+- 記憶體: 4 × 300 × 0.5 × $0.000002 = **$0.0015**
 - **月總計: ~$0.03 USD**
 
 ### **Cloud Scheduler 計費**
@@ -571,7 +571,7 @@ gcloud run jobs execute email-weekly-digest-job --region ${REGION}
 
 ✅ **易於擴展**
 
-- 需要新增郵件任務？只需創建新 Job 和 Scheduler
+- 需要新增郵件任務？只需建立新 Job 和 Scheduler
 
 ### **定時排程總覽**
 

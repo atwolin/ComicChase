@@ -529,7 +529,7 @@ volumes:
 
 #### **檔案：`.env.gce`（範例）**
 
-創建 `.env.gce.example` 作為模板：
+建立 `.env.gce.example` 作為模板：
 
 ```bash
 # .env.gce.example
@@ -584,7 +584,7 @@ vim .env.gce
 
 ### Step 1: 準備 GCE VM
 
-#### 1.1 創建 GCE Instance
+#### 1.1 建立 GCE Instance
 
 ```bash
 gcloud compute instances create comicchase-backend \
@@ -721,10 +721,10 @@ sudo systemctl list-timers | grep certbot
 
 **設定更新後的動作（deploy hook）：**
 
-創建更新成功後才執行的腳本（**只在成功更新時才會執行，避免每天重啟**）：
+建立更新成功後才執行的腳本（**只在成功更新時才會執行，避免每天重啟**）：
 
 ```bash
-# 創建 deploy hook 腳本
+# 建立 deploy hook 腳本
 sudo nano /etc/letsencrypt/renewal-hooks/deploy/copy-to-docker.sh
 ```
 
@@ -814,7 +814,7 @@ docker compose -f docker-compose-gce.yaml exec backend bash
 # 執行 migration
 python manage.py migrate
 
-# 創建 superuser
+# 建立 superuser
 python manage.py createsuperuser
 
 # 收集 static files

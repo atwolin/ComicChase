@@ -53,7 +53,7 @@ print(f"找到 {active_users.count()} 位 active 用戶")
 for user in active_users:
     print(f"- {user.email}")
 
-# 如果沒有測試用戶，創建一個
+# 如果沒有測試用戶，建立一個
 if active_users.count() == 0:
     User.objects.create_user(
         username='testuser',
@@ -61,7 +61,7 @@ if active_users.count() == 0:
         password='testpass123',
         is_active=True
     )
-    print("✅ 已創建測試用戶")
+    print("✅ 已建立測試用戶")
 ```
 
 ---
@@ -581,18 +581,4 @@ docker-compose logs -f web
      -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/comicchase-service .
    ```
 
-3. **部署到 Cloud Run Jobs**（參考 `email-notification-scheduler.md`）
-
----
-
-## 📚 相關文件
-
-- [email-notification-scheduler.md](./email-notification-scheduler.md) - 雲端部署完整指南
-- [cloud-backend-crawler-run-jobs-scheduler.md](./cloud-backend-crawler-run-jobs-scheduler.md) - 爬蟲任務參考
-- [Project README](../../README.md) - 專案總覽
-
----
-
-**文件版本：** 1.0
-**最後更新：** 2026-01-13
-**作者：** ComicChase Development Team
+3. **部署到 Cloud Run Jobs**

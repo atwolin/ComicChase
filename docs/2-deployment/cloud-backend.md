@@ -191,7 +191,7 @@ REGION=us-central1
 
 ### DNS settings
 
-1. Varify via Cloud Console
+1. Verify via Cloud Console
 
     ```bash
     # 1. Add the domain for verification

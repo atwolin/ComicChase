@@ -384,7 +384,7 @@ gcloud run deploy comicchase-frontend \
 
 ### Cost Estimation (Cloud Run)
 
-- **Cloud Run**: $0.00002400/vCPU-second, $0.00000250/GiB-second
+- **Cloud Run**: $0.000018/vCPU-second, $0.000002/GiB-second
 - **Requests**: First 2 million free per month
 - **Artifact Registry**: $0.10/GB storage
 

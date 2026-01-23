@@ -29,19 +29,19 @@ Firebase Hosting 的 `run` rewrite 配置：
 
 由於 `gce.py` 已經配置了 CORS，前端可以直接調用 GCE API，無需 Firebase Hosting 代理。
 
-### 步驟 1：創建環境變數文件
+### 步驟 1：建立環境變數文件
 
-創建 `ui/.env.gce`:
+建立 `ui/.env.gce`:
 
 ```env
-VITE_API_BASE_URL=https://api.comicchase.com.tw/api
+VITE_API_BASE_URL=https://api.comicchase.com.tw
 ```
 
-> **注意**: `.env.gce` 被 gitignore，請手動創建此文件
+> **注意**: `.env.gce` 被 gitignore，請手動建立此文件
 
 ### 步驟 2：Firebase 配置（只處理靜態文件）
 
-創建 `ui/firebase.gce.json`:
+建立 `ui/firebase.gce.json`:
 
 ```json
 {
@@ -146,7 +146,7 @@ firebase deploy --only hosting --config firebase.gce.json
 
 ### 方案 A：Cloud Load Balancer
 
-1. 創建 GCP HTTP(S) Load Balancer
+1. 建立 GCP HTTP(S) Load Balancer
 2. 配置 backend 指向 GCE Instance Group
 3. 配置 URL maps 路由不同路徑到不同服務
 4. Firebase Hosting 作為 CDN

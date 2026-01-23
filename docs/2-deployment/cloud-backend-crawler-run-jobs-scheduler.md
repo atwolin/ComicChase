@@ -123,13 +123,13 @@ for title, last_date in series_list:
 
 ---
 
-### **Step 2: 創建 Management Command**
+### **Step 2: 建立 Management Command**
 
 **檔案位置：** `app/src/comic_scrapers/management/commands/run_scheduled_crawler.py`
 
 ---
 
-### **Step 3: 創建 Shell 執行腳本**
+### **Step 3: 建立 Shell 執行腳本**
 
 **檔案位置：** `app/src/run_crawler.sh`
 
@@ -173,7 +173,7 @@ docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/comic
 
 ---
 
-### **Step 6: 創建 Cloud Run Jobs**
+### **Step 6: 建立 Cloud Run Jobs**
 
 #### **設定環境變數（簡化後續指令）**
 
@@ -270,7 +270,7 @@ gcloud run jobs create booksjp-title-crawler \
 gcloud run jobs create eslite-orphan-crawler \
   --image ${IMAGE} \
   --region ${REGION} \
-  --set-env-vars "CRAWLER_TASK=eslite_orphans" \
+  --set-env-vars "CRAWLER_TASK=eslite_orphan_volumes" \
   --set-env-vars "DJANGO_SETTINGS_MODULE=config.settings.gcr" \
   --set-secrets "APPLICATION_SETTINGS=application_settings:latest" \
   --set-cloudsql-instances ${CLOUDSQL_INSTANCE} \
@@ -360,6 +360,7 @@ gcloud scheduler jobs create http eslite-orphan-schedule \
 ### **Step 8: 更新**
 
 ```bash
+gcloud run jobs update bookstw-daily-crawler --image ${IMAGE} --region ${REGION}
 gcloud run jobs update eslite-orphan-crawler --image ${IMAGE} --region ${REGION}
 gcloud run jobs update eslite-title-crawler --image ${IMAGE} --region ${REGION}
 gcloud run jobs update booksjp-title-crawler --image ${IMAGE} --region ${REGION}
@@ -500,8 +501,8 @@ gcloud scheduler jobs describe bookstw-new-release-schedule --location ${REGION}
 
 按**實際執行時間**計費：
 
-- **CPU**: $0.00002400 / vCPU-second
-- **記憶體**: $0.00000250 / GiB-second
+- **CPU**: $0.000018 / vCPU-second
+- **記憶體**: $0.000002 / GiB-second
 
 ### **範例計算（每月）**
 
@@ -513,8 +514,8 @@ gcloud scheduler jobs describe bookstw-new-release-schedule --location ${REGION}
 
 **成本：**
 
-- CPU: 30 × 900 × 1 × $0.00002400 = **$0.65**
-- 記憶體: 30 × 900 × 2 × $0.00000250 = **$0.14**
+- CPU: 30 × 900 × 1 × $0.000018 = **$0.65**
+- 記憶體: 30 × 900 × 2 × $0.000002 = **$0.14**
 - **總計: ~$0.79 / 月**
 
 **所有爬蟲任務（4 個 Jobs）預估總成本：** ~$1.50 - $3.00 / 月
@@ -653,7 +654,7 @@ gcloud run jobs execute bookstw-daily-crawler --region ${REGION}
 
 ✅ **易於擴展**
 
-- 需要新增爬蟲任務？只需創建新 Job 和 Scheduler
+- 需要新增爬蟲任務？只需建立新 Job 和 Scheduler
 
 ### **定時排程總覽**
 
