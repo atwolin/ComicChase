@@ -12,6 +12,7 @@ if [ -z "$EMAIL_TASK" ]; then
     echo "❌ Error: EMAIL_TASK environment variable is not set"
     echo "Available tasks:"
     echo "  - weekly_digest: Send weekly comic digest emails"
+    echo "  - test_email: Send a test email (requires TEST_EMAIL_TO)"
     exit 1
 fi
 
@@ -22,8 +23,30 @@ echo "Task: $EMAIL_TASK"
 echo "Time: $(date)"
 echo "==========================================="
 
-# 執行 Django management command
-python manage.py run_scheduled_email --task "$EMAIL_TASK"
+# 根據任務類型執行不同的命令
+case "$EMAIL_TASK" in
+    "weekly_digest")
+        echo "📧 Running weekly digest email notification..."
+        python manage.py run_scheduled_email --task "$EMAIL_TASK"
+        ;;
+    "test_email")
+        # 檢查測試郵件收件人
+        if [ -z "$TEST_EMAIL_TO" ]; then
+            echo "❌ Error: TEST_EMAIL_TO environment variable is required for test_email task"
+            echo "Example: TEST_EMAIL_TO=your@email.com"
+            exit 1
+        fi
+        echo "📧 Sending test email to: $TEST_EMAIL_TO"
+        python manage.py send_test_email --to "$TEST_EMAIL_TO"
+        ;;
+    *)
+        echo "❌ Error: Unknown EMAIL_TASK: $EMAIL_TASK"
+        echo "Available tasks:"
+        echo "  - weekly_digest: Send weekly comic digest emails"
+        echo "  - test_email: Send a test email (requires TEST_EMAIL_TO)"
+        exit 1
+        ;;
+esac
 
 # 檢查執行結果
 if [ $? -eq 0 ]; then

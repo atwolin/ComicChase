@@ -119,8 +119,8 @@ Edit `ui/firebase.json` to add rewrites for SPA routing and API proxy:
 #### 6. Build and deploy
 
 ```bash
-# Rebuild with production environment
-npm run build
+# Build with GCR-specific environment
+npm run build:gcr
 
 # Deploy to Firebase Hosting
 firebase deploy --only hosting
@@ -143,7 +143,7 @@ firebase hosting:channel:deploy production --expires 7d
 cd ui
 
 # Make your changes, then rebuild
-npm run build
+npm run build:gcr
 
 # Redeploy
 firebase deploy --only hosting
@@ -384,7 +384,7 @@ gcloud run deploy comicchase-frontend \
 
 ### Cost Estimation (Cloud Run)
 
-- **Cloud Run**: $0.00002400/vCPU-second, $0.00000250/GiB-second
+- **Cloud Run**: $0.000018/vCPU-second, $0.000002/GiB-second
 - **Requests**: First 2 million free per month
 - **Artifact Registry**: $0.10/GB storage
 
@@ -393,7 +393,7 @@ gcloud run deploy comicchase-frontend \
 ## Comparison: Firebase Hosting vs Cloud Run
 
 | Feature | Firebase Hosting | Cloud Run |
-|---------|-----------------|-----------|
+| --------- | ----------------- | ----------- |
 | **Setup Complexity** | Simple | Moderate |
 | **Cost** | Lower (generous free tier) | Higher (pay per request) |
 | **CDN** | Built-in global CDN | Needs Cloud CDN setup |

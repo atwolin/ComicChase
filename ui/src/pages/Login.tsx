@@ -121,6 +121,28 @@ export const Login = () => {
             >
               {isLoading ? '登入中...' : '登入'}
             </button>
+
+            {/* 測試帳號提示 */}
+            {/* <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800 font-medium mb-2">
+                測試帳號
+              </p>
+              <p className="text-xs text-blue-600">
+                Email: test@email.com<br />
+                密碼: permission
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('test@email.com')
+                  setPassword('permission')
+                }}
+                className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                disabled={isLoading}
+              >
+                一鍵填入測試帳號
+              </button>
+            </div> */}
           </form>
 
           {/* 註冊連結 */}

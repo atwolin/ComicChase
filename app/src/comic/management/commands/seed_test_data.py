@@ -45,7 +45,7 @@ class Command(BaseCommand):
             if len(series_list) >= 2000:
                 Series.objects.bulk_create(series_list)
                 series_list = []
-                self.stdout.write(f"已完成 {i+1} 筆...")
+                self.stdout.write(f"已完成 {i + 1} 筆...")
 
         if series_list:
             Series.objects.bulk_create(series_list)

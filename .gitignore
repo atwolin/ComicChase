@@ -97,6 +97,7 @@ __pypackages__/
 # Environments
 .env
 .env.gce
+.env.gcr-test
 .envrc
 .venv
 env/
@@ -192,6 +193,11 @@ mnesia/
 rabbitmq/
 rabbitmq-data/
 activemq-data/
+
+# Cloud Run
+google-credentials.json
+trust-policy.json
+config.template.json
 
 # ==============================================================================
 # IDEs & Editors

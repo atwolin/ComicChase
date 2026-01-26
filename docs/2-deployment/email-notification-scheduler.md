@@ -20,12 +20,13 @@
 ### **可用的郵件任務**
 
 | 任務名稱 | 說明 | 建議頻率 |
-|---------|------|---------|
+| --------- | ------ | --------- |
 | `weekly_digest` | 發送每週漫畫新出版清單給所有訂閱用戶 | 每週一次 |
+| `test_email` | 發送測試郵件（需要 `TEST_EMAIL_TO` 環境變數） | 手動執行 |
 
 ### **任務執行流程**
 
-```
+```text
 1. 偵測過去 7 天內的新出版漫畫
 2. 取得所有 active 用戶的郵件地址
 3. 渲染 HTML 郵件模板
@@ -43,7 +44,7 @@
 
 ```bash
 # 進入 WSL 終端機
-cd /mnt/c/Users/ameli/ComicChase
+cd /path/to/ComicChase  # Replace with your project path
 
 # 執行每週摘要郵件任務
 python app/src/manage.py run_scheduled_email --task weekly_digest
@@ -84,7 +85,7 @@ Duration: 90.00 seconds
 
 ```bash
 # 在 WSL 終端機
-cd /mnt/c/Users/ameli/ComicChase
+cd /path/to/ComicChase  # Replace with your project path
 
 # 設定環境變數並執行
 export EMAIL_TASK=weekly_digest
@@ -143,6 +144,28 @@ print(result)
 
 ---
 
+### **方法 5：發送測試郵件**
+
+使用 `send_test_email` 管理指令發送測試郵件：
+
+```bash
+# 本機發送測試郵件
+python app/src/manage.py send_test_email --to your@email.com
+
+# 自訂主旨
+python app/src/manage.py send_test_email --to your@email.com --subject "自訂測試主旨"
+```
+
+**透過 Cloud Run Job 發送測試郵件：**
+
+```bash
+gcloud run jobs execute email-weekly-digest-job \
+  --region ${REGION} \
+  --update-env-vars "EMAIL_TASK=test_email,TEST_EMAIL_TO=your@email.com"
+```
+
+---
+
 ## ☁️ Cloud Run Jobs 部署
 
 ### **前置準備**
@@ -152,7 +175,7 @@ print(result)
 ```bash
 # 設定環境變數
 PROJECT_ID=$(gcloud config get-value core/project)
-REGION=ap-northeast-1
+REGION=us-central1
 SERVICE_ACCOUNT=$(gcloud iam service-accounts list \
     --filter cloudrun-serviceaccount --format "value(email)")
 IMAGE=${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/comicchase-service
@@ -162,7 +185,7 @@ IMAGE=${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/comicchase-
 
 ### **Step 1: 建立 Cloud Run Job**
 
-創建用於執行郵件通知的 Cloud Run Job：
+建立用於執行郵件通知的 Cloud Run Job：
 
 ```bash
 # 建立 weekly_digest Job
@@ -170,15 +193,15 @@ gcloud run jobs create email-weekly-digest-job \
   --image ${IMAGE} \
   --region ${REGION} \
   --service-account ${SERVICE_ACCOUNT} \
-  --set-env-vars EMAIL_TASK=weekly_digest \
+  --set-env-vars "EMAIL_TASK=weekly_digest,DJANGO_SETTINGS_MODULE=config.settings.gcr" \
   --set-cloudsql-instances ${PROJECT_ID}:${REGION}:${INSTANCE_NAME} \
-  --set-secrets application_settings=application_settings:latest \
+  --set-secrets APPLICATION_SETTINGS=application_settings:latest \
   --memory 512Mi \
   --cpu 1 \
   --max-retries 2 \
   --task-timeout 30m \
   --command bash \
-  --args /code/app/src/run_email.sh
+  --args /code/app/run_email.sh
 ```
 
 **參數說明：**
@@ -230,7 +253,7 @@ gcloud logging read \
 
 **預期日誌內容：**
 
-```
+```bash
 TIMESTAMP                      TEXT_PAYLOAD
 2026-01-13T14:00:00.000Z      ==========================================
 2026-01-13T14:00:00.100Z      Cloud Run Email Notification Job
@@ -249,16 +272,16 @@ TIMESTAMP                      TEXT_PAYLOAD
 
 ## ⏰ Cloud Scheduler 設置
 
-### **創建定期排程**
+### **建立定期排程**
 
 設置每週自動執行郵件通知：
 
 ```bash
-# 創建 Cloud Scheduler Job
-# 每週一早上 9:00 發送（台北時間）
+# 建立 Cloud Scheduler Job
+# 每週五中午 12:00 發送（台北時間）
 gcloud scheduler jobs create http email-weekly-digest-schedule \
   --location ${REGION} \
-  --schedule "0 9 * * 1" \
+  --schedule "0 12 * * 5" \
   --time-zone "Asia/Taipei" \
   --uri "https://${REGION}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${PROJECT_ID}/jobs/email-weekly-digest-job:run" \
   --http-method POST \
@@ -267,7 +290,7 @@ gcloud scheduler jobs create http email-weekly-digest-schedule \
 
 **Cron 格式說明：**
 
-- `0 9 * * 1` = 每週一早上 9:00
+- `0 12 * * 5` = 每週五中午 12:00
 - 時區：`Asia/Taipei` (UTC+8)
 
 **其他常用排程範例：**
@@ -349,7 +372,8 @@ aws ses list-verified-email-addresses --region us-east-1
 ```
 
 在 AWS Console 查看詳細資訊：
-- **SES Dashboard**: https://console.aws.amazon.com/ses/
+
+- **SES Dashboard**: <https://console.aws.amazon.com/ses/>
 - **CloudWatch Metrics**: 監控發送成功率、退信率等
 
 ---
@@ -374,8 +398,8 @@ aws ses list-verified-email-addresses --region us-east-1
 
 按**實際執行時間**計費：
 
-- **CPU**: $0.00002400 / vCPU-second
-- **記憶體**: $0.00000250 / GiB-second
+- **CPU**: $0.000018 / vCPU-second
+- **記憶體**: $0.000002 / GiB-second
 
 ### **範例計算（每週執行 1 次）**
 
@@ -386,8 +410,8 @@ aws ses list-verified-email-addresses --region us-east-1
 
 **成本：**
 
-- CPU: 4 × 300 × 1 × $0.00002400 = **$0.03**
-- 記憶體: 4 × 300 × 0.5 × $0.00000250 = **$0.0015**
+- CPU: 4 × 300 × 1 × $0.000018 = **$0.03**
+- 記憶體: 4 × 300 × 0.5 × $0.000002 = **$0.0015**
 - **月總計: ~$0.03 USD**
 
 ### **Cloud Scheduler 計費**
@@ -436,30 +460,26 @@ gcloud logging read \
 
 **檢查步驟：**
 
-1. **確認 AWS SES 設定**
+  1. **確認 AWS SES 設定**
+    ```bash
+    # 檢查 SES 驗證狀態
+    aws ses get-identity-verification-attributes \
+      --identities <your-verified-email@example.com> \
+      --region us-east-1
+    # 檢查 SES 是否在沙盒模式
+    aws ses get-account-sending-enabled --region us-east-1
+    ```
 
-```bash
-# 檢查 SES 驗證狀態
-aws ses get-identity-verification-attributes \
-  --identities your-verified-email@example.com \
-  --region us-east-1
+  2. **查看 Django 日誌**
+    ```bash
+    gcloud logging read \
+      "resource.type=cloud_run_job AND textPayload=~'SES Send Error'" \
+      --limit 20
+    ```
 
-# 檢查 SES 是否在沙盒模式
-aws ses get-account-sending-enabled --region us-east-1
-```
-
-2. **查看 Django 日誌**
-
-```bash
-gcloud logging read \
-  "resource.type=cloud_run_job AND textPayload=~'SES Send Error'" \
-  --limit 20
-```
-
-3. **檢查收件人郵箱**
-
-- 檢查垃圾郵件資料夾
-- 確認收件人郵箱有效
+  3. **檢查收件人郵箱**
+    - 檢查垃圾郵件資料夾
+    - 確認收件人郵箱有效
 
 ---
 
@@ -500,15 +520,14 @@ gcloud run jobs update email-weekly-digest-job \
 
 **解決方法：**
 
-1. **增加 timeout 時間**
+  1. **增加 timeout 時間**
+    ```bash
+    gcloud run jobs update email-weekly-digest-job \
+      --region ${REGION} \
+      --task-timeout 60m
+    ```
 
-```bash
-gcloud run jobs update email-weekly-digest-job \
-  --region ${REGION} \
-  --task-timeout 60m
-```
-
-2. **批次發送**：修改 `subscriptions/tasks.py` 實現批次發送
+  2. **批次發送**：修改 `subscriptions/tasks.py` 實現批次發送
 
 ---
 
@@ -554,29 +573,34 @@ gcloud run jobs execute email-weekly-digest-job --region ${REGION}
 ### **架構優勢**
 
 ✅ **完全獨立運行**
+
 - Cloud Run Jobs 與 Web Service 完全分離
 - 即使 Web Service scale to zero，郵件仍準時發送
 
 ✅ **成本極低**
+
 - 按實際執行時間計費
 - 預估每月 ~$0.03 USD
 
 ✅ **零維護**
+
 - 無需管理 Celery Worker
 - Google Cloud 負責基礎設施管理
 
 ✅ **高可靠性**
+
 - 自動重試機制
 - Cloud Logging 完整記錄
 
 ✅ **易於擴展**
-- 需要新增郵件任務？只需創建新 Job 和 Scheduler
+
+- 需要新增郵件任務？只需建立新 Job 和 Scheduler
 
 ### **定時排程總覽**
 
 | 郵件任務 | 頻率 | Cron | 執行時間（台北） | 預估執行時長 |
 | -------- | ---- | ---- | --------------- | ----------- |
-| **每週摘要** | 每週 | "0 12 * * 5" | 週五 12:00 | ~5 分鐘 |
+| **每週摘要** | 每週 | "0 12 ** 5" | 週五 12:00 | ~5 分鐘 |
 
 ---
 
@@ -590,6 +614,6 @@ gcloud run jobs execute email-weekly-digest-job --region ${REGION}
 
 ---
 
-**文件版本：** 1.0  
-**最後更新：** 2026-01-13  
+**文件版本：** 1.0
+**最後更新：** 2026-01-13
 **作者：** ComicChase Development Team

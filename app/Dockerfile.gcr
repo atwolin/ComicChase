@@ -15,13 +15,19 @@ WORKDIR /code/app
 RUN groupadd -g $GID docker-users && \
     useradd -m --no-log-init -s /bin/bash -u $USER_ID -g $GID docker
 
+# Install Chrome and ChromeDriver for Selenium support
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    chromium \
+    chromium-driver \
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives
+
 RUN pip install --upgrade pip
 COPY ./app/requirements-gcr.txt ./
 RUN pip install --no-cache-dir -r requirements-gcr.txt
 
 COPY ./app/src ./
 
-RUN chmod +x entrypoint.gcr.sh wait-for-it.sh run_crawler.sh
+RUN chmod +x entrypoint.gcr.sh wait-for-it.sh run_crawler.sh run_email.sh
 
 # Set ownership and permissions
 RUN chown -R docker:docker-users /code/app

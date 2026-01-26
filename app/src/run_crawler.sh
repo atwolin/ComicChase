@@ -25,8 +25,8 @@ case ${CRAWLER_TASK} in
     "eslite_all_series")
         python manage.py run_scheduled_crawler --task eslite_all_series
         ;;
-    "eslite_orphans")
-        python manage.py run_scheduled_crawler --task eslite_orphans
+    "eslite_orphan_volumes")
+        python manage.py run_scheduled_crawler --task eslite_orphan_volumes
         ;;
     "booksjp_all_series")
         python manage.py run_scheduled_crawler --task booksjp_all_series
@@ -36,7 +36,7 @@ case ${CRAWLER_TASK} in
         echo "Available tasks:"
         echo "  - bookstw_new"
         echo "  - eslite_all_series"
-        echo "  - eslite_orphans"
+        echo "  - eslite_orphan_volumes"
         echo "  - booksjp_all_series"
         exit 1
         ;;

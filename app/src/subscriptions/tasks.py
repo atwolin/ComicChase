@@ -124,6 +124,10 @@ def send_single_email_task(self, user_id, user_email, volumes_data, sync=False):
     """
     發送單一郵件通知
 
+    使用 AWS SES 發送郵件，根據 AWS_USE_FEDERATION 設定決定使用：
+    - Federation 模式（Cloud Run）
+    - django-ses 模式（本機開發）
+
     Args:
         user_id (int): 使用者 ID（用於日誌記錄）
         user_email (str): 收件人郵件地址
@@ -151,25 +155,41 @@ def send_single_email_task(self, user_id, user_email, volumes_data, sync=False):
     # 渲染 HTML 內容
     html_content = render_to_string(
         "emails/weekly_digest.html",
-        {"volumes": volumes_data, "site_url": "https://comicchase.web.app"},
+        {"volumes": volumes_data, "site_url": "https://comicchase.site"},
     )
 
     # 檢查渲染後的內容
     if "{%" in html_content or "{{" in html_content:
         logger.error(f"[{task_id}] Template rendering failed! Tags are still present.")
 
-    # 建立郵件支援純文字降級與 HTML
-    msg = EmailMultiAlternatives(
-        subject=subject,
-        body="請在支援 HTML 的環境查看此郵件",
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[user_email],
-    )
-    msg.attach_alternative(html_content, "text/html")
-
     # 執行發送
     try:
-        msg.send(fail_silently=False)
+        use_federation = getattr(settings, "AWS_USE_FEDERATION", False)
+
+        if use_federation:
+            # Use Google-to-AWS Federation
+            logger.info(f"[{task_id}] Sending email via Federation to {user_email}")
+            from config.aws_federation import send_email_with_federation
+
+            send_email_with_federation(
+                source=settings.DEFAULT_FROM_EMAIL,
+                to_addresses=[user_email],
+                subject=subject,
+                body_text="請在支援 HTML 的環境查看此郵件",
+                body_html=html_content,
+            )
+        else:
+            # Use django-ses with static credentials
+            logger.info(f"[{task_id}] Sending email via django-ses to {user_email}")
+            msg = EmailMultiAlternatives(
+                subject=subject,
+                body="請在支援 HTML 的環境查看此郵件",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[user_email],
+            )
+            msg.attach_alternative(html_content, "text/html")
+            msg.send(fail_silently=False)
+
         logger.info(f"[{task_id}] Email sent successfully to user_id={user_id}")
         return f"Email sent to user_id={user_id}"
     except Exception as e:

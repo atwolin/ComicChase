@@ -47,9 +47,10 @@ class TestBooksJpSpiderParse(unittest.TestCase):
         # Mock parse_search_results to return one item
         mock_parse = MagicMock(return_value=iter([JpComicItem()]))
 
-        with patch.object(
-            self.spider, "parse_search_results", mock_parse
-        ), patch.object(self.spider, "perform_search"):
+        with (
+            patch.object(self.spider, "parse_search_results", mock_parse),
+            patch.object(self.spider, "perform_search"),
+        ):
             url = "https://www.books.or.jp/"
             request = Request(url=url)
             response = HtmlResponse(

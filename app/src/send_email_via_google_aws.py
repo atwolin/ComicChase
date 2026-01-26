@@ -321,13 +321,13 @@ if __name__ == "__main__":
     1. AWS_ROLE_ARN - 您的 AWS IAM Role ARN
     2. SENDER_EMAIL - 已驗證的發件人郵箱
     3. RECIPIENT_EMAIL - 收件人郵箱
-    
+
 📝 前置作業：
     1. 在 AWS IAM 中建立 OIDC Provider (accounts.google.com)
     2. 建立 IAM Role 並配置 Trust Policy 允許 Google 聯盟
     3. 在 SES 中驗證發件人和收件人郵箱
     4. 執行: gcloud auth application-default login
-    
+
     或提供服務帳戶金鑰：
     export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json
     """)

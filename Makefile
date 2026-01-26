@@ -16,7 +16,7 @@ else
     $(error Invalid ENV value: $(ENV). Use 'local', 'gce', or 'gcr-test')
 endif
 
-.PHONY: all up down build rebuild logs shell manage test clean help env-info
+.PHONY: all up down restart build rebuild logs shell manage test clean help env-info
 
 all: rebuild ## Build and start everything (alias for rebuild)
 
@@ -35,6 +35,10 @@ up: env-info ## Start the Docker containers in detached mode. Usage: make up [EN
 down: ## Stop and remove the Docker containers. Usage: make down [ENV=local|gce|gcr-test]
 	@echo "🛑 Stopping services..."
 	$(COMPOSE) down
+
+restart: ## Restart the Docker containers. Usage: make restart [ENV=local|gce|gcr-test] [SERV=service_name]
+	@echo "🔄 Restarting $(if $(SERV),$(SERV),all services)..."
+	$(COMPOSE) restart $(SERV)
 
 build: env-info ## Build the Docker images without starting. Usage: make build [ENV=local|gce|gcr-test]
 	@echo "🔨 Building Docker images..."

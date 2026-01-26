@@ -29,10 +29,17 @@ export const useSeriesList = (params?: UseSeriesListParams) => {
   return useQuery<PaginatedSeriesListList>({
     queryKey: seriesKeys.list(params),
     queryFn: async () => {
-      const { data } = await comicsSeriesList({
-        query: params,
-      })
-      return data!
+      console.log('[useSeriesList] 開始請求漫畫列表，參數:', params)
+      try {
+        const { data } = await comicsSeriesList({
+          query: params,
+        })
+        console.log('[useSeriesList] 漫畫列表請求成功')
+        return data!
+      } catch (error) {
+        console.error('[useSeriesList] 漫畫列表請求失敗:', error)
+        throw error
+      }
     },
   })
 }

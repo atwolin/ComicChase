@@ -31,7 +31,7 @@ class SeriesAPITests(APITestCase):
     def test_list_endpoint_returns_series(self):
         """測試列出所有系列漫畫"""
         url = reverse("series-list")
-        response = self.client.get(url)
+        response = self.client.get(url, follow=True)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("results", response.data)
@@ -45,7 +45,7 @@ class SeriesAPITests(APITestCase):
                 author_jp="作者",
             )
         url = reverse("series-list")
-        response = self.client.get(url)
+        response = self.client.get(url, follow=True)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 10)  # 確保每頁只有 10 筆
@@ -54,7 +54,7 @@ class SeriesAPITests(APITestCase):
     def test_search_filters_by_titles(self):
         """測試搜尋功能可依標題過濾"""
         url = reverse("series-list")
-        response = self.client.get(url, {"search": "巨人"})
+        response = self.client.get(url, {"search": "巨人"}, follow=True)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         ids = {item["id"] for item in response.data["results"]}
@@ -63,7 +63,7 @@ class SeriesAPITests(APITestCase):
     def test_search_can_return_empty_results(self):
         """測試空結果的處理"""
         url = reverse("series-list")
-        response = self.client.get(url, {"search": "不存在"})
+        response = self.client.get(url, {"search": "不存在"}, follow=True)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 0)
@@ -71,7 +71,7 @@ class SeriesAPITests(APITestCase):
     def test_detail_endpoint_includes_volumes(self):
         """測試回傳詳細資訊及關聯單行本"""
         url = reverse("series-detail", args=[self.series.id])
-        response = self.client.get(url)
+        response = self.client.get(url, follow=True)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("volumes", response.data)
@@ -80,14 +80,14 @@ class SeriesAPITests(APITestCase):
     def test_detail_endpoint_returns_404_for_missing_series(self):
         """測試不存在的 ID 回傳 404"""
         url = reverse("series-detail", args=[9999])
-        response = self.client.get(url)
+        response = self.client.get(url, follow=True)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_readonly_permission_allows_anonymous_get(self):
         """測試未認證用戶可以唯讀"""
         url = reverse("series-list")
-        response = self.client.get(url)
+        response = self.client.get(url, follow=True)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -104,7 +104,7 @@ class SeriesAPITests(APITestCase):
 
         # 測試匿名用戶 - IsAuthenticatedOrReadOnly 會先檢查權限
         self.client.force_authenticate(user=None)
-        response_anonymous = self.client.post(url, payload, format="json")
+        response_anonymous = self.client.post(url, payload, format="json", follow=True)
         self.assertEqual(
             response_anonymous.status_code,
             status.HTTP_403_FORBIDDEN,
@@ -116,7 +116,9 @@ class SeriesAPITests(APITestCase):
             username="testuser", email="testuser@example.com", password="testpass"
         )
         self.client.force_authenticate(user=user)
-        response_authenticated = self.client.post(url, payload, format="json")
+        response_authenticated = self.client.post(
+            url, payload, format="json", follow=True
+        )
         self.assertEqual(
             response_authenticated.status_code,
             status.HTTP_405_METHOD_NOT_ALLOWED,
