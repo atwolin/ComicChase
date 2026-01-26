@@ -140,3 +140,19 @@ else:
         "GS_BUCKET_NAME must be set for Cloud Run storage, "
         "or set ALLOW_LOCAL_STORAGE=true for local testing"
     )
+
+# ============================================================
+# AWS Federation Settings (for SES Email)
+# ============================================================
+
+# When True, use Google-to-AWS Workload Identity Federation
+# instead of static AWS Access Keys
+AWS_USE_FEDERATION = env.bool("AWS_USE_FEDERATION", default=True)
+AWS_ROLE_ARN = env("AWS_ROLE_ARN", default="")
+
+# ============================================================
+# Email Settings
+# ============================================================
+
+# Override DEFAULT_FROM_EMAIL from base.py with Secret Manager value
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@comicchase.site")
