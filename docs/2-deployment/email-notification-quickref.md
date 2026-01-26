@@ -26,6 +26,7 @@ EMAIL_TASK=weekly_digest bash app/src/run_email.sh
 | 任務名稱 | 說明 | 建議頻率 |
 | --------- | ------ | --------- |
 | `weekly_digest` | 發送每週漫畫新出版清單 | 每週一次 |
+| `test_email` | 發送測試郵件 | 手動執行 |
 
 ---
 
@@ -65,10 +66,10 @@ gcloud run jobs execute email-weekly-digest-job --region ${REGION}
 ### **建立 Cloud Scheduler**
 
 ```bash
-# 每週一早上 9:00 發送（台北時間）
+# 每週五中午 12:00 發送（台北時間）
 gcloud scheduler jobs create http email-weekly-digest-schedule \
   --location ${REGION} \
-  --schedule "0 9 * * 1" \
+  --schedule "0 12 * * 5" \
   --time-zone "Asia/Taipei" \
   --uri "https://${REGION}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${PROJECT_ID}/jobs/email-weekly-digest-job:run" \
   --http-method POST \
@@ -90,6 +91,31 @@ gcloud run jobs executions list --job email-weekly-digest-job --region ${REGION}
 
 # 查看最新執行狀態
 gcloud run jobs executions describe $(gcloud run jobs executions list --job email-weekly-digest-job --region ${REGION} --format="value(name)" --limit=1) --region ${REGION}
+```
+
+---
+
+## 📨 發送測試郵件
+
+### **透過 Cloud Run Job 發送**
+
+```bash
+# 發送測試郵件到指定郵箱
+gcloud run jobs execute email-weekly-digest-job \
+  --region ${REGION} \
+  --update-env-vars "EMAIL_TASK=test_email,TEST_EMAIL_TO=your@email.com"
+
+# 查看日誌
+gcloud logging read \
+  "resource.type=cloud_run_job AND resource.labels.job_name=email-weekly-digest-job" \
+  --limit 20 \
+  --format "table(timestamp, textPayload)"
+```
+
+### **本機發送**
+
+```bash
+python app/src/manage.py send_test_email --to your@email.com
 ```
 
 ---

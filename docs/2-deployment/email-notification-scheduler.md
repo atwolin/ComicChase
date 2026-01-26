@@ -22,6 +22,7 @@
 | 任務名稱 | 說明 | 建議頻率 |
 | --------- | ------ | --------- |
 | `weekly_digest` | 發送每週漫畫新出版清單給所有訂閱用戶 | 每週一次 |
+| `test_email` | 發送測試郵件（需要 `TEST_EMAIL_TO` 環境變數） | 手動執行 |
 
 ### **任務執行流程**
 
@@ -143,6 +144,28 @@ print(result)
 
 ---
 
+### **方法 5：發送測試郵件**
+
+使用 `send_test_email` 管理指令發送測試郵件：
+
+```bash
+# 本機發送測試郵件
+python app/src/manage.py send_test_email --to your@email.com
+
+# 自訂主旨
+python app/src/manage.py send_test_email --to your@email.com --subject "自訂測試主旨"
+```
+
+**透過 Cloud Run Job 發送測試郵件：**
+
+```bash
+gcloud run jobs execute email-weekly-digest-job \
+  --region ${REGION} \
+  --update-env-vars "EMAIL_TASK=test_email,TEST_EMAIL_TO=your@email.com"
+```
+
+---
+
 ## ☁️ Cloud Run Jobs 部署
 
 ### **前置準備**
@@ -152,7 +175,7 @@ print(result)
 ```bash
 # 設定環境變數
 PROJECT_ID=$(gcloud config get-value core/project)
-REGION=ap-northeast-1
+REGION=us-central1
 SERVICE_ACCOUNT=$(gcloud iam service-accounts list \
     --filter cloudrun-serviceaccount --format "value(email)")
 IMAGE=${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/comicchase-service
@@ -170,7 +193,7 @@ gcloud run jobs create email-weekly-digest-job \
   --image ${IMAGE} \
   --region ${REGION} \
   --service-account ${SERVICE_ACCOUNT} \
-  --set-env-vars EMAIL_TASK=weekly_digest \
+  --set-env-vars "EMAIL_TASK=weekly_digest,DJANGO_SETTINGS_MODULE=config.settings.gcr" \
   --set-cloudsql-instances ${PROJECT_ID}:${REGION}:${INSTANCE_NAME} \
   --set-secrets APPLICATION_SETTINGS=application_settings:latest \
   --memory 512Mi \
@@ -178,7 +201,7 @@ gcloud run jobs create email-weekly-digest-job \
   --max-retries 2 \
   --task-timeout 30m \
   --command bash \
-  --args /code/app/src/run_email.sh
+  --args /code/app/run_email.sh
 ```
 
 **參數說明：**
@@ -255,10 +278,10 @@ TIMESTAMP                      TEXT_PAYLOAD
 
 ```bash
 # 建立 Cloud Scheduler Job
-# 每週一早上 9:00 發送（台北時間）
+# 每週五中午 12:00 發送（台北時間）
 gcloud scheduler jobs create http email-weekly-digest-schedule \
   --location ${REGION} \
-  --schedule "0 9 * * 1" \
+  --schedule "0 12 * * 5" \
   --time-zone "Asia/Taipei" \
   --uri "https://${REGION}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${PROJECT_ID}/jobs/email-weekly-digest-job:run" \
   --http-method POST \
@@ -267,7 +290,7 @@ gcloud scheduler jobs create http email-weekly-digest-schedule \
 
 **Cron 格式說明：**
 
-- `0 9 * * 1` = 每週一早上 9:00
+- `0 12 * * 5` = 每週五中午 12:00
 - 時區：`Asia/Taipei` (UTC+8)
 
 **其他常用排程範例：**
