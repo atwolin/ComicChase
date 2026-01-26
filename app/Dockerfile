@@ -29,7 +29,7 @@ RUN pip install -r requirements.txt
 
 COPY ./app/src ./
 
-RUN chmod +x entrypoint.sh wait-for-it.sh
+RUN chmod +x entrypoint.sh wait-for-it.sh run_email.sh
 
 # Set ownership and permissions
 RUN chown -R docker:docker-users /code/app
