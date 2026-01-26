@@ -19,3 +19,6 @@ pyright==1.1.407
 scrapy==2.13.4
 selenium==4.38.0
 whitenoise==6.5.0
+requests==2.32.3
+google-auth==2.38.0
+boto3==1.38.11
