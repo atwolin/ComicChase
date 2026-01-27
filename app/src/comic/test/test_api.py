@@ -39,7 +39,7 @@ class SeriesAPITests(APITestCase):
 
     def test_pagination_respects_page_size(self):
         """測試分頁功能"""
-        for idx in range(12):  # 建立 12 筆資料觸發分頁
+        for idx in range(14):  # 建立 14 筆資料觸發分頁
             Series.objects.create(
                 title_jp=f"テスト作品{idx}",
                 author_jp="作者",
@@ -48,7 +48,7 @@ class SeriesAPITests(APITestCase):
         response = self.client.get(url, follow=True)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["results"]), 10)  # 確保每頁只有 10 筆
+        self.assertEqual(len(response.data["results"]), 12)  # 確保每頁只有 12 筆
         self.assertIsNotNone(response.data["next"])
 
     def test_search_filters_by_titles(self):

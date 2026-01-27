@@ -24,7 +24,7 @@ export const SeriesList = () => {
       search: searchQuery || undefined,
       ordering: '-id', // 固定為預設排序：最新更新
       page,
-      // 注意：後端 API 目前不支持 page_size 參數，使用默認值 10
+      // 注意：後端 API 目前不支持 page_size 參數，使用默認值 12
     }),
     [searchQuery, page]
   )
