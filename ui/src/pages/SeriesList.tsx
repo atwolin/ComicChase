@@ -1,13 +1,12 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { SeriesCard } from '@/components/SeriesCard'
-import { SearchBar } from '@/components/SearchBar'
 import { Loading } from '@/components/Loading'
 import { ErrorDisplay } from '@/components/Error'
 import { useSeriesList } from '@/hooks/useSeries'
 
 export const SeriesList = () => {
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const [searchQuery, setSearchQuery] = useState(
     searchParams.get('search') || ''
   )
@@ -31,16 +30,6 @@ export const SeriesList = () => {
 
   const { data, isLoading, error, refetch } = useSeriesList(params)
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query)
-    setPage(1)
-    if (query) {
-      setSearchParams({ search: query })
-    } else {
-      setSearchParams({})
-    }
-  }
-
   if (isLoading) {
     return <Loading />
   }
@@ -58,11 +47,6 @@ export const SeriesList = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="container mx-auto px-4 py-8">
-        {/* 搜尋攔 - 最上面 */}
-        <div className="mb-6 relative">
-          <SearchBar onSearch={handleSearch} initialValue={searchQuery} />
-        </div>
-
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-6 flex items-center gap-3">
             <span className="w-1 h-10 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"></span>
