@@ -23,7 +23,9 @@ export const MySubscriptions = () => {
     isAuthenticated
   )
 
-  const subscriptions = data?.results || []
+  // 支援兩種格式：分頁格式 { results: [...] } 或純陣列 [...]
+  // 後端禁用分頁後會返回純陣列
+  const subscriptions = Array.isArray(data) ? data : data?.results || []
   const hasSubscriptions = subscriptions.length > 0
 
   // 使用 useQueries 批量查詢每個系列的詳情
