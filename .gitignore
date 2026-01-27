@@ -249,3 +249,7 @@ google-credentials.json
 # Local config files with real credentials (keep templates, ignore local versions)
 trust-policy.json
 aws-config.json
+
+# act (GitHub Actions local runner)
+.act
+app/bin/act
