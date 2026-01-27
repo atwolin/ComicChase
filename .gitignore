@@ -100,6 +100,7 @@ __pypackages__/
 .env.gcr-test
 .envrc
 .venv
+.venv/
 env/
 venv/
 ENV/
@@ -177,7 +178,7 @@ firebase-debug.*.log*
 .dataconnect
 
 # ==============================================================================
-# Cloud & Databases
+# Databases
 # ==============================================================================
 
 # Databases
@@ -193,11 +194,6 @@ mnesia/
 rabbitmq/
 rabbitmq-data/
 activemq-data/
-
-# Cloud Run
-google-credentials.json
-trust-policy.json
-config.template.json
 
 # ==============================================================================
 # IDEs & Editors
@@ -251,13 +247,5 @@ awscli/
 google-credentials.json
 
 # Local config files with real credentials (keep templates, ignore local versions)
-local-trust-policy.json
-local.config.template.json
-
-# ==============================================================================
-# Zip Archives
-# ==============================================================================
-
-# Generic zip files (except specific ones needed for deployment)
-*.zip
-!deployment/**/*.zip
+trust-policy.json
+aws-config.json
