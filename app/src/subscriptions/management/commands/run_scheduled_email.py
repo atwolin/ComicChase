@@ -9,6 +9,7 @@ import sys
 from datetime import datetime
 
 from django.core.management.base import BaseCommand
+
 from subscriptions.tasks import run_weekly_notification_flow
 
 logger = logging.getLogger(__name__)
