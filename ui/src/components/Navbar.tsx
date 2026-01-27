@@ -76,7 +76,7 @@ export const Navbar = () => {
 
           {/* 搜尋框 - 只在非首頁顯示 */}
           {!isHomePage && (
-            <div className="flex-1 max-w-md mx-4">
+            <div className="flex-1 max-w-md mx-2 sm:mx-4">
               <SearchBar navigateOnSearch={true} compact={true} />
             </div>
           )}
@@ -88,9 +88,9 @@ export const Navbar = () => {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex items-center gap-2 px-2 sm:px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
                     {(
                       user.email?.[0] ||
                       user.display?.[0] ||
@@ -101,7 +101,7 @@ export const Navbar = () => {
                     {user.display || user.email}
                   </span>
                   <svg
-                    className={`w-4 h-4 text-gray-600 transition-transform ${
+                    className={`w-4 h-4 text-gray-600 transition-transform hidden sm:block ${
                       isDropdownOpen ? 'rotate-180' : ''
                     }`}
                     fill="none"
