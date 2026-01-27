@@ -40,8 +40,8 @@
 # 透過 AWS CLI
 aws iam create-open-id-connect-provider \
     --url https://accounts.google.com \
-    --client-id-list 664556590362-qugqkbob7rjhvfo0s3scieakvvjiddkl.apps.googleusercontent.com \
-    --thumbprint-list 1234567890abcdef...  # Google 的 thumbprint
+    --client-id-list YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com \
+    --thumbprint-list YOUR_GOOGLE_THUMBPRINT
 ```
 
 或透過 AWS Console:
@@ -53,7 +53,7 @@ aws iam create-open-id-connect-provider \
 
 #### 1.2 建立 IAM Role
 
-建立檔案 `trust-policy.json`:
+複製檔案 `trust-policy.example.json`，並改名為 `trust-policy.json` 更新相關參數。
 
 ```json
 {
@@ -62,12 +62,12 @@ aws iam create-open-id-connect-provider \
     {
       "Effect": "Allow",
       "Principal": {
-        "Federated": "arn:aws:iam::241904576542:oidc-provider/accounts.google.com"
+        "Federated": "arn:aws:iam::YOUR_AWS_ACCOUNT_ID:oidc-provider/accounts.google.com"
       },
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
         "StringEquals": {
-          "accounts.google.com:aud": "http://664556590362-qugqkbob7rjhvfo0s3scieakvvjiddkl.apps.googleusercontent.com"
+          "accounts.google.com:aud": "http://YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
         }
       }
     }
@@ -112,7 +112,19 @@ aws iam put-role-policy \
     --policy-document file://ses-policy.json
 ```
 
-#### 1.4 驗證 SES 郵件地址
+#### 1.4 清理設定檔（可選）
+
+上述步驟中建立的 `trust-policy.json` 和 `ses-policy.json` 僅在初始設定時需要。設定完成後，這些政策已存在於 AWS IAM 中，本地檔案可以刪除：
+
+```bash
+# 刪除臨時設定檔（政策已存在於 AWS IAM，不再需要本地檔案）
+rm trust-policy.json
+rm ses-policy.json
+```
+
+> **💡 提示**: 如果需要保留作為文檔參考，可以改名為 `.example` 後綴（如 `trust-policy.example.json`）並提交到版本控制。
+
+#### 1.5 驗證 SES 郵件地址
 
 ```bash
 # 驗證發件人郵箱
@@ -139,11 +151,8 @@ gcloud services enable sts.googleapis.com
 #### 2.2 設定本地驗證
 
 ```bash
-# 方法1: 使用 Application Default Credentials
+# 使用 Application Default Credentials
 gcloud auth application-default login
-
-# 方法2: 使用服務帳戶金鑰
-export GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account-key.json
 ```
 
 ---
@@ -173,9 +182,6 @@ python send_email_via_google_aws.py
 ```bash
 # 確保已登入 gcloud
 gcloud auth application-default login
-
-# 或設定服務帳戶金鑰
-export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json
 ```
 
 ### 問題 2: AWS STS AssumeRole 失敗
@@ -246,7 +252,7 @@ getGoogleIdToken().then(token => console.log('Token 長度:', token.length));
 
 ```bash
 aws sts assume-role-with-web-identity \
-    --role-arn arn:aws:iam::241904576542:role/GoogleFederationRole \
+    --role-arn arn:aws:iam::YOUR_AWS_ACCOUNT_ID:role/GoogleFederationRole \
     --role-session-name test-session \
     --web-identity-token "YOUR_GOOGLE_ID_TOKEN"
 ```
