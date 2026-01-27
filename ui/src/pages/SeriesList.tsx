@@ -53,7 +53,7 @@ export const SeriesList = () => {
     return null
   }
 
-  const totalPages = Math.ceil(data.count / 10) // 後端默認 page_size 是 10
+  const totalPages = Math.ceil(data.count / 12) // 後端默認 page_size 是 12
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
