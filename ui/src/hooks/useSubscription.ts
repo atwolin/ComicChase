@@ -55,15 +55,19 @@ export function useSubscriptions(
 export function useIsSubscribed(seriesId: number, enabled = true) {
   const { data } = useSubscriptions(undefined, enabled)
 
+  // 支援兩種格式：分頁格式 { results: [...] } 或純陣列 [...]
+  // 後端禁用分頁後會返回純陣列
+  const subscriptions = Array.isArray(data) ? data : data?.results
+
   // 檢查訂閱列表中是否有該系列
   const isSubscribed =
-    data?.results?.some(sub => sub.series === seriesId) || false
+    subscriptions?.some(sub => sub.series === seriesId) || false
 
   console.log(
     `[useIsSubscribed] Series ${seriesId}:`,
     isSubscribed,
     'Total subscriptions:',
-    data?.results?.length || 0
+    subscriptions?.length || 0
   )
 
   return isSubscribed
