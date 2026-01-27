@@ -69,7 +69,7 @@ export const Navbar = () => {
                 target.style.display = 'none'
               }}
             />
-            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hidden sm:block">
               ComicChase
             </span>
           </Link>
