@@ -22,6 +22,7 @@
 | 任務名稱 | 說明 | 建議頻率 |
 | --------- | ------ | --------- |
 | `weekly_digest` | 發送每週漫畫新出版清單給所有訂閱用戶 | 每週一次 |
+| `daily_digest` | 發送每日漫畫新出版清單給所有訂閱用戶 | 每日一次 |
 | `test_email` | 發送測試郵件（需要 `TEST_EMAIL_TO` 環境變數） | 手動執行 |
 
 ### **任務執行流程**
@@ -270,6 +271,30 @@ TIMESTAMP                      TEXT_PAYLOAD
 
 ---
 
+### **Step 4: 建立訂閱通知 Job（每日）**
+
+```bash
+# 建立 subscription_notify Job
+gcloud run jobs create email-subscription-notify-job \
+  --image ${IMAGE} \
+  --region ${REGION} \
+  --service-account ${SERVICE_ACCOUNT} \
+  --set-env-vars "EMAIL_TASK=subscription_notify,DJANGO_SETTINGS_MODULE=config.settings.gcr" \
+  --set-cloudsql-instances ${PROJECT_ID}:${REGION}:${INSTANCE_NAME} \
+  --set-secrets APPLICATION_SETTINGS=application_settings:latest \
+  --memory 512Mi \
+  --cpu 1 \
+  --max-retries 2 \
+  --task-timeout 30m \
+  --command bash \
+  --args /code/app/src/run_email.sh
+
+# 手動測試
+gcloud run jobs execute email-subscription-notify-job --region ${REGION}
+```
+
+---
+
 ## ⏰ Cloud Scheduler 設置
 
 ### **建立定期排程**
@@ -284,6 +309,16 @@ gcloud scheduler jobs create http email-weekly-digest-schedule \
   --schedule "0 12 * * 5" \
   --time-zone "Asia/Taipei" \
   --uri "https://${REGION}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${PROJECT_ID}/jobs/email-weekly-digest-job:run" \
+  --http-method POST \
+  --oauth-service-account-email ${SERVICE_ACCOUNT}
+```
+
+# 建立訂閱通知排程（每日早上 10:00）
+gcloud scheduler jobs create http email-subscription-notify-schedule \
+  --location ${REGION} \
+  --schedule "0 10 * * *" \
+  --time-zone "Asia/Taipei" \
+  --uri "https://${REGION}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${PROJECT_ID}/jobs/email-subscription-notify-job:run" \
   --http-method POST \
   --oauth-service-account-email ${SERVICE_ACCOUNT}
 ```
@@ -600,6 +635,7 @@ gcloud run jobs execute email-weekly-digest-job --region ${REGION}
 
 | 郵件任務 | 頻率 | Cron | 執行時間（台北） | 預估執行時長 |
 | -------- | ---- | ---- | --------------- | ----------- |
+| **訂閱通知** | 每日 | "0 10 * * *" | 每日 10:00 | ~2 分鐘 |
 | **每週摘要** | 每週 | "0 12 ** 5" | 週五 12:00 | ~5 分鐘 |
 
 ---

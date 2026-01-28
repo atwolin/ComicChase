@@ -15,7 +15,10 @@ cd /path/to/ComicChase  # Replace with your project path
 # 方法 1: Django Management Command
 python app/src/manage.py run_scheduled_email --task weekly_digest
 
-# 方法 2: Shell 腳本
+# 方法 2: 訂閱通知（每日）
+python app/src/manage.py run_scheduled_email --task subscription_notify
+
+# 方法 3: Shell 腳本
 EMAIL_TASK=weekly_digest bash app/src/run_email.sh
 ```
 
@@ -26,6 +29,7 @@ EMAIL_TASK=weekly_digest bash app/src/run_email.sh
 | 任務名稱 | 說明 | 建議頻率 |
 | --------- | ------ | --------- |
 | `weekly_digest` | 發送每週漫畫新出版清單 | 每週一次 |
+| `subscription_notify` | 發送個人化新書通知（僅追蹤系列） | 每日一次 |
 | `test_email` | 發送測試郵件 | 手動執行 |
 
 ---
@@ -61,6 +65,27 @@ gcloud run jobs create email-weekly-digest-job \
 gcloud run jobs execute email-weekly-digest-job --region ${REGION}
 ```
 
+### **建立訂閱通知 Job（每日）**
+
+```bash
+gcloud run jobs create email-subscription-notify-job \
+  --image ${IMAGE} \
+  --region ${REGION} \
+  --service-account ${SERVICE_ACCOUNT} \
+  --set-env-vars "EMAIL_TASK=subscription_notify,DJANGO_SETTINGS_MODULE=config.settings.gcr" \
+  --set-cloudsql-instances ${PROJECT_ID}:${REGION}:${INSTANCE_NAME} \
+  --set-secrets APPLICATION_SETTINGS=application_settings:latest \
+  --memory 512Mi \
+  --cpu 1 \
+  --max-retries 2 \
+  --task-timeout 30m \
+  --command bash \
+  --args /code/app/src/run_email.sh
+
+# 手動測試
+gcloud run jobs execute email-subscription-notify-job --region ${REGION}
+```
+
 ---
 
 ### **建立 Cloud Scheduler**
@@ -72,6 +97,15 @@ gcloud scheduler jobs create http email-weekly-digest-schedule \
   --schedule "0 12 * * 5" \
   --time-zone "Asia/Taipei" \
   --uri "https://${REGION}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${PROJECT_ID}/jobs/email-weekly-digest-job:run" \
+  --http-method POST \
+  --oauth-service-account-email ${SERVICE_ACCOUNT}
+
+# 訂閱通知：每日早上 10:00
+gcloud scheduler jobs create http email-subscription-notify-schedule \
+  --location ${REGION} \
+  --schedule "0 10 * * *" \
+  --time-zone "Asia/Taipei" \
+  --uri "https://${REGION}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${PROJECT_ID}/jobs/email-subscription-notify-job:run" \
   --http-method POST \
   --oauth-service-account-email ${SERVICE_ACCOUNT}
 
