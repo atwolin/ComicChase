@@ -200,6 +200,14 @@ export const SeriesDetail = () => {
 
                       {/* 追蹤按鈕 */}
                       <button
+                        type="button"
+                        aria-pressed={isAuthenticated && isSubscribed}
+                        aria-busy={isTogglingSubscription}
+                        aria-label={
+                          isAuthenticated && isSubscribed
+                            ? '取消追蹤'
+                            : '追蹤此系列'
+                        }
                         onClick={handleToggleSubscription}
                         disabled={isTogglingSubscription}
                         className={clsx(
