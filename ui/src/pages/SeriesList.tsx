@@ -30,6 +30,30 @@ export const SeriesList = () => {
 
   const { data, isLoading, error, refetch } = useSeriesList(params)
 
+  // 生成頁碼按鈕列表
+  const getPageNumbers = (
+    currentPage: number,
+    totalPages: number
+  ): (number | 'ellipsis')[] => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1)
+    }
+
+    const pages: (number | 'ellipsis')[] = []
+    if (currentPage <= 4) {
+      for (let i = 1; i <= 5; i++) pages.push(i)
+      pages.push('ellipsis', totalPages)
+    } else if (currentPage >= totalPages - 3) {
+      pages.push(1, 'ellipsis')
+      for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i)
+    } else {
+      pages.push(1, 'ellipsis')
+      for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i)
+      pages.push('ellipsis', totalPages)
+    }
+    return pages
+  }
+
   if (isLoading) {
     return <Loading />
   }
@@ -70,24 +94,69 @@ export const SeriesList = () => {
               ))}
             </div>
 
+            {/* 分頁控制 */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-2">
+              <div className="flex justify-center items-center gap-1">
+                {/* 首頁 */}
+                <button
+                  onClick={() => setPage(1)}
+                  disabled={page === 1}
+                  className="w-10 h-10 rounded-lg font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 hover:bg-gray-100"
+                  title="首頁"
+                >
+                  «
+                </button>
+                {/* 上一頁 */}
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors shadow-sm"
+                  className="w-10 h-10 rounded-lg font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 hover:bg-gray-100"
+                  title="上一頁"
                 >
-                  上一頁
+                  ‹
                 </button>
-                <span className="px-4 py-2 text-gray-700">
-                  第 {page} 頁 / 共 {totalPages} 頁
-                </span>
+
+                {/* 頁碼按鈕 */}
+                {getPageNumbers(page, totalPages).map((pageNum, index) =>
+                  pageNum === 'ellipsis' ? (
+                    <span
+                      key={`ellipsis-${index}`}
+                      className="w-10 h-10 flex items-center justify-center text-gray-400"
+                    >
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={pageNum}
+                      onClick={() => setPage(pageNum)}
+                      className={`w-10 h-10 rounded-full font-medium transition-all ${
+                        pageNum === page
+                          ? 'bg-gray-800 text-white shadow-md'
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                )}
+
+                {/* 下一頁 */}
                 <button
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors shadow-sm"
+                  className="w-10 h-10 rounded-lg font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 hover:bg-gray-100"
+                  title="下一頁"
                 >
-                  下一頁
+                  ›
+                </button>
+                {/* 末頁 */}
+                <button
+                  onClick={() => setPage(totalPages)}
+                  disabled={page === totalPages}
+                  className="w-10 h-10 rounded-lg font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 hover:bg-gray-100"
+                  title="末頁"
+                >
+                  »
                 </button>
               </div>
             )}
