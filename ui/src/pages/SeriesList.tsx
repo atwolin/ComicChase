@@ -11,6 +11,7 @@ export const SeriesList = () => {
     searchParams.get('search') || ''
   )
   const [page, setPage] = useState(1)
+  const pageSize = 12 // 後端默認 page_size
 
   useEffect(() => {
     const searchParam = searchParams.get('search')
@@ -66,7 +67,7 @@ export const SeriesList = () => {
     return null
   }
 
-  const totalPages = Math.ceil(data.count / 12) // 後端默認 page_size 是 12
+  const totalPages = Math.ceil(data.count / pageSize) // 後端默認 page_size 是 12
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
