@@ -26,7 +26,8 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
 
     serializer_class = SubscriptionSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwner]
-    pagination_class = None
+    # 使用全域預設分頁 (PageNumberPagination, PAGE_SIZE=12)
+    # 前端可透過 ?page=N 進行翻頁，或 ?all=true 關閉分頁
 
     def get_queryset(self):
         """
@@ -34,6 +35,15 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
         for the currently authenticated user.
         """
         return Subscription.objects.filter(user=self.request.user)
+
+    def paginate_queryset(self, queryset):
+        """
+        Allow disabling pagination with ?all=true query parameter.
+        This is useful for checking subscription status without pagination.
+        """
+        if self.request.query_params.get("all", "").lower() == "true":
+            return None
+        return super().paginate_queryset(queryset)
 
     @action(
         detail=False,
