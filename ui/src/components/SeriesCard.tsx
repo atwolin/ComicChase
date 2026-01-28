@@ -104,6 +104,10 @@ export const SeriesCard = ({ series }: SeriesCardProps) => {
             <button
               onClick={handleHeartClick}
               disabled={isTogglingSubscription}
+              aria-label={
+                isAuthenticated && isSubscribed ? '取消追蹤' : '追蹤此系列'
+              }
+              aria-pressed={isAuthenticated && isSubscribed}
               className={clsx(
                 'p-1 rounded-full transition-all disabled:opacity-50',
                 isAuthenticated && isSubscribed
