@@ -23,6 +23,13 @@ class Subscription(models.Model):
     receive_email = models.BooleanField(default=True)
     receive_line = models.BooleanField(default=False)
 
+    # Notification tracking
+    last_notified_at = models.DateTimeField(
+        blank=True,
+        help_text="最後一次發送新書通知的時間",
+        null=True,
+    )
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
