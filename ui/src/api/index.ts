@@ -10,43 +10,58 @@ import { env } from '@/config/env'
 import { getCSRFToken } from '@/lib/django'
 
 // ============================================================
-// 配置 API Client
+// API Client 初始化
 // ============================================================
 
-// 建立自定義 fetch 函數，自動添加 credentials
-// 這樣所有請求都會包含 cookies (session, CSRF token 等)
-const customFetch: typeof fetch = (input, init) => {
-  // 確保 init 存在
-  const requestInit = init || {}
+let isInitialized = false
 
-  // 設置 credentials: 'include' 來發送跨域 cookies
-  return globalThis.fetch(input, {
-    ...requestInit,
-    credentials: 'include',
-  })
-}
-
-// 配置 baseURL 和自定義 fetch（使用環境變數或默認為 '/api'）
-// 在生產環境中，VITE_API_BASE_URL 應該是完整的後端 URL
-// 例如: https://comicchase-service-664556590362.us-central1.run.app/api
-client.setConfig({
-  baseUrl: env.apiBaseUrl,
-  fetch: customFetch,
-})
-
-// ============================================================
-// Request Interceptor - 添加 CSRF Token
-// ============================================================
-
-client.interceptors.request.use((request, _options) => {
-  // 添加 CSRF Token header（Django 要求）
-  const csrfToken = getCSRFToken()
-  if (csrfToken) {
-    request.headers.set('X-CSRFToken', csrfToken)
+/**
+ * 初始化 API Client
+ *
+ * 此函數必須在應用程式啟動時調用，以配置：
+ * - baseUrl: API 基礎 URL
+ * - credentials: 跨域 cookie 支援
+ * - CSRF Token 攔截器
+ *
+ * @example
+ * // 在 main.tsx 或 App.tsx 中調用
+ * import { initializeApiClient } from '@/api'
+ * initializeApiClient()
+ */
+export function initializeApiClient(): void {
+  if (isInitialized) {
+    return
   }
 
-  return request
-})
+  // 建立自定義 fetch 函數，自動添加 credentials
+  // 這樣所有請求都會包含 cookies (session, CSRF token 等)
+  const customFetch: typeof fetch = (input, init) => {
+    const requestInit = init || {}
+    return globalThis.fetch(input, {
+      ...requestInit,
+      credentials: 'include',
+    })
+  }
+
+  // 配置 baseURL 和自定義 fetch
+  // 在生產環境中，VITE_API_BASE_URL 應該是完整的後端 URL
+  // 例如: https://api.comicchase.site
+  client.setConfig({
+    baseUrl: env.apiBaseUrl,
+    fetch: customFetch,
+  })
+
+  // Request Interceptor - 添加 CSRF Token
+  client.interceptors.request.use((request, _options) => {
+    const csrfToken = getCSRFToken()
+    if (csrfToken) {
+      request.headers.set('X-CSRFToken', csrfToken)
+    }
+    return request
+  })
+
+  isInitialized = true
+}
 
 // ============================================================
 // 導出所有 API 函數和類型

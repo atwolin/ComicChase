@@ -1,8 +1,11 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '@/lib/react-query'
-import '@/api' // 配置 API client (baseUrl, CSRF token 等) - 必須在使用 API 前導入
+import { initializeApiClient } from '@/api'
 import { AuthProvider } from '@/contexts/AuthContext'
+
+// 初始化 API Client（必須在使用任何 API 前調用）
+initializeApiClient()
 import { Navbar } from '@/components/Navbar'
 import { Home } from '@/pages/Home'
 import { SeriesList } from '@/pages/SeriesList'
