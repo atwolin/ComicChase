@@ -218,7 +218,7 @@ aws sesv2 list-email-identities
 2. ✅ 執行 `test_environment.py` 確認環境
 3. ✅ 更新腳本配置
 4. ✅ 執行主腳本發送測試郵件
-5. 📖 閱讀 `README_EMAIL_FEDERATION.md` 了解進階用法
+5. 📖 閱讀 `email-google-to-aws-federation-guide.md` 了解進階用法
 
 ---
 
@@ -227,6 +227,3 @@ aws sesv2 list-email-identities
 - 首次使用建議先執行 `test_environment.py` 檢查環境
 - SES 沙盒模式下，發件人和收件人都需要驗證
 - 生產環境請移出 SES 沙盒模式
-- 詳細架構說明請參考 `README_EMAIL_FEDERATION.md`
-
-有問題？查看完整文檔： `README_EMAIL_FEDERATION.md`
