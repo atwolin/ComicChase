@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useQueries } from '@tanstack/react-query'
 import { useSubscriptions } from '@/hooks/useSubscription'
@@ -18,15 +18,48 @@ export const MySubscriptions = () => {
   // 認證檢查
   const { isAuthenticated, navigateToLogin } = useRequireAuth()
 
+  // 分頁狀態
+  const [searchParams, setSearchParams] = useSearchParams()
+  const currentPage = Number(searchParams.get('page')) || 1
+
   const { data, isLoading, isError, refetch } = useSubscriptions(
-    undefined,
+    { page: currentPage },
     isAuthenticated
   )
 
-  // 支援兩種格式：分頁格式 { results: [...] } 或純陣列 [...]
-  // 後端禁用分頁後會返回純陣列
+  // 分頁資訊
+  const paginatedData = !Array.isArray(data) ? data : null
   const subscriptions = Array.isArray(data) ? data : data?.results || []
+  const totalCount = paginatedData?.count || subscriptions.length
+  const pageSize = 12 // 與後端 PAGE_SIZE 一致
+  const totalPages = Math.ceil(totalCount / pageSize)
+  const hasNextPage = !!paginatedData?.next
+  const hasPrevPage = !!paginatedData?.previous
   const hasSubscriptions = subscriptions.length > 0
+
+  // 生成頁碼按鈕列表
+  const getPageNumbers = (): (number | 'ellipsis')[] => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1)
+    }
+
+    const pages: (number | 'ellipsis')[] = []
+    if (currentPage <= 4) {
+      // 靠近開頭：顯示 1 2 3 4 5 ... last
+      for (let i = 1; i <= 5; i++) pages.push(i)
+      pages.push('ellipsis', totalPages)
+    } else if (currentPage >= totalPages - 3) {
+      // 靠近結尾：顯示 1 ... last-4 last-3 last-2 last-1 last
+      pages.push(1, 'ellipsis')
+      for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i)
+    } else {
+      // 中間：顯示 1 ... current-1 current current+1 ... last
+      pages.push(1, 'ellipsis')
+      for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i)
+      pages.push('ellipsis', totalPages)
+    }
+    return pages
+  }
 
   // 使用 useQueries 批量查詢每個系列的詳情
   // 注意：必須在所有 early returns 之前調用（React Hooks 規則）
@@ -91,9 +124,7 @@ export const MySubscriptions = () => {
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
             我的追蹤
           </h1>
-          <p className="text-white/90 text-lg">
-            追蹤 {subscriptions.length} 部漫畫
-          </p>
+          <p className="text-white/90 text-lg">追蹤 {totalCount} 部漫畫</p>
         </div>
       </div>
 
@@ -103,7 +134,8 @@ export const MySubscriptions = () => {
           <>
             <div className="mb-6 flex items-center justify-between">
               <p className="text-gray-600">
-                共 {subscriptions.length} 部追蹤中的漫畫
+                共 {totalCount} 部追蹤中的漫畫
+                {paginatedData && ` · 第 ${currentPage} 頁`}
               </p>
             </div>
 
@@ -113,12 +145,89 @@ export const MySubscriptions = () => {
                 <p className="ml-4 text-gray-600">載入漫畫資訊中...</p>
               </div>
             ) : (
-              /* 漫畫列表 - 使用 SeriesCard */
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {seriesData.map(series => (
-                  <SeriesCard key={series.id} series={series} />
-                ))}
-              </div>
+              <>
+                {/* 漫畫列表 - 使用 SeriesCard */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {seriesData.map(series => (
+                    <SeriesCard key={series.id} series={series} />
+                  ))}
+                </div>
+
+                {/* 分頁控制 */}
+                {totalPages > 1 && (
+                  <div className="mt-8 flex justify-center items-center gap-1">
+                    {/* 首頁 */}
+                    <button
+                      onClick={() => setSearchParams({ page: '1' })}
+                      disabled={currentPage === 1}
+                      className="w-10 h-10 rounded-lg font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 hover:bg-gray-100"
+                      title="首頁"
+                    >
+                      «
+                    </button>
+                    {/* 上一頁 */}
+                    <button
+                      onClick={() =>
+                        setSearchParams({ page: String(currentPage - 1) })
+                      }
+                      disabled={!hasPrevPage}
+                      className="w-10 h-10 rounded-lg font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 hover:bg-gray-100"
+                      title="上一頁"
+                    >
+                      ‹
+                    </button>
+
+                    {/* 頁碼按鈕 */}
+                    {getPageNumbers().map((page, index) =>
+                      page === 'ellipsis' ? (
+                        <span
+                          key={`ellipsis-${index}`}
+                          className="w-10 h-10 flex items-center justify-center text-gray-400"
+                        >
+                          …
+                        </span>
+                      ) : (
+                        <button
+                          key={page}
+                          onClick={() =>
+                            setSearchParams({ page: String(page) })
+                          }
+                          className={`w-10 h-10 rounded-full font-medium transition-all ${
+                            page === currentPage
+                              ? 'bg-gray-800 text-white shadow-md'
+                              : 'text-gray-600 hover:bg-gray-100'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    )}
+
+                    {/* 下一頁 */}
+                    <button
+                      onClick={() =>
+                        setSearchParams({ page: String(currentPage + 1) })
+                      }
+                      disabled={!hasNextPage}
+                      className="w-10 h-10 rounded-lg font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 hover:bg-gray-100"
+                      title="下一頁"
+                    >
+                      ›
+                    </button>
+                    {/* 末頁 */}
+                    <button
+                      onClick={() =>
+                        setSearchParams({ page: String(totalPages) })
+                      }
+                      disabled={currentPage === totalPages}
+                      className="w-10 h-10 rounded-lg font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 hover:bg-gray-100"
+                      title="末頁"
+                    >
+                      »
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </>
         ) : (
