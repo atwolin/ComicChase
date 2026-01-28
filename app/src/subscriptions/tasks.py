@@ -10,6 +10,8 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils import timezone
 
+from subscriptions.models import Subscription
+
 logger = logging.getLogger(__name__)
 
 
@@ -293,27 +295,37 @@ def run_daily_subscription_notification(self, sync=False):
                 for v in new_volumes
             ]
 
+            # 取得要更新的訂閱 ID
+            subscription_ids = [sub.id for sub in subscriptions_to_update]
+
             # 發送郵件
             if sync:
+                # 同步模式：發送後直接更新 last_notified_at
                 send_subscription_email(
                     user_id, user_data["email"], volumes_data, sync=True
                 )
+                # 同步成功後更新 last_notified_at
+                now = timezone.now()
+                for sub in subscriptions_to_update:
+                    sub.last_notified_at = now
+                Subscription.objects.bulk_update(
+                    subscriptions_to_update, ["last_notified_at"]
+                )
             else:
-                send_subscription_email.delay(user_id, user_data["email"], volumes_data)
-
-            # 更新 last_notified_at
-            now = timezone.now()
-            for sub in subscriptions_to_update:
-                sub.last_notified_at = now
-            Subscription.objects.bulk_update(
-                subscriptions_to_update, ["last_notified_at"]
-            )
+                # 非同步模式：將訂閱 ID 傳給 async task
+                # last_notified_at 將在郵件成功發送後由 async task 更新
+                send_subscription_email.delay(
+                    user_id,
+                    user_data["email"],
+                    volumes_data,
+                    subscription_ids=subscription_ids,
+                )
 
             success_count += 1
             emails_sent += 1
             logger.info(
-                f"[{task_id}] Notification sent to user_id={user_id} "
-                f"with {len(new_volumes)} new volumes"
+                f"[{task_id}] Notification {'sent' if sync else 'enqueued'} "
+                f"for user_id={user_id} with {len(new_volumes)} new volumes"
             )
 
         except Exception as e:
@@ -336,7 +348,9 @@ def run_daily_subscription_notification(self, sync=False):
 
 
 @shared_task(bind=True, max_retries=3)
-def send_subscription_email(self, user_id, user_email, volumes_data, sync=False):
+def send_subscription_email(
+    self, user_id, user_email, volumes_data, sync=False, subscription_ids=None
+):
     """
     發送訂閱新書通知郵件
 
@@ -345,6 +359,8 @@ def send_subscription_email(self, user_id, user_email, volumes_data, sync=False)
         user_email (str): 收件人郵件地址
         volumes_data (list): 新書資料列表
         sync (bool): 是否使用同步模式執行
+        subscription_ids (list[int], optional): 要更新 last_notified_at 的訂閱 ID 列表
+            （僅用於非同步模式，成功發送後更新）
 
     Returns:
         str: 執行結果訊息
@@ -388,6 +404,16 @@ def send_subscription_email(self, user_id, user_email, volumes_data, sync=False)
             )
             msg.attach_alternative(html_content, "text/html")
             msg.send(fail_silently=False)
+
+        # 成功發送後更新 last_notified_at（僅非同步模式）
+        if subscription_ids and not sync:
+            updated_count = Subscription.objects.filter(id__in=subscription_ids).update(
+                last_notified_at=timezone.now()
+            )
+            logger.info(
+                f"[{task_id}] Updated last_notified_at "
+                f"for {updated_count} subscriptions"
+            )
 
         logger.info(f"[{task_id}] Subscription email sent to user_id={user_id}")
         return f"Subscription email sent to user_id={user_id}"
