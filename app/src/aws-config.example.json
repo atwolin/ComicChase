@@ -1,0 +1,18 @@
+{
+    "aws": {
+        "region": "us-east-1",
+        "roleArn": "arn:aws:iam::YOUR_AWS_ACCOUNT_ID:role/YOUR_ROLE_NAME",
+        "oidcProviderArn": "arn:aws:iam::YOUR_AWS_ACCOUNT_ID:oidc-provider/accounts.google.com"
+    },
+    "google": {
+        "oauthClientId": "YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com",
+        "serviceAccount": "YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com",
+        "saClientId": "YOUR_SERVICE_ACCOUNT_UNIQUE_ID"
+    },
+    "email": {
+        "sender": "your-verified-sender@example.com",
+        "recipient": "recipient@example.com",
+        "subject": "Test Email via Google-to-AWS Federation",
+        "body": "This is a test email sent through Workload Identity Federation!"
+    }
+}

@@ -15,13 +15,21 @@ RUN groupadd -g $GID docker-users && \
     echo "docker:docker" | chpasswd && \
     adduser docker sudo
 
+# Install system dependencies for pygraphviz
+# RUN apt-get update && apt-get install -y \
+#     build-essential \
+#     graphviz \
+#     graphviz-dev \
+#     pkg-config \
+#     && rm -rf /var/lib/apt/lists/*
+
 RUN pip install --upgrade pip
 COPY ./app/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 COPY ./app/src ./
 
-RUN chmod +x entrypoint.sh wait-for-it.sh
+RUN chmod +x entrypoint.sh wait-for-it.sh run_email.sh
 
 # Set ownership and permissions
 RUN chown -R docker:docker-users /code/app

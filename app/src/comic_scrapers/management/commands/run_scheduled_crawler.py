@@ -26,7 +26,7 @@ class Command(BaseCommand):
             choices=[
                 "bookstw_new",
                 "eslite_all_series",
-                "eslite_orphans",
+                "eslite_orphan_volumes",
                 "booksjp_all_series",
             ],
             required=True,
@@ -45,7 +45,7 @@ class Command(BaseCommand):
                 result = async_result.get()
             elif task_name == "eslite_all_series":
                 result = tasks.crawl_all_series_eslite(sync=True)
-            elif task_name == "eslite_orphans":
+            elif task_name == "eslite_orphan_volumes":
                 result = tasks.crawl_orphan_volumes_eslite(sync=True)
             elif task_name == "booksjp_all_series":
                 result = tasks.crawl_all_series_booksjp(sync=True)

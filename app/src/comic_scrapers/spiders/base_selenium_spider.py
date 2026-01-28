@@ -1,6 +1,8 @@
+import os
 import re
 import time
 from abc import ABC, abstractmethod
+from urllib.parse import urlsplit
 
 import scrapy
 from scrapy.http import HtmlResponse
@@ -63,8 +65,9 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
     def __init__(self, search_value=None, last_release_date=None, *args, **kwargs):
         """Initialize the spider with Selenium WebDriver.
 
-        Sets up Chrome WebDriver with remote connection to Selenium Grid,
-        and initializes search-related attributes.
+        Supports two modes based on SELENIUM_HUB_URL environment variable:
+        - Remote mode: Connects to Selenium Grid (local Docker Compose)
+        - Local mode: Uses local ChromeDriver (Cloud Run environment)
 
         Args:
             search_value (str): Single search value (e.g., title, ISBN) to crawl.
@@ -77,9 +80,35 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--start-maximized")
 
-        self.driver = webdriver.Remote(
-            command_executor="http://selenium:4444/wd/hub", options=chrome_options
-        )
+        # Check environment variable to determine WebDriver mode
+        selenium_hub_url = os.getenv("SELENIUM_HUB_URL", "")
+
+        if selenium_hub_url:
+            # development: Connect to Selenium Grid (local development)
+            host = urlsplit(selenium_hub_url).hostname or "<unknown>"
+            self.logger.info(f"Using Remote WebDriver: {host}")
+            self.driver = webdriver.Remote(
+                command_executor=selenium_hub_url, options=chrome_options
+            )
+        else:
+            # production: Use local ChromeDriver (Cloud Run)
+            user_agent = os.getenv(
+                "SELENIUM_USER_AGENT",
+                "Mozilla/5.0 (X11; Linux x86_64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/136.0.0.0 Safari/537.36",
+            )
+            chrome_options.add_argument(f"--user-agent={user_agent}")
+            chrome_options.add_argument("--headless")  # Headless mode for cloud
+            chrome_options.add_argument("--disable-gpu")  # Disable GPU for headless
+            chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+            chrome_options.add_experimental_option(
+                "excludeSwitches", ["enable-automation"]
+            )
+            chrome_options.add_experimental_option("useAutomationExtension", False)
+            self.logger.info("Using Local ChromeDriver")
+            self.driver = webdriver.Chrome(options=chrome_options)
+
         self.wait = WebDriverWait(self.driver, 10)
 
         # Search configuration
@@ -166,7 +195,13 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
             search_box: The WebElement for the search input.
             topic_item (str): The search query.
         """
-        search_box.click()
+        # Use JavaScript to ensure element is visible and clickable
+        # This avoids ElementClickInterceptedException in headless mode
+        self.driver.execute_script("arguments[0].scrollIntoView(true);", search_box)
+        time.sleep(0.5)  # Brief pause for scroll animation
+
+        # Click using JavaScript instead of Selenium's click()
+        self.driver.execute_script("arguments[0].click();", search_box)
 
         # Clear the search box
         search_box.send_keys(Keys.CONTROL + "a")  # Select all
@@ -387,7 +422,7 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
         self.apply_search_filters(is_first_page)
 
         # Wait for search results page to fully load
-        time.sleep(2)
+        time.sleep(3)
 
         # Get book detail urls and release dates
         urls = None
@@ -458,6 +493,14 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
                 current_release_date = self._get_book_release_date(
                     release_date_texts[i]
                 )
+
+            self.logger.debug(
+                f"parse_search_results(): Current release date: {current_release_date}"
+            )
+            self.logger.debug(
+                f"parse_search_results(): Last release date: {last_release_date}, "
+                f"type: {type(last_release_date)}"
+            )
 
             if current_release_date and last_release_date:
                 if current_release_date <= last_release_date:
@@ -535,10 +578,10 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
             yield from self.parse_search_results(
                 search_value, last_release_date, prev_url
             )
-        except selenium_exceptions.TimeoutException as e:
-            self.logger.error(
-                "parse_search_results(): Timeout because no next button found"
-                f" for {self.search_field_name} {search_value}: {e}"
+        except selenium_exceptions.TimeoutException:
+            self.logger.info(
+                "parse_search_results(): No next page button found (last page reached)"
+                f" for {self.search_field_name} {search_value}"
             )
 
     def parse_detail_info(self, url, item: Item):

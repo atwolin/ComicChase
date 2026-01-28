@@ -10,7 +10,7 @@
 
 ```bash
 # 在 WSL 終端機執行
-cd /mnt/c/Users/ameli/ComicChase
+cd /path/to/ComicChase  # Replace with your project path
 
 # 方法 1: Django Management Command
 python app/src/manage.py run_scheduled_email --task weekly_digest
@@ -24,14 +24,15 @@ EMAIL_TASK=weekly_digest bash app/src/run_email.sh
 ## 📧 可用的郵件任務
 
 | 任務名稱 | 說明 | 建議頻率 |
-|---------|------|---------|
+| --------- | ------ | --------- |
 | `weekly_digest` | 發送每週漫畫新出版清單 | 每週一次 |
+| `test_email` | 發送測試郵件 | 手動執行 |
 
 ---
 
 ## ☁️ Cloud Run Jobs 部署
 
-### **創建 Cloud Run Job**
+### **建立 Cloud Run Job**
 
 ```bash
 # 設定環境變數
@@ -41,14 +42,14 @@ SERVICE_ACCOUNT=$(gcloud iam service-accounts list --filter cloudrun-serviceacco
 IMAGE=${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/comicchase-service
 INSTANCE_NAME=comic-instance
 
-# 創建 Job
+# 建立 Job
 gcloud run jobs create email-weekly-digest-job \
   --image ${IMAGE} \
   --region ${REGION} \
   --service-account ${SERVICE_ACCOUNT} \
   --set-env-vars EMAIL_TASK=weekly_digest \
   --set-cloudsql-instances ${PROJECT_ID}:${REGION}:${INSTANCE_NAME} \
-  --set-secrets application_settings=application_settings:latest \
+  --set-secrets APPLICATION_SETTINGS=application_settings:latest \
   --memory 512Mi \
   --cpu 1 \
   --max-retries 2 \
@@ -62,13 +63,13 @@ gcloud run jobs execute email-weekly-digest-job --region ${REGION}
 
 ---
 
-### **創建 Cloud Scheduler**
+### **建立 Cloud Scheduler**
 
 ```bash
-# 每週一早上 9:00 發送（台北時間）
+# 每週五中午 12:00 發送（台北時間）
 gcloud scheduler jobs create http email-weekly-digest-schedule \
   --location ${REGION} \
-  --schedule "0 9 * * 1" \
+  --schedule "0 12 * * 5" \
   --time-zone "Asia/Taipei" \
   --uri "https://${REGION}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${PROJECT_ID}/jobs/email-weekly-digest-job:run" \
   --http-method POST \
@@ -90,6 +91,31 @@ gcloud run jobs executions list --job email-weekly-digest-job --region ${REGION}
 
 # 查看最新執行狀態
 gcloud run jobs executions describe $(gcloud run jobs executions list --job email-weekly-digest-job --region ${REGION} --format="value(name)" --limit=1) --region ${REGION}
+```
+
+---
+
+## 📨 發送測試郵件
+
+### **透過 Cloud Run Job 發送**
+
+```bash
+# 發送測試郵件到指定郵箱
+gcloud run jobs execute email-weekly-digest-job \
+  --region ${REGION} \
+  --update-env-vars "EMAIL_TASK=test_email,TEST_EMAIL_TO=your@email.com"
+
+# 查看日誌
+gcloud logging read \
+  "resource.type=cloud_run_job AND resource.labels.job_name=email-weekly-digest-job" \
+  --limit 20 \
+  --format "table(timestamp, textPayload)"
+```
+
+### **本機發送**
+
+```bash
+python app/src/manage.py send_test_email --to your@email.com
 ```
 
 ---
@@ -223,5 +249,5 @@ send_single_email_task(
 
 ---
 
-**快速參考版本：** 1.0  
+**快速參考版本：** 1.0
 **最後更新：** 2026-01-13

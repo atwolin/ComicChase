@@ -6,6 +6,7 @@ django-celery-results==2.6.0
 django-cors-headers==4.9.0
 django-stubs==5.2.7
 djangorestframework==3.15.1
+django-environ==0.12.0
 django-ses==4.6.0
 drf-spectacular==0.29.0
 flower==2.0.1
@@ -14,7 +15,7 @@ itemadapter==0.12.2
 pre_commit==4.5.0
 psycopg2-binary==2.9.11
 pyright==1.1.407
-python-decouple==3.8
+ruff==0.14.13
 scrapy==2.13.4
 selenium==4.38.0
 supervisor==4.3.0

@@ -97,8 +97,10 @@ __pypackages__/
 # Environments
 .env
 .env.gce
+.env.gcr-test
 .envrc
 .venv
+.venv/
 env/
 venv/
 ENV/
@@ -176,7 +178,7 @@ firebase-debug.*.log*
 .dataconnect
 
 # ==============================================================================
-# Cloud & Databases
+# Data Storage & Queues
 # ==============================================================================
 
 # Databases
@@ -241,10 +243,13 @@ awscli/
 # AWS credentials and config (should never be committed)
 .aws/
 
-# ==============================================================================
-# Zip Archives
-# ==============================================================================
+# Google Cloud service account keys (NEVER commit these!)
+google-credentials.json
 
-# Generic zip files (except specific ones needed for deployment)
-*.zip
-!deployment/**/*.zip
+# Local config files with real credentials (keep templates, ignore local versions)
+trust-policy.json
+aws-config.json
+
+# act (GitHub Actions local runner)
+.act
+app/bin/act

@@ -70,7 +70,8 @@ class SubscriptionAPITest(APITestCase):
 
         subscription = Subscription.objects.get(user=self.alice, series=self.series1)
         response = self.client.delete(
-            reverse("subscription-destroy-by-series", args=[subscription.series.id])
+            reverse("subscription-destroy-by-series", args=[subscription.series.id]),
+            follow=True,
         )
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -82,7 +83,8 @@ class SubscriptionAPITest(APITestCase):
 
         nonexistent_series_id = 9999  # Assuming this ID does not exist
         response = self.client.delete(
-            reverse("subscription-destroy-by-series", args=[nonexistent_series_id])
+            reverse("subscription-destroy-by-series", args=[nonexistent_series_id]),
+            follow=True,
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -92,7 +94,8 @@ class SubscriptionAPITest(APITestCase):
 
         # Alice is not following series2 (Bob is following it)
         response = self.client.delete(
-            reverse("subscription-destroy-by-series", args=[self.series2.id])
+            reverse("subscription-destroy-by-series", args=[self.series2.id]),
+            follow=True,
         )
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -101,7 +104,7 @@ class SubscriptionAPITest(APITestCase):
     def test_list_subscriptions_isolation(self):
         """Test that users only see their own subscriptions."""
         self.client.force_authenticate(user=self.alice)
-        response = self.client.get(self.list_url)
+        response = self.client.get(self.list_url, follow=True)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 1)
@@ -116,7 +119,7 @@ class SubscriptionAPITest(APITestCase):
         bob_subscription_id = Subscription.objects.get(user=self.bob).id
         detail_url = reverse("subscription-detail", args=[bob_subscription_id])
 
-        response = self.client.get(detail_url)
+        response = self.client.get(detail_url, follow=True)
         # 404 because get_queryset filters by user, not because of IsOwner
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -143,7 +146,7 @@ class SubscriptionAPITest(APITestCase):
             "receive_line": False,
         }
 
-        response = self.client.post(self.list_url, data)
+        response = self.client.post(self.list_url, data, follow=True)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Verify user was auto-assigned (not from request data)

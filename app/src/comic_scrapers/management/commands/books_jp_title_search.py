@@ -26,7 +26,11 @@ class Command(BaseCommand):
 
         cmd = ["scrapy", "crawl", "booksjp_title"]
         cmd.extend(["-a", f"search_value={title}"])
-        cmd.extend(["-a", f"last_release_date={last_date}"])
+
+        # Only pass last_release_date if it has a value
+        # to avoid passing string "None" instead of Python None
+        if last_date:
+            cmd.extend(["-a", f"last_release_date={last_date}"])
 
         # Get the directory containing scrapy.cfg (BASE_DIR from settings)
         scrapy_dir = str(settings.BASE_DIR)
