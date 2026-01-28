@@ -10,7 +10,10 @@ from datetime import datetime
 
 from django.core.management.base import BaseCommand
 
-from subscriptions.tasks import run_weekly_notification_flow
+from subscriptions.tasks import (
+    run_daily_subscription_notification,
+    run_weekly_notification_flow,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +26,7 @@ class Command(BaseCommand):
             "--task",
             type=str,
             required=True,
-            help="Task name to execute (e.g., 'weekly_digest')",
+            help="Task name to execute (e.g., 'weekly_digest', 'subscription_notify')",
         )
 
     def handle(self, *args, **options):
@@ -50,11 +53,27 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f"✅ Result: {result}"))
                 self.stdout.write("=== Completed scheduled task: weekly_digest ===")
 
+            elif task_name == "subscription_notify":
+                self.stdout.write(
+                    self.style.SUCCESS("📧 Running subscription notification email...")
+                )
+                self.stdout.write(
+                    "=== Starting scheduled task: subscription_notify ==="
+                )
+
+                # 執行同步模式（sync=True）用於 Cloud Run Jobs
+                result = run_daily_subscription_notification(sync=True)
+
+                self.stdout.write(self.style.SUCCESS(f"✅ Result: {result}"))
+                self.stdout.write(
+                    "=== Completed scheduled task: subscription_notify ==="
+                )
+
             else:
                 self.stderr.write(
                     self.style.ERROR(f"❌ Error: Unknown EMAIL_TASK: {task_name}")
                 )
-                self.stderr.write("Valid tasks: weekly_digest")
+                self.stderr.write("Valid tasks: weekly_digest, subscription_notify")
                 sys.exit(1)
 
             # 完成訊息
