@@ -200,3 +200,200 @@ def send_single_email_task(self, user_id, user_email, volumes_data, sync=False):
         else:
             # 異步模式：使用 Celery 重試機制
             raise self.retry(exc=e)
+
+
+@shared_task(bind=True)
+def run_daily_subscription_notification(self, sync=False):
+    """
+    執行每日訂閱通知流程
+
+    對於每位有訂閱的使用者，檢查其訂閱的系列是否有新卷，
+    若有則發送個人化通知郵件。
+
+    Args:
+        sync (bool): 是否使用同步模式執行
+            - True: 同步執行（適用於 Cloud Run Jobs）
+            - False: 異步執行（適用於 Celery）
+
+    Returns:
+        dict: 執行結果
+    """
+    from subscriptions.models import Subscription
+
+    task_id = self.request.id if self.request.id else "sync-execution"
+    logger.info(f"[{task_id}] Starting daily subscription notification (sync={sync})")
+
+    # 取得所有啟用郵件通知的訂閱
+    subscriptions = Subscription.objects.filter(
+        receive_email=True,
+        user__is_active=True,
+    ).select_related("user", "series")
+
+    # 按使用者分組
+    user_subscriptions = {}
+    for sub in subscriptions:
+        if sub.user.email:
+            if sub.user_id not in user_subscriptions:
+                user_subscriptions[sub.user_id] = {
+                    "email": sub.user.email,
+                    "subscriptions": [],
+                }
+            user_subscriptions[sub.user_id]["subscriptions"].append(sub)
+
+    logger.info(f"[{task_id}] Found {len(user_subscriptions)} users with subscriptions")
+
+    success_count = 0
+    failed_count = 0
+    emails_sent = 0
+
+    for user_id, user_data in user_subscriptions.items():
+        try:
+            # 取得該使用者需要通知的新卷
+            new_volumes = []
+            subscriptions_to_update = []
+
+            for sub in user_data["subscriptions"]:
+                # 查詢該系列在 last_notified_at 之後新增的卷
+                volumes_query = Volume.objects.filter(
+                    series=sub.series,
+                    series__isnull=False,
+                )
+
+                if sub.last_notified_at:
+                    # 使用 release_date 或 created_at 判斷新卷
+                    # 考慮爬蟲可能補抓舊資料，所以用 created_at
+                    volumes_query = volumes_query.filter(
+                        release_date__gt=sub.last_notified_at.date()
+                    )
+                else:
+                    # 首次通知：只通知過去 7 天內的新卷
+                    last_week = timezone.now().date() - timedelta(days=7)
+                    volumes_query = volumes_query.filter(release_date__gte=last_week)
+
+                series_new_volumes = list(volumes_query.select_related("series"))
+                if series_new_volumes:
+                    new_volumes.extend(series_new_volumes)
+                    subscriptions_to_update.append(sub)
+
+            if not new_volumes:
+                success_count += 1
+                continue
+
+            # 準備郵件內容
+            volumes_data = [
+                {
+                    "title": v.series.title_tw or v.series.title_jp,
+                    "volume_number": v.volume_number,
+                    "region": v.get_region_display(),
+                    "release_date": v.release_date.strftime("%Y-%m-%d")
+                    if v.release_date
+                    else "未知",
+                    "image_url": v.image_url,
+                }
+                for v in new_volumes
+            ]
+
+            # 發送郵件
+            if sync:
+                send_subscription_email(
+                    user_id, user_data["email"], volumes_data, sync=True
+                )
+            else:
+                send_subscription_email.delay(user_id, user_data["email"], volumes_data)
+
+            # 更新 last_notified_at
+            now = timezone.now()
+            for sub in subscriptions_to_update:
+                sub.last_notified_at = now
+            Subscription.objects.bulk_update(
+                subscriptions_to_update, ["last_notified_at"]
+            )
+
+            success_count += 1
+            emails_sent += 1
+            logger.info(
+                f"[{task_id}] Notification sent to user_id={user_id} "
+                f"with {len(new_volumes)} new volumes"
+            )
+
+        except Exception as e:
+            failed_count += 1
+            logger.error(f"[{task_id}] Failed to process user_id={user_id}: {str(e)}")
+            if not sync:
+                continue
+            raise
+
+    result = {
+        "task_id": task_id,
+        "status": "completed",
+        "total_users": len(user_subscriptions),
+        "success_count": success_count,
+        "failed_count": failed_count,
+        "emails_sent": emails_sent,
+    }
+    logger.info(f"[{task_id}] Completed: {result}")
+    return result
+
+
+@shared_task(bind=True, max_retries=3)
+def send_subscription_email(self, user_id, user_email, volumes_data, sync=False):
+    """
+    發送訂閱新書通知郵件
+
+    Args:
+        user_id (int): 使用者 ID
+        user_email (str): 收件人郵件地址
+        volumes_data (list): 新書資料列表
+        sync (bool): 是否使用同步模式執行
+
+    Returns:
+        str: 執行結果訊息
+    """
+    task_id = self.request.id if self and not sync else "sync-execution"
+
+    subject = f"【ComicChase】您追蹤的漫畫有 {len(volumes_data)} 本新書上架！"
+
+    logger.info(
+        f"[{task_id}] Rendering subscription notification for user_id={user_id} "
+        f"with {len(volumes_data)} items"
+    )
+
+    # 渲染 HTML 內容
+    html_content = render_to_string(
+        "emails/subscription_notification.html",
+        {"volumes": volumes_data, "site_url": "https://comicchase.site"},
+    )
+
+    try:
+        use_federation = getattr(settings, "AWS_USE_FEDERATION", False)
+
+        if use_federation:
+            logger.info(f"[{task_id}] Sending email via Federation to {user_email}")
+            from config.aws_federation import send_email_with_federation
+
+            send_email_with_federation(
+                source=settings.DEFAULT_FROM_EMAIL,
+                to_addresses=[user_email],
+                subject=subject,
+                body_text="請在支援 HTML 的環境查看此郵件",
+                body_html=html_content,
+            )
+        else:
+            logger.info(f"[{task_id}] Sending email via django-ses to {user_email}")
+            msg = EmailMultiAlternatives(
+                subject=subject,
+                body="請在支援 HTML 的環境查看此郵件",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[user_email],
+            )
+            msg.attach_alternative(html_content, "text/html")
+            msg.send(fail_silently=False)
+
+        logger.info(f"[{task_id}] Subscription email sent to user_id={user_id}")
+        return f"Subscription email sent to user_id={user_id}"
+    except Exception as e:
+        logger.error(f"[{task_id}] SES Send Error for user_id={user_id}: {str(e)}")
+        if sync:
+            raise
+        else:
+            raise self.retry(exc=e)
