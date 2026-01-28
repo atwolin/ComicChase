@@ -206,9 +206,9 @@ aws sesv2 list-email-identities
 | `send_email_via_google_aws.py` | Python 主腳本 |
 | `test_environment.py` | 環境檢查腳本 |
 | `trust-policy.json` | AWS IAM Role Trust Policy |
-| `config.example.json` | 配置檔案模板 |
-| `README_EMAIL_FEDERATION.md` | 完整技術文檔 |
-| `QUICKSTART.md` | 本快速入門指南 |
+| `aws-config.json` | 配置檔案模板 |
+| `email-google-to-aws-federation-guide.md` | 完整技術文檔 |
+| `email-google-to-aws-federation-quickref.md` | 本快速入門指南 |
 
 ---
 

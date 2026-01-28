@@ -341,12 +341,12 @@ gcloud scheduler jobs create http booksjp-title-schedule \
 
 ---
 
-#### **排程 4: 每月 1 日清理 Orphan Volumes（誠品）**
+#### **排程 4: 每兩週的週日凌晨 4 點清理 Orphan Volumes（誠品）**
 
 ```bash
 gcloud scheduler jobs create http eslite-orphan-schedule \
   --location ${REGION} \
-  --schedule "0 4 1 * *" \
+  --schedule "0 4 1-7,15-21 * 0" \
   --time-zone "Asia/Taipei" \
   --uri "https://${REGION}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${PROJECT_ID}/jobs/eslite-orphan-crawler:run" \
   --http-method POST \
@@ -355,7 +355,7 @@ gcloud scheduler jobs create http eslite-orphan-schedule \
 
 **Cron 格式：**
 
-- `0 4 1 * *` = 每月 1 日凌晨 4:00
+- `0 4 1-7,15-21 * 0` = 每月第 1 與第 3 個週日凌晨 4:00
 
 ### **Step 8: 更新**
 
@@ -663,7 +663,7 @@ gcloud run jobs execute bookstw-daily-crawler --region ${REGION}
 | **books.tw 新書** | 每天 | `0 2 * * *` | 每天 02:00 | ~15 分鐘 |
 | **Eslite 所有系列** | 每週 | `0 3 * * 0` | 週日 03:00 | ~1-2 小時 |
 | **Books.jp 所有系列** | 每週 | `0 3 * * 6` | 週六 03:00 | ~1-2 小時 |
-| **Eslite Orphan Volumes** | 每月 | `0 4 1 * *` | 每月 1 號 04:00 | ~30 分鐘 |
+| **Eslite Orphan Volumes** | 每兩週 | `0 4 1-7,15-21 * 0` | 第 1, 3 個週日 04:00 | ~30 分鐘 |
 
 ---
 
