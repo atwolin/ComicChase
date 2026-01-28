@@ -22,7 +22,7 @@
 | 任務名稱 | 說明 | 建議頻率 |
 | --------- | ------ | --------- |
 | `weekly_digest` | 發送每週漫畫新出版清單給所有訂閱用戶 | 每週一次 |
-| `daily_digest` | 發送每日漫畫新出版清單給所有訂閱用戶 | 每日一次 |
+| `subscription_notify` | 發送個人化新書通知（僅追蹤系列） | 每日一次 |
 | `test_email` | 發送測試郵件（需要 `TEST_EMAIL_TO` 環境變數） | 手動執行 |
 
 ### **任務執行流程**
@@ -313,6 +313,7 @@ gcloud scheduler jobs create http email-weekly-digest-schedule \
   --oauth-service-account-email ${SERVICE_ACCOUNT}
 ```
 
+```bash
 # 建立訂閱通知排程（每日早上 10:00）
 gcloud scheduler jobs create http email-subscription-notify-schedule \
   --location ${REGION} \
@@ -636,7 +637,7 @@ gcloud run jobs execute email-weekly-digest-job --region ${REGION}
 | 郵件任務 | 頻率 | Cron | 執行時間（台北） | 預估執行時長 |
 | -------- | ---- | ---- | --------------- | ----------- |
 | **訂閱通知** | 每日 | "0 10 * * *" | 每日 10:00 | ~2 分鐘 |
-| **每週摘要** | 每週 | "0 12 ** 5" | 週五 12:00 | ~5 分鐘 |
+| **每週摘要** | 每週 | "0 12 * * 5" | 週五 12:00 | ~5 分鐘 |
 
 ---
 

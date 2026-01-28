@@ -18,8 +18,9 @@ python app/src/manage.py run_scheduled_email --task weekly_digest
 # 方法 2: 訂閱通知（每日）
 python app/src/manage.py run_scheduled_email --task subscription_notify
 
-# 方法 3: Shell 腳本
+# 方法 3: Shell 腳本（可替換 EMAIL_TASK 執行不同任務）
 EMAIL_TASK=weekly_digest bash app/src/run_email.sh
+EMAIL_TASK=subscription_notify bash app/src/run_email.sh
 ```
 
 ---
@@ -51,7 +52,7 @@ gcloud run jobs create email-weekly-digest-job \
   --image ${IMAGE} \
   --region ${REGION} \
   --service-account ${SERVICE_ACCOUNT} \
-  --set-env-vars EMAIL_TASK=weekly_digest \
+  --set-env-vars "EMAIL_TASK=weekly_digest,DJANGO_SETTINGS_MODULE=config.settings.gcr" \
   --set-cloudsql-instances ${PROJECT_ID}:${REGION}:${INSTANCE_NAME} \
   --set-secrets APPLICATION_SETTINGS=application_settings:latest \
   --memory 512Mi \
