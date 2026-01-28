@@ -26,7 +26,6 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
 
     serializer_class = SubscriptionSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwner]
-    pagination_class = None
 
     def get_queryset(self):
         """
