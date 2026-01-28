@@ -13,13 +13,24 @@ import {
 } from '@/api'
 
 // ============================================================
+// Types
+// ============================================================
+
+/**
+ * 擴展的訂閱查詢參數，支援 all 參數來關閉分頁
+ */
+type SubscriptionsQueryParams = SubscriptionsListData['query'] & {
+  all?: string
+}
+
+// ============================================================
 // Query Keys
 // ============================================================
 
 export const subscriptionKeys = {
   all: ['subscriptions'] as const,
   lists: () => [...subscriptionKeys.all, 'list'] as const,
-  list: (params?: SubscriptionsListData['query']) =>
+  list: (params?: SubscriptionsQueryParams) =>
     [...subscriptionKeys.lists(), params] as const,
 }
 
@@ -28,17 +39,21 @@ export const subscriptionKeys = {
 // ============================================================
 
 /**
- * 獲取使用者的所有訂閱
+ * 獲取使用者的訂閱
+ * @param params.page - 分頁頁碼
+ * @param params.all - 設為 'true' 時關閉分頁，返回所有訂閱
  */
 export function useSubscriptions(
-  params?: SubscriptionsListData['query'],
+  params?: SubscriptionsQueryParams,
   enabled = true
 ) {
   return useQuery({
     queryKey: subscriptionKeys.list(params),
     queryFn: async () => {
       console.log('[useSubscriptions] 正在獲取訂閱列表...')
-      const { data } = await subscriptionsList({ query: params })
+      const { data } = await subscriptionsList({
+        query: params as SubscriptionsListData['query'],
+      })
       console.log('[useSubscriptions] 訂閱列表:', data)
       if (!data) {
         throw new Error('API 未返回訂閱列表數據')
@@ -51,12 +66,14 @@ export function useSubscriptions(
 
 /**
  * 檢查是否已追蹤某個系列
+ * 使用 ?all=true 獲取完整訂閱列表（無分頁）以確保正確判斷
  */
 export function useIsSubscribed(seriesId: number, enabled = true) {
-  const { data } = useSubscriptions(undefined, enabled)
+  // 使用 all=true 來獲取所有訂閱，避免分頁導致的漏判
+  const { data } = useSubscriptions({ all: 'true' }, enabled)
 
   // 支援兩種格式：分頁格式 { results: [...] } 或純陣列 [...]
-  // 後端禁用分頁後會返回純陣列
+  // 使用 ?all=true 後會返回純陣列
   const subscriptions = Array.isArray(data) ? data : data?.results
 
   // 檢查訂閱列表中是否有該系列
