@@ -1,7 +1,7 @@
 import subprocess
 
 from django.conf import settings
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 
 class Command(BaseCommand):
@@ -36,7 +36,14 @@ class Command(BaseCommand):
         scrapy_dir = str(settings.BASE_DIR)
 
         self.stdout.write(f"Starting eslite.com title search for: {title}")
-        result = subprocess.run(cmd, capture_output=True, text=True, cwd=scrapy_dir)
+
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, cwd=scrapy_dir)
+        except FileNotFoundError:
+            self.stderr.write(
+                self.style.ERROR("'scrapy' command not found. Is Scrapy installed?")
+            )
+            raise CommandError("Scrapy not found")
 
         if result.returncode == 0:
             self.stdout.write(self.style.SUCCESS("eslite.com crawl finished."))
