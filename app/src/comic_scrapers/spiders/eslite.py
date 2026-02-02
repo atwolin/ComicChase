@@ -111,14 +111,9 @@ class EsliteSpider(BaseSeleniumSpider):
         """
         if not page_value:
             return False
-        search_value = (
-            getattr(self, self.search_field_name, None)
-            if self.search_field_name
-            else None
-        )
-        if not search_value:
+        if not self.search_value:
             return False
-        return search_value not in page_value
+        return self.search_value not in page_value
 
     @property
     def product_desc_xpath(self) -> str:
@@ -139,6 +134,9 @@ class EsliteISBNSpider(EsliteSpider):
             last_release_date (str): Last known release date for this ISBN
                 in YYYY-MM-DD format (optional for ISBN search).
         """
+        if not search_value:
+            raise ValueError("search_value (ISBN) is required for EsliteISBNSpider")
+
         kwargs["search_value"] = search_value
         kwargs["last_release_date"] = last_release_date
         super().__init__(*args, **kwargs)
@@ -148,9 +146,6 @@ class EsliteISBNSpider(EsliteSpider):
 
         # Verification configuration
         self.verify_element_xpath = "//div[@class='product-description-schema']"
-
-        if not search_value:
-            raise ValueError("search_value (ISBN) is required for EsliteISBNSpider")
 
         self.logger.info(f"EsliteISBNSpider: Searching for ISBN: {search_value}")
 
@@ -169,6 +164,11 @@ class EsliteTitleTwSpider(EsliteSpider):
                 in YYYY-MM-DD format. Used to skip volumes we already have.
                 Defaults to None (crawl all volumes).
         """
+        if not search_value:
+            raise ValueError(
+                "search_value (title_tw) is required for EsliteTitleTwSpider"
+            )
+
         kwargs["search_value"] = search_value
         kwargs["last_release_date"] = last_release_date
         super().__init__(*args, **kwargs)
@@ -178,11 +178,6 @@ class EsliteTitleTwSpider(EsliteSpider):
 
         # Verification configuration
         self.verify_element_xpath = "//h1[@class='sans-font-semi-bold']"
-
-        if not search_value:
-            raise ValueError(
-                "search_value (title_tw) is required for EsliteTitleTwSpider"
-            )
 
         self.logger.info(
             f"EsliteTitleTwSpider: Searching for title: {search_value}"
