@@ -397,10 +397,14 @@ Google OAuth → AWS STS (AssumeRole) → AWS SES (SendEmail)
 
 ### Set up AWS OIDC Provider
 
+> **Note**: `--client-id-list` must match the `aud` (audience) claim in Google ID tokens.
+> This is typically the **Service Account Unique ID** (a numeric ID) or the **Service Account Email**.
+> You can find the Unique ID in Google Cloud Console → IAM → Service Accounts → Click on the account → Details.
+
 ```bash
 aws iam create-open-id-connect-provider \
     --url https://accounts.google.com \
-    --client-id-list "YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com" \
+    --client-id-list "YOUR_SERVICE_ACCOUNT_UNIQUE_ID" "YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com" \
     --thumbprint-list "GOOGLE_CERT_THUMBPRINT"
 ```
 
