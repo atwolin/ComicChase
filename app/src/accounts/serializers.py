@@ -1,9 +1,10 @@
-from dj_rest_auth.serializers import UserDetailsSerializer
+from rest_framework import serializers
 
 from .models import CustomUser
 
 
-class CustomUserDetailsSerializer(UserDetailsSerializer):
-    class Meta(UserDetailsSerializer.Meta):
+class UserPreferenceSerializer(serializers.ModelSerializer):
+    class Meta:
         model = CustomUser
-        fields = UserDetailsSerializer.Meta.fields + ("receive_email",)
+        fields = ("id", "email", "receive_email")
+        read_only_fields = ("id", "email")

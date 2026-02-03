@@ -180,7 +180,7 @@ def send_single_email_task(
         "emails/weekly_digest.html",
         {
             "volumes": volumes_data,
-            "site_url": "https://comicchase.site",
+            "site_url": settings.FRONTEND_URL,
             "unsubscribe_token": unsubscribe_token,
         },
     )

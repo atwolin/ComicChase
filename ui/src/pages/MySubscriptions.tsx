@@ -43,14 +43,19 @@ export const MySubscriptions = () => {
     preferences,
     update: updatePreference,
     isUpdating,
+    isLoading: isPreferencesLoading,
+    isError: isPreferencesError,
   } = useUserPreferences()
 
-  // 顯示狀態：如果有資料則使用資料，否則預設為 true (或 false，視需求而定，但 model default is True)
-  const emailEnabled = preferences?.receive_email ?? true
+  // 顯示狀態：
+  // 1. 如果正在讀取，依賴 isLoading 顯示 spinner
+  // 2. 如果讀取失敗 (isError) 或 data 為 undefined，則不應該預設為 true，這會誤導使用者
+  // 這裡我們改為：如果有 data 就用 data.receive_email，否則暫時視為 false (避免發生錯誤時顯示為開啟)
+  const emailEnabled = preferences?.receive_email ?? false
 
   // 切換全域郵件通知
   const toggleAllEmailNotifications = () => {
-    if (isUpdating) return
+    if (isUpdating || isPreferencesLoading || isPreferencesError) return
     updatePreference({ receive_email: !emailEnabled })
   }
 
@@ -173,20 +178,47 @@ export const MySubscriptions = () => {
                   </svg>
                   <span className="text-sm text-gray-600">郵件通知</span>
                 </div>
-                <button
-                  onClick={toggleAllEmailNotifications}
-                  disabled={isUpdating}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
-                    emailEnabled ? 'bg-indigo-500' : 'bg-gray-300'
-                  } ${isUpdating ? 'opacity-50 cursor-wait' : ''}`}
-                  title={emailEnabled ? '關閉所有郵件通知' : '開啟所有郵件通知'}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform ${
-                      emailEnabled ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
+                {isPreferencesLoading ? (
+                  <div className="w-11 h-6 flex items-center justify-center">
+                    <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : isPreferencesError ? (
+                  <div
+                    className="flex items-center text-red-500"
+                    title="無法讀取設定"
+                  >
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                ) : (
+                  <button
+                    onClick={toggleAllEmailNotifications}
+                    disabled={isUpdating || isPreferencesLoading}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                      emailEnabled ? 'bg-indigo-500' : 'bg-gray-300'
+                    } ${isUpdating ? 'opacity-50 cursor-wait' : ''}`}
+                    title={
+                      emailEnabled ? '關閉所有郵件通知' : '開啟所有郵件通知'
+                    }
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform ${
+                        emailEnabled ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                )}
               </div>
             </div>
 

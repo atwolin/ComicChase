@@ -11,9 +11,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # User management
     path("_allauth/", include("allauth.headless.urls")),
-    # Accounts (unsubscribe, etc.)
-    # Accounts (unsubscribe, etc.)
-    path("accounts/", include("accounts.urls")),
+    # Accounts API
     path("api/accounts/", include("accounts.urls")),
     # Local apps
     path("api/comics/", include("comic.urls")),

@@ -1,35 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getCSRFToken } from '@/lib/django'
+import {
+  accountsPreferencesRetrieve,
+  accountsPreferencesPartialUpdate,
+} from '@/api'
+import type { UserPreference } from '@/api'
 
-interface UserPreferences {
-  receive_email: boolean
+async function fetchPreferences() {
+  const { data } = await accountsPreferencesRetrieve()
+  return data as UserPreference
 }
 
-async function fetchPreferences(): Promise<UserPreferences> {
-  const response = await fetch('/api/accounts/preferences/')
-  if (!response.ok) {
-    if (response.status === 401) {
-      // Handle unauthenticated if needed, but page should redirect
-      throw new Error('Unauthorized')
-    }
-    throw new Error('Failed to fetch preferences')
-  }
-  return response.json()
-}
-
-async function updatePreferences(
-  data: Partial<UserPreferences>
-): Promise<UserPreferences> {
-  const response = await fetch('/api/accounts/preferences/', {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': getCSRFToken() || '',
-    },
-    body: JSON.stringify(data),
+async function updatePreferences(data: Partial<UserPreference>) {
+  const { data: responseData } = await accountsPreferencesPartialUpdate({
+    body: data,
   })
-  if (!response.ok) throw new Error('Failed to update preferences')
-  return response.json()
+  return responseData as UserPreference
 }
 
 export function useUserPreferences() {
@@ -54,5 +39,6 @@ export function useUserPreferences() {
     update: mutation.mutate,
     updateAsync: mutation.mutateAsync,
     isUpdating: mutation.isPending,
+    isError: query.isError,
   }
 }
