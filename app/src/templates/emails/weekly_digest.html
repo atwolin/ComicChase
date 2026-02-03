@@ -32,11 +32,15 @@
                                     {% endif %}
 
                                     <td valign="top" style="line-height: 1.5;">
-                                        <div style="font-weight: bold; font-size: 18px; color: #333;">{{ vol.title }}
+                                        <div style="font-weight: bold; font-size: 18px; color: #333;">
+                                            {{ vol.title }}
                                         </div>
-                                        <div style="color: #666666; font-size: 14px; margin: 5px 0;">Vol. {{
-                                            vol.volume_number }} ({{ vol.region }})</div>
-                                        <div style="color: #999999; font-size: 12px;">發售日：{{ vol.release_date }}</div>
+                                        <div style="color: #666666; font-size: 14px; margin: 5px 0;">
+                                            Vol. {{ vol.volume_number }} ({{ vol.region }})
+                                        </div>
+                                        <div style="color: #999999; font-size: 12px;">
+                                            發售日：{{ vol.release_date }}
+                                        </div>
                                     </td>
                                 </tr>
                             </table>
@@ -55,7 +59,9 @@
                     <tr>
                         <p style="margin: 0 0 10px 0;">這封郵件是系統自動發送的。</p>
                         <a href="{{ site_url }}/unsubscribe?token={{ unsubscribe_token }}"
-                            style="color: #999999; text-decoration: underline;">取消訂閱</a>
+                            style="color: #999999; text-decoration: underline;">
+                            取消訂閱
+                        </a>
             </td>
         </tr>
     </table>

@@ -9,6 +9,7 @@ import {
   subscriptionsList,
   subscriptionsCreate,
   subscriptionsBySeriesDestroy,
+  subscriptionsPartialUpdate,
   type SubscriptionsListData,
 } from '@/api'
 
@@ -210,7 +211,6 @@ export function useUpdateEmailPreference() {
       subscriptionId: number
       receiveEmail: boolean
     }) => {
-      const { subscriptionsPartialUpdate } = await import('@/api')
       const { data } = await subscriptionsPartialUpdate({
         path: { id: subscriptionId.toString() },
         body: { receive_email: receiveEmail },
