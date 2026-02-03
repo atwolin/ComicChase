@@ -2,6 +2,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useQueries } from '@tanstack/react-query'
 import { useSubscriptions } from '@/hooks/useSubscription'
+import { useUserPreferences } from '@/hooks/useUserPreferences'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { SeriesCard } from '@/components/SeriesCard'
 import { Loading } from '@/components/Loading'
@@ -36,6 +37,22 @@ export const MySubscriptions = () => {
   const hasNextPage = !!paginatedData?.next
   const hasPrevPage = !!paginatedData?.previous
   const hasSubscriptions = subscriptions.length > 0
+
+  // 郵件通知狀態
+  const {
+    preferences,
+    update: updatePreference,
+    isUpdating,
+  } = useUserPreferences()
+
+  // 顯示狀態：如果有資料則使用資料，否則預設為 true (或 false，視需求而定，但 model default is True)
+  const emailEnabled = preferences?.receive_email ?? true
+
+  // 切換全域郵件通知
+  const toggleAllEmailNotifications = () => {
+    if (isUpdating) return
+    updatePreference({ receive_email: !emailEnabled })
+  }
 
   // 生成頁碼按鈕列表
   const getPageNumbers = (): (number | 'ellipsis')[] => {
@@ -132,11 +149,45 @@ export const MySubscriptions = () => {
       <div className="container mx-auto px-4 py-8">
         {hasSubscriptions ? (
           <>
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <p className="text-gray-600">
                 共 {totalCount} 部追蹤中的漫畫
                 {paginatedData && ` · 第 ${currentPage} 頁`}
               </p>
+
+              {/* 郵件通知設定 */}
+              <div className="flex items-center gap-3 bg-white rounded-lg px-4 py-2 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <span className="text-sm text-gray-600">郵件通知</span>
+                </div>
+                <button
+                  onClick={toggleAllEmailNotifications}
+                  disabled={isUpdating}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                    emailEnabled ? 'bg-indigo-500' : 'bg-gray-300'
+                  } ${isUpdating ? 'opacity-50 cursor-wait' : ''}`}
+                  title={emailEnabled ? '關閉所有郵件通知' : '開啟所有郵件通知'}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform ${
+                      emailEnabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
 
             {isLoadingSeries ? (

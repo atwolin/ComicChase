@@ -156,3 +156,22 @@ AWS_ROLE_ARN = env("AWS_ROLE_ARN", default="")
 
 # Override DEFAULT_FROM_EMAIL from base.py with Secret Manager value
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@comicchase.site")
+
+# ============================================================
+# django-allauth Headless Settings (Override for Production)
+# ============================================================
+
+# Override base.py defaults for production
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
+
+# CSRF must be readable by JavaScript for frontend authentication
+CSRF_COOKIE_HTTPONLY = False
+
+# Override HEADLESS_FRONTEND_URLS for production frontend domain
+HEADLESS_FRONTEND_URLS = {
+    "account_confirm_email": "https://comicchase.site/account/verify-email/{key}",
+    "account_reset_password": "https://comicchase.site/account/password/reset",
+    "account_reset_password_from_key": "https://comicchase.site/account/password/reset/key/{key}",
+    "account_signup": "https://comicchase.site/account/signup",
+    "socialaccount_login_error": "https://comicchase.site/account/provider/callback",
+}

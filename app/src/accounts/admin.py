@@ -14,11 +14,14 @@ class CustomUserAdmin(UserAdmin):
     list_display = (
         "email",
         "username",
+        "receive_email",
         "is_superuser",
+        "unsubscribe_token",
     )
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("Personal info", {"fields": ("username",)}),
+        ("Preferences", {"fields": ("receive_email",)}),
         (
             "Permissions",
             {

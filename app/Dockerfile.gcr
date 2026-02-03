@@ -25,6 +25,8 @@ RUN pip install --upgrade pip
 COPY ./app/requirements-gcr.txt ./
 RUN pip install --no-cache-dir -r requirements-gcr.txt
 
+# Force cache invalidation to pick up latest code
+ENV DEPLOY_TIMESTAMP="2026-02-03-Attempt3"
 COPY ./app/src ./
 
 RUN chmod +x entrypoint.gcr.sh wait-for-it.sh run_crawler.sh run_email.sh

@@ -2,6 +2,8 @@ from pathlib import Path
 
 import environ
 
+print(">>> DEPLOYMENT v7-context-fix LOADED <<<")
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -163,6 +165,10 @@ ACCOUNT_SESSION_REMEMBER = True
 ACCOUNT_EMAIL_VERIFICATION = "optional"  # TODO: set "mandatory" after email setup
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_LOGIN_METHODS = {"email"}
+
+REST_AUTH_SERIALIZERS = {
+    "USER_DETAILS_SERIALIZER": "accounts.serializers.CustomUserDetailsSerializer"
+}
 ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
 # ACCOUNT_LOGIN_BY_CODE_ENABLED = True
 # ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED = True
@@ -177,6 +183,10 @@ HEADLESS_FRONTEND_URLS = {
     "socialaccount_login_error": "/account/provider/callback",
 }
 HEADLESS_SERVE_SPECIFICATION = True
+# 指定允許的客戶端類型
+HEADLESS_CLIENTS = ("app", "browser")
+# 預設 HTTP 協議（用於生成連結）
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"
 
 # ============================================================
 # CORS Settings (for local development)

@@ -195,3 +195,36 @@ export function useToggleSubscription(
     error: subscribe.error || unsubscribe.error,
   }
 }
+
+/**
+ * 更新訂閱的郵件通知設定
+ */
+export function useUpdateEmailPreference() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      subscriptionId,
+      receiveEmail,
+    }: {
+      subscriptionId: number
+      receiveEmail: boolean
+    }) => {
+      const { subscriptionsPartialUpdate } = await import('@/api')
+      const { data } = await subscriptionsPartialUpdate({
+        path: { id: subscriptionId.toString() },
+        body: { receive_email: receiveEmail },
+      })
+      if (!data) {
+        throw new Error('API 未返回更新數據')
+      }
+      return data
+    },
+    onSuccess: () => {
+      // 重新獲取訂閱列表
+      queryClient.invalidateQueries({
+        queryKey: subscriptionKeys.lists(),
+      })
+    },
+  })
+}
