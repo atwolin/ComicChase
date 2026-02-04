@@ -92,15 +92,15 @@ export { API_BASE_URL };
 
 ```python
 CORS_ALLOWED_ORIGINS = [
-    "https://comicchase.web.app",  # Firebase Hosting URL
+    "https://comicchase.site",  # Firebase Hosting URL
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://comicchase.web.app",
+    "https://comicchase.site",
 ]
 
 ALLOWED_HOSTS = [
-    "comicchase.web.app",  # Firebase Hosting
+    "comicchase.site",  # Firebase Hosting
     "api.comicchase.com.tw",  # GCE 域名
 ]
 ```
@@ -119,13 +119,13 @@ firebase deploy --only hosting --config firebase.gce.json
 
 ### 步驟 6：驗證
 
-1. **訪問 Firebase Hosting**：`https://comicchase.web.app`
+1. **訪問 Firebase Hosting**：`https://comicchase.site`
 2. **打開瀏覽器開發者工具 → Network**
 3. **觸發 API 請求**，確認請求直接發送到 `https://api.comicchase.com.tw`
 4. **檢查 Response Headers**：
 
    ```http
-   access-control-allow-origin: https://comicchase.web.app
+   access-control-allow-origin: https://comicchase.site
    access-control-allow-credentials: true
    ```
 

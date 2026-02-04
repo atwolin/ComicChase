@@ -40,7 +40,7 @@
                         ▼
         ┌───────────────────────────────┐
         │   Firebase Hosting (CDN)      │
-        │   https://comicchase.web.app  │
+        │   https://comicchase.site  │
         └───────────┬───────────────────┘
                     │
          ┌──────────┴──────────┐
@@ -71,10 +71,10 @@
 
 | 請求路徑 | 處理方式 | 說明 |
 | --------- | --------- | ------ |
-| `https://comicchase.web.app/` | Firebase CDN | 首頁、React App |
-| `https://comicchase.web.app/series/123` | Firebase CDN | 前端路由 |
-| `https://comicchase.web.app/api/**` | Firebase Rewrite → GCE | API 請求 |
-| `https://comicchase.web.app/admin/` | Firebase Rewrite → GCE | Django Admin |
+| `https://comicchase.site/` | Firebase CDN | 首頁、React App |
+| `https://comicchase.site/series/123` | Firebase CDN | 前端路由 |
+| `https://comicchase.site/api/**` | Firebase Rewrite → GCE | API 請求 |
+| `https://comicchase.site/admin/` | Firebase Rewrite → GCE | Django Admin |
 
 ---
 
@@ -135,7 +135,7 @@ ADMINS = [("atwolin", "tzhuchien@nlplab.cc")]
 
 # 允許的 hosts：Firebase Hosting domain
 ALLOWED_HOSTS = [
-    "comicchase.web.app",           # Firebase Hosting
+    "comicchase.site",           # Firebase Hosting
     "comicchase.firebaseapp.com",   # Firebase 預設域名
     ".comicchase.com.tw",           # 如果有自訂 domain
 ]
@@ -148,7 +148,7 @@ ALLOWED_HOSTS = [
 # 但 Backend 會收到來自 Firebase 的請求，需要設定 CSRF_TRUSTED_ORIGINS
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://comicchase.web.app",
+    "https://comicchase.site",
     "https://comicchase.firebaseapp.com",
 ]
 
@@ -157,7 +157,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 # 雖然是同域，但建議保留 CORS 設定（防禦性編程）
 CORS_ALLOWED_ORIGINS = [
-    "https://comicchase.web.app",
+    "https://comicchase.site",
     "https://comicchase.firebaseapp.com",
 ]
 
@@ -875,7 +875,7 @@ curl https://api.comicchase.com.tw/api/comics/series/
 
 #### 5.2 測試 Frontend
 
-訪問：`https://comicchase.web.app`
+訪問：`https://comicchase.site`
 
 確認：
 
@@ -885,7 +885,7 @@ curl https://api.comicchase.com.tw/api/comics/series/
 
 #### 5.3 測試 Django Admin
 
-訪問：`https://comicchase.web.app/admin/`
+訪問：`https://comicchase.site/admin/`
 
 確認可以登入 Django Admin
 
@@ -1018,7 +1018,7 @@ sudo nano /etc/docker/daemon.json
 ```python
 # gce.py
 CORS_ALLOWED_ORIGINS = [
-    "https://comicchase.web.app",
+    "https://comicchase.site",
 ]
 ```
 
@@ -1031,7 +1031,7 @@ CORS_ALLOWED_ORIGINS = [
 ```python
 # gce.py
 CSRF_TRUSTED_ORIGINS = [
-    "https://comicchase.web.app",
+    "https://comicchase.site",
 ]
 ```
 

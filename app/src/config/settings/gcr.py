@@ -43,7 +43,6 @@ CORS_ALLOWED_ORIGINS = [
     "https://comicchase.site",
     "https://www.comicchase.site",
     "https://api.comicchase.site",
-    "https://comicchase.web.app",  # Firebase default domain (fallback)
 ]
 CORS_EXTRA_ORIGINS_STR = env("CORS_EXTRA_ORIGINS", default="")
 if CORS_EXTRA_ORIGINS_STR:

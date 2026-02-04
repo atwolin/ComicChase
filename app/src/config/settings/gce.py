@@ -26,7 +26,7 @@ ADMINS = [("atwolin", "tzhuchien@nlplab.cc")]
 # ============================================================
 
 ALLOWED_HOSTS = [
-    "comicchase.web.app",  # Firebase Hosting
+    "comicchase.site",  # Firebase Hosting
     "api.comicchase.com.tw",  # GCE API domain
 ]
 
@@ -35,11 +35,11 @@ ALLOWED_HOSTS = [
 # ============================================================
 
 CORS_ALLOWED_ORIGINS = [
-    "https://comicchase.web.app",
+    "https://comicchase.site",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://comicchase.web.app",
+    "https://comicchase.site",
 ]
 
 # ============================================================
