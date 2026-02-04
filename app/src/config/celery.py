@@ -12,23 +12,19 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     "crawl-bookstw-new-releases": {
         "task": "comic_scrapers.tasks.crawl_new_volumes_bookstw",
-        # "schedule": crontab(minute=0, hour=2)
-        "schedule": crontab(minute="48", hour="*"),  # TESTING: Every hour
+        "schedule": crontab(minute=0, hour=2),
     },
     "crawl-eslite-by-isbn": {
         "task": "comic_scrapers.tasks.crawl_orphan_volumes_eslite",
-        # "schedule": crontab(minute=0, hour=3)
-        "schedule": crontab(minute="52", hour="*"),  # TESTING: Every hour
+        "schedule": crontab(minute=0, hour=3),
     },
     "crawl-eslite-by-title": {
         "task": "comic_scrapers.tasks.crawl_all_series_eslite",
-        # "schedule": crontab(minute=0, hour=4)
-        "schedule": crontab(minute="57", hour="*"),  # TESTING: Every hour
+        "schedule": crontab(minute=0, hour=4),
     },
     "crawl-booksjp-by-title": {
         "task": "comic_scrapers.tasks.crawl_all_series_booksjp",
-        # "schedule": crontab(minute=0, hour=5)
-        "schedule": crontab(minute="02", hour="*"),  # TESTING: Every hour
+        "schedule": crontab(minute=0, hour=5),
     },
     "send-weekly-digest-every-friday": {
         "task": "subscriptions.tasks.run_weekly_notification_flow",
