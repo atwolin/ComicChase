@@ -71,9 +71,11 @@ def run_weekly_notification_flow(self, sync=False):
     # 僅發送給「開啟全域郵件通知」的使用者
     User = get_user_model()
     recipients = list(
-        User.objects.filter(is_active=True, receive_email=True).values_list(
-            "id", "email", "unsubscribe_token"
-        )
+        User.objects.filter(
+            is_active=True,
+            receive_email=True,
+            unsubscribe_token__isnull=False,
+        ).values_list("id", "email", "unsubscribe_token")
     )
 
     logger.info(f"[{task_id}] Found {len(recipients)} active users")

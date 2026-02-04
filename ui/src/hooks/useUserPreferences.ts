@@ -46,5 +46,7 @@ export function useUserPreferences() {
     updateAsync: mutation.mutateAsync,
     isUpdating: mutation.isPending,
     isError: query.isError,
+    isUpdateError: mutation.isError,
+    updateError: mutation.error,
   }
 }

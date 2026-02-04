@@ -170,7 +170,7 @@ ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*"]
 
 HEADLESS_ONLY = True
 # Frontend URL for email links
-FRONTEND_URL = env("FRONTEND_URL", default="https://comicchase.site")
+FRONTEND_URL = env("FRONTEND_URL", default="https://comicchase.site").rstrip("/")
 HEADLESS_FRONTEND_URLS = {
     "account_confirm_email": f"{FRONTEND_URL}/account/verify-email/{{key}}",
     "account_reset_password": f"{FRONTEND_URL}/account/password/reset",

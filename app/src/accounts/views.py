@@ -144,7 +144,7 @@ class UnsubscribeView(APIView):
 
         # Disable global email notifications
         user.receive_email = False
-        user.save()
+        user.save(update_fields=["receive_email"])
 
         logger.info("[Unsubscribe] Disabled global email for user_id=%s", user.id)
 
