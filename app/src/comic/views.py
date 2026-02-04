@@ -41,4 +41,7 @@ class SeriesViewSet(viewsets.ReadOnlyModelViewSet):
             ).prefetch_related("volumes", "volumes__publisher")
 
         # === 列表頁面 (List View) ===
-        return queryset
+        return queryset.select_related(
+            "latest_volume_jp",
+            "latest_volume_tw",
+        )

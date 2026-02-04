@@ -67,7 +67,7 @@ aws iam create-open-id-connect-provider \
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
         "StringEquals": {
-          "accounts.google.com:aud": "http://YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+          "accounts.google.com:aud": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
         }
       }
     }

@@ -9,6 +9,6 @@ class CustomUserCreationForm(UserCreationForm):
 
 
 class CustomUserChangeForm(UserChangeForm):
-    class Meta:
+    class Meta(UserChangeForm.Meta):
         model = get_user_model()
-        fields = ("email",)
+        fields = "__all__"

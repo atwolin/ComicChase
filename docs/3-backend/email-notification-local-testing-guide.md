@@ -382,7 +382,7 @@ volumes_data = [
 
 html_content = render_to_string(
     "emails/weekly_digest.html",
-    {"volumes": volumes_data, "site_url": "https://comicchase.web.app"}
+    {"volumes": volumes_data, "site_url": "https://comicchase.site"}
 )
 
 print(html_content)

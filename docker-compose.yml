@@ -94,7 +94,7 @@ services:
         USER_ID: ${UID}
         GID: ${GID}
     entrypoint: [""]
-    command: celery flower -A config --port=5555 --broker=${CELERY_BROKER_URL}
+    command: celery flower -A config --port=5555 --broker=$$CELERY_BROKER_URL
     ports:
       - "5555:5555"
     env_file:

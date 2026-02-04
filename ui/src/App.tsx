@@ -13,6 +13,7 @@ import { SeriesDetail } from '@/pages/SeriesDetail'
 import { Login } from '@/pages/Login'
 import { Signup } from '@/pages/Signup'
 import { MySubscriptions } from '@/pages/MySubscriptions'
+import { Unsubscribe } from '@/pages/Unsubscribe'
 import { ROUTES } from '@/constants/routes'
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
                   path={ROUTES.MY_SUBSCRIPTIONS}
                   element={<MySubscriptions />}
                 />
+                <Route path={ROUTES.UNSUBSCRIBE} element={<Unsubscribe />} />
               </Routes>
             </main>
           </div>

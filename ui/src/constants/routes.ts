@@ -6,6 +6,7 @@ export const ROUTES = {
   LOGIN: '/login',
   SIGNUP: '/signup',
   MY_SUBSCRIPTIONS: '/my-subscriptions',
+  UNSUBSCRIBE: '/unsubscribe',
 } as const
 
 export const buildSeriesSearchUrl = (searchQuery: string) => {

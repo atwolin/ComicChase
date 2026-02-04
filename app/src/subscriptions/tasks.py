@@ -67,9 +67,16 @@ def run_weekly_notification_flow(self, sync=False):
 
     logger.info(f"[{task_id}] Found {len(volumes_data)} new volumes to notify")
 
-    # 取得所有有效使用者的 ID 與郵件地址
+    # 取得所有有效使用者的 ID、郵件地址與取消訂閱 token
+    # 僅發送給「開啟全域郵件通知」的使用者
     User = get_user_model()
-    recipients = list(User.objects.filter(is_active=True).values_list("id", "email"))
+    recipients = list(
+        User.objects.filter(
+            is_active=True,
+            receive_email=True,
+            unsubscribe_token__isnull=False,
+        ).values_list("id", "email", "unsubscribe_token")
+    )
 
     logger.info(f"[{task_id}] Found {len(recipients)} active users")
 
@@ -78,11 +85,17 @@ def run_weekly_notification_flow(self, sync=False):
         success_count = 0
         failed_count = 0
 
-        for user_id, email in recipients:
+        for user_id, email, unsubscribe_token in recipients:
             if email:
                 try:
                     # 直接調用函數（不通過 Celery），不需要傳遞 self 參數
-                    send_single_email_task(user_id, email, volumes_data, sync=True)
+                    send_single_email_task(
+                        user_id,
+                        email,
+                        volumes_data,
+                        unsubscribe_token=str(unsubscribe_token),
+                        sync=True,
+                    )
                     success_count += 1
                     logger.info(
                         f"[{task_id}] Email sent to user_id={user_id} "
@@ -107,9 +120,14 @@ def run_weekly_notification_flow(self, sync=False):
         return result
     else:
         # 異步模式：使用 Celery（適用於本機開發）
-        for user_id, email in recipients:
+        for user_id, email, unsubscribe_token in recipients:
             if email:
-                send_single_email_task.delay(user_id, email, volumes_data)
+                send_single_email_task.delay(
+                    user_id,
+                    email,
+                    volumes_data,
+                    unsubscribe_token=str(unsubscribe_token),
+                )
 
         return {
             "task_id": task_id,
@@ -120,7 +138,9 @@ def run_weekly_notification_flow(self, sync=False):
 
 
 @shared_task(bind=True, max_retries=3)
-def send_single_email_task(self, user_id, user_email, volumes_data, sync=False):
+def send_single_email_task(
+    self, user_id, user_email, volumes_data, unsubscribe_token=None, sync=False
+):
     """
     發送單一郵件通知
 
@@ -132,6 +152,7 @@ def send_single_email_task(self, user_id, user_email, volumes_data, sync=False):
         user_id (int): 使用者 ID（用於日誌記錄）
         user_email (str): 收件人郵件地址
         volumes_data (list): 新書資料列表
+        unsubscribe_token (str): 用戶的取消訂閱唯一 token
         sync (bool): 是否使用同步模式執行
 
     Returns:
@@ -155,7 +176,11 @@ def send_single_email_task(self, user_id, user_email, volumes_data, sync=False):
     # 渲染 HTML 內容
     html_content = render_to_string(
         "emails/weekly_digest.html",
-        {"volumes": volumes_data, "site_url": "https://comicchase.site"},
+        {
+            "volumes": volumes_data,
+            "site_url": settings.FRONTEND_URL,
+            "unsubscribe_token": unsubscribe_token,
+        },
     )
 
     # 檢查渲染後的內容

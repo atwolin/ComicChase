@@ -397,10 +397,14 @@ Google OAuth → AWS STS (AssumeRole) → AWS SES (SendEmail)
 
 ### Set up AWS OIDC Provider
 
+> **Note**: `--client-id-list` must match the `aud` (audience) claim in Google ID tokens.
+> This is typically the **Service Account Unique ID** (a numeric ID) or the **Service Account Email**.
+> You can find the Unique ID in Google Cloud Console → IAM → Service Accounts → Click on the account → Details.
+
 ```bash
 aws iam create-open-id-connect-provider \
     --url https://accounts.google.com \
-    --client-id-list "YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com" \
+    --client-id-list "YOUR_SERVICE_ACCOUNT_UNIQUE_ID" "YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com" \
     --thumbprint-list "GOOGLE_CERT_THUMBPRINT"
 ```
 
@@ -478,3 +482,22 @@ python send_email_via_google_aws.py
 ```
 
 > For detailed troubleshooting, see `email-google-to-aws-federation-guide.md`.
+
+## Update Cloud Run Jobs
+
+```bash
+# Setup environment variables
+export IMAGE_NAME="us-central1-docker.pkg.dev/comicchase/cloud-run-source-deploy/comicchase-service:v8-cache-fix"
+export REGION="us-central1"
+
+# Update Job images
+gcloud run jobs update booksjp-title-crawler --image $IMAGE_NAME --region $REGION
+gcloud run jobs update bookstw-daily-crawler --image $IMAGE_NAME --region $REGION
+gcloud run jobs update email-weekly-digest-job --image $IMAGE_NAME --region $REGION
+gcloud run jobs update eslite-orphan-crawler --image $IMAGE_NAME --region $REGION
+gcloud run jobs update eslite-title-crawler --image $IMAGE_NAME --region $REGION
+
+# Migrate and Superuser Jobs are usually single execution or built by Cloud Build, you can choose to update them
+# gcloud run jobs update migrate-job --image $IMAGE_NAME --region $REGION
+# gcloud run jobs update superuser-job --image $IMAGE_NAME --region $REGION
+```

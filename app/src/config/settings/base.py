@@ -169,14 +169,19 @@ ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*"]
 
 HEADLESS_ONLY = True
+# Frontend URL for email links
+FRONTEND_URL = env("FRONTEND_URL", default="https://comicchase.site").rstrip("/")
 HEADLESS_FRONTEND_URLS = {
-    "account_confirm_email": "/account/verify-email/{key}",
-    "account_reset_password": "/account/password/reset",
-    "account_reset_password_from_key": "/account/password/reset/key/{key}",
-    "account_signup": "/account/signup",
-    "socialaccount_login_error": "/account/provider/callback",
+    "account_confirm_email": f"{FRONTEND_URL}/account/verify-email/{{key}}",
+    "account_reset_password": f"{FRONTEND_URL}/account/password/reset",
+    "account_reset_password_from_key": (
+        f"{FRONTEND_URL}/account/password/reset/key/{{key}}"
+    ),
+    "account_signup": f"{FRONTEND_URL}/account/signup",
+    "socialaccount_login_error": f"{FRONTEND_URL}/account/provider/callback",
 }
 HEADLESS_SERVE_SPECIFICATION = True
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = env("ACCOUNT_DEFAULT_HTTP_PROTOCOL", default="https")
 
 # ============================================================
 # CORS Settings (for local development)
