@@ -217,7 +217,7 @@ ComicChase/
 
 可存取的微服務：
 
--RECEIVE EMAIL 欄位: <http://localhost:8000/admin>
+- Django Admin:: <http://localhost:8000/admin>
 - Selenium Grid: <http://localhost:4444>
 - Flower: <http://localhost:5555>
 - RabbitMQ: <http://localhost:15672>
