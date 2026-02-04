@@ -1,6 +1,7 @@
 import logging
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -70,7 +71,7 @@ class UnsubscribeView(APIView):
             return None
         try:
             return User.objects.get(unsubscribe_token=token)
-        except (User.DoesNotExist, ValueError):
+        except (User.DoesNotExist, ValueError, ValidationError):
             return None
 
     @extend_schema(
