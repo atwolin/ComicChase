@@ -232,9 +232,9 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
         Returns:
             bool: True if this page should be skipped (doesn't match search criteria).
         """
-        if not self.search_field_name or not page_value:
+        if not self.search_value or not page_value:
             return False
-        return self.search_field_name not in page_value
+        return self.search_value not in page_value
 
     def has_more_pages(self, prev_url: str | None, current_url: str) -> bool:
         """Check if there are more pages to process.

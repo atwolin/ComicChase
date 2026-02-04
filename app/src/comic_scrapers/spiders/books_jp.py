@@ -108,13 +108,8 @@ class BooksJpSpider(BaseSeleniumSpider):
         if not page_value or not product_desc:
             return False
 
-        search_value = (
-            getattr(self, self.search_field_name, None)
-            if self.search_field_name
-            else None
-        )
         # Skip if search value doesn't match or if it's an e-book
-        return (search_value and search_value not in page_value) or (
+        return (self.search_value and self.search_value not in page_value) or (
             "JP-eコード" in product_desc
         )
 
@@ -188,6 +183,11 @@ class BooksJpTitleTwSpider(BooksJpSpider):
                 in YYYY-MM-DD format. Used to skip volumes we already have.
                 Defaults to None (crawl all volumes).
         """
+        if not search_value:
+            raise ValueError(
+                "search_value (title_jp) is required for BooksJpTitleTwSpider"
+            )
+
         kwargs["search_value"] = search_value
         kwargs["last_release_date"] = last_release_date
         super().__init__(*args, **kwargs)
@@ -197,11 +197,6 @@ class BooksJpTitleTwSpider(BooksJpSpider):
 
         # Verification configuration
         self.verify_element_xpath = "//span[@class='bookdetail_title_text']"
-
-        if not search_value:
-            raise ValueError(
-                "search_value (title_jp) is required for BooksJpTitleTwSpider"
-            )
 
         self.logger.info(
             f"BooksJpTitleTwSpider: Searching for title: {search_value}"

@@ -174,8 +174,8 @@ class TestBooksJpSpiderParseSearchResults(unittest.TestCase):
         )
 
 
-class TestBooksJpSpiderParseDetailInfo(unittest.TestCase):
-    """Test cases for the parse_detail_info() method of BooksJpSpider."""
+class TestBooksJpSpiderExtractDetailFields(unittest.TestCase):
+    """Test cases for the extract_detail_fields() method of BooksJpSpider."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -189,35 +189,10 @@ class TestBooksJpSpiderParseDetailInfo(unittest.TestCase):
             self.spider.driver.current_url = "https://www.books.or.jp/book/123"
             self.spider.wait = MagicMock()
 
-    def test_parse_detail_info_extracts_all_fields(self):
-        """Test that parse_detail_info() extracts all book information correctly."""
-        self.spider.title_jp = "廻天のアルバス"
+    def test_extract_detail_fields_extracts_all_fields(self):
+        """Test that extract_detail_fields() extracts all book information correctly."""
         # Create item
         item = JpComicItem()
-        item["search_query"] = self.spider.title_jp
-
-        # Mock link element
-        mock_link = MagicMock()
-
-        # Mock target info element
-        mock_target = MagicMock()
-        mock_target.get_attribute.return_value = "廻天のアルバス ７"
-
-        # Mock product description element - matches real format from jp_titletw.json
-        mock_desc = MagicMock()
-        mock_desc.get_attribute.return_value = (
-            '<p class="text-body text-color">ISBN：9784098543724<br>'
-            "雑誌コード：5854372<br>出版社：小学館<br>判型：新書<br>"
-            "ページ数：192ページ<br>定価：540円（本体）<br>"
-            "発行年月日：2025年12月23日<br>発売予定日：2025年12月18日"
-            '<span class="readonly">。</span></p>'
-        )
-
-        # Configure wait.until
-        self.spider.wait.until.side_effect = [
-            mock_target,  # topic_prevent
-            mock_desc,  # product_desc
-        ]
 
         # Mock find_element and find_elements for book details
         def mock_find_element(by, xpath):
@@ -248,11 +223,9 @@ class TestBooksJpSpiderParseDetailInfo(unittest.TestCase):
         self.spider.driver.find_element.side_effect = mock_find_element
         self.spider.driver.find_elements.side_effect = mock_find_elements
 
-        results = list(self.spider.parse_detail_info(mock_link, item))
+        result_item = self.spider.extract_detail_fields(item)
 
-        # Should yield one item with all fields populated
-        self.assertEqual(len(results), 1, "Should yield one item")
-        result_item = results[0]
+        # Should populate all fields
         self.assertEqual(result_item["title_jp"], "廻天のアルバス ７")
         self.assertEqual(result_item["publisher_jp"], "出版社：小学館")
         self.assertIsInstance(result_item["author_jp"], list)
@@ -261,65 +234,31 @@ class TestBooksJpSpiderParseDetailInfo(unittest.TestCase):
             result_item["image_url_jp"], "https://example.com/jp_cover.jpg"
         )
 
-    def test_parse_detail_info_handles_topic_mismatch(self):
-        """Test that parse_detail_info() returns early on topic mismatch."""
-        self.spider.title_jp = "廻天のアルバス"
-        # Create item
-        item = JpComicItem()
-        item["search_query"] = self.spider.title_jp
+    def test_should_skip_detail_page_handles_topic_mismatch(self):
+        """Test that should_skip_detail_page() detects topic mismatch."""
+        self.spider.search_value = "廻天のアルバス"
 
-        # Mock link element
-        mock_link = MagicMock()
+        # Page value doesn't contain search value
+        page_value = "別の漫画"
+        product_desc = "ISBN: 978-4-06-123456-7"
 
-        # Mock target info element - doesn't contain topic
-        mock_target = MagicMock()
-        mock_target.get_attribute.return_value = "別の漫画"
+        result = self.spider.should_skip_detail_page(page_value, product_desc)
 
-        # Mock product description element
-        mock_desc = MagicMock()
-        mock_desc.get_attribute.return_value = "ISBN: 978-4-06-123456-7"
+        # Should return True (skip this page)
+        self.assertTrue(result, "Should skip page with mismatched topic")
 
-        self.spider.wait.until.side_effect = [
-            mock_target,  # topic_prevent
-            mock_desc,  # product_desc
-        ]
+    def test_should_skip_detail_page_handles_ebook(self):
+        """Test that should_skip_detail_page() detects e-books."""
+        self.spider.search_value = "廻天のアルバス"
 
-        results = list(self.spider.parse_detail_info(mock_link, item))
+        # Page value matches but product is an e-book
+        page_value = "廻天のアルバス ７"
+        product_desc = "JP-eコード：123456"
 
-        # Should yield item early without processing
-        self.assertEqual(len(results), 1, "Should yield one item")
-        # Should have called driver.back()
-        self.spider.driver.back.assert_called()
+        result = self.spider.should_skip_detail_page(page_value, product_desc)
 
-    def test_parse_detail_info_handles_ebook(self):
-        """Test that parse_detail_info() skips e-books."""
-        self.spider.title_jp = "廻天のアルバス"
-        # Create item
-        item = JpComicItem()
-        item["search_query"] = self.spider.title_jp
-
-        # Mock link element
-        mock_link = MagicMock()
-
-        # Mock target info element
-        mock_target = MagicMock()
-        mock_target.get_attribute.return_value = "廻天のアルバス ７"
-
-        # Mock product description element - contains e-book code
-        mock_desc = MagicMock()
-        mock_desc.get_attribute.return_value = "JP-eコード：123456"
-
-        self.spider.wait.until.side_effect = [
-            mock_target,  # topic_prevent
-            mock_desc,  # product_desc
-        ]
-
-        results = list(self.spider.parse_detail_info(mock_link, item))
-
-        # Should yield item early (e-book detected)
-        self.assertEqual(len(results), 1, "Should yield one item")
-        # Should have called driver.back()
-        self.spider.driver.back.assert_called()
+        # Should return True (skip e-books)
+        self.assertTrue(result, "Should skip e-book products")
 
 
 class TestBooksJpTitleTwSpiderIntegration(unittest.TestCase):
