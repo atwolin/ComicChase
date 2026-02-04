@@ -205,6 +205,10 @@ export const MySubscriptions = () => {
                   <button
                     onClick={toggleAllEmailNotifications}
                     disabled={isUpdating || isPreferencesLoading}
+                    aria-pressed={emailEnabled}
+                    aria-label={
+                      emailEnabled ? '關閉所有郵件通知' : '開啟所有郵件通知'
+                    }
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
                       emailEnabled ? 'bg-indigo-500' : 'bg-gray-300'
                     } ${isUpdating ? 'opacity-50 cursor-wait' : ''}`}

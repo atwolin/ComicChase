@@ -15,7 +15,7 @@ Firebase Hosting 的 `run` rewrite 配置：
   "rewrites": [{
     "source": "/api/**",
     "run": {
-      "serviceId": "https://api.comicchase.com.tw"  // ❌ 這不會運作！
+      "serviceId": "https://api.comicchase.site"  // ❌ 這不會運作！
     }
   }]
 }
@@ -34,7 +34,7 @@ Firebase Hosting 的 `run` rewrite 配置：
 建立 `ui/.env.gce`:
 
 ```env
-VITE_API_BASE_URL=https://api.comicchase.com.tw
+VITE_API_BASE_URL=https://api.comicchase.site
 ```
 
 > **注意**: `.env.gce` 被 gitignore，請手動建立此文件
@@ -80,7 +80,7 @@ VITE_API_BASE_URL=https://api.comicchase.com.tw
 ```typescript
 // ui/src/config.ts 或類似文件
 const API_BASE_URL = import.meta.env.PROD
-  ? 'https://api.comicchase.com.tw'  // GCE 域名
+  ? 'https://api.comicchase.site'  // GCE 域名
   : 'http://localhost:8000';
 
 export { API_BASE_URL };
@@ -101,7 +101,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 ALLOWED_HOSTS = [
     "comicchase.site",  # Firebase Hosting
-    "api.comicchase.com.tw",  # GCE 域名
+    "api.comicchase.site",  # GCE 域名
 ]
 ```
 
@@ -121,7 +121,7 @@ firebase deploy --only hosting --config firebase.gce.json
 
 1. **訪問 Firebase Hosting**：`https://comicchase.site`
 2. **打開瀏覽器開發者工具 → Network**
-3. **觸發 API 請求**，確認請求直接發送到 `https://api.comicchase.com.tw`
+3. **觸發 API 請求**，確認請求直接發送到 `https://api.comicchase.site`
 4. **檢查 Response Headers**：
 
    ```http
@@ -169,7 +169,7 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const app = express();
 
 app.use('/api', createProxyMiddleware({
-  target: 'https://api.comicchase.com.tw',
+  target: 'https://api.comicchase.site',
   changeOrigin: true,
 }));
 

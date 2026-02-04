@@ -6,7 +6,7 @@ upstream comicchase {
 # Redirect HTTP to HTTPS
 server {
     listen       80;
-    server_name  comicchase.com.tw;
+    server_name  comicchase.site;
     return 301   https://$host$request_uri;
 }
 
@@ -19,7 +19,7 @@ server {
     ssl_certificate      /code/app/ssl/comicchase.crt;
     ssl_certificate_key  /code/app/ssl/comicchase.key;
 
-    server_name          *.comicchase.com.tw comicchase.com.tw;
+    server_name          *.comicchase.site comicchase.site;
     error_log            stderr warn;
     access_log           /dev/stdout main;
 

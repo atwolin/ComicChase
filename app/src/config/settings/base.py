@@ -175,7 +175,7 @@ HEADLESS_FRONTEND_URLS = {
     "account_confirm_email": f"{FRONTEND_URL}/account/verify-email/{{key}}",
     "account_reset_password": f"{FRONTEND_URL}/account/password/reset",
     "account_reset_password_from_key": (
-        f"{FRONTEND_URL}/account/password/reset/key/{{{{key}}}}"
+        f"{FRONTEND_URL}/account/password/reset/key/{{key}}"
     ),
     "account_signup": f"{FRONTEND_URL}/account/signup",
     "socialaccount_login_error": f"{FRONTEND_URL}/account/provider/callback",

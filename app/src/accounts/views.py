@@ -42,8 +42,10 @@ class UserPreferenceView(APIView):
             # After save logging
             new_val = serializer.instance.receive_email
             logger.info(
-                f"[Preference] User {request.user.email} updated receive_email: "
-                f"{old_val} -> {new_val}"
+                "[Preference] User id=%s updated receive_email: %s -> %s",
+                request.user.id,
+                old_val,
+                new_val,
             )
             return Response(serializer.data)
 
@@ -144,7 +146,7 @@ class UnsubscribeView(APIView):
         user.receive_email = False
         user.save()
 
-        logger.info(f"[Unsubscribe] Disabled global email for {user.email}")
+        logger.info("[Unsubscribe] Disabled global email for user_id=%s", user.id)
 
         return Response(
             {

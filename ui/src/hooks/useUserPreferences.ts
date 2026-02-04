@@ -7,6 +7,9 @@ import type { UserPreference } from '@/api'
 
 async function fetchPreferences() {
   const { data } = await accountsPreferencesRetrieve()
+  if (!data) {
+    throw new Error('API 未返回用戶偏好數據')
+  }
   return data as UserPreference
 }
 
@@ -14,6 +17,9 @@ async function updatePreferences(data: Partial<UserPreference>) {
   const { data: responseData } = await accountsPreferencesPartialUpdate({
     body: data,
   })
+  if (!responseData) {
+    throw new Error('API 未返回更新數據')
+  }
   return responseData as UserPreference
 }
 

@@ -172,10 +172,6 @@ def send_single_email_task(
         logger.info(f"[{task_id}] Sample image URL: {volumes_data[0]['image_url']}")
 
     # 渲染 HTML 內容
-    logger.info(
-        f"[{task_id}] DEBUG: unsubscribe_token="
-        f"{unsubscribe_token} for user_id={user_id}"
-    )
     html_content = render_to_string(
         "emails/weekly_digest.html",
         {
