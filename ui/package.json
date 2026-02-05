@@ -6,6 +6,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "build:gcr": "tsc && vite build --mode gcr",
+    "build:gce": "tsc && vite build --mode gce",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix",
@@ -13,7 +14,8 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "generate:api": "openapi-ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.12.0",
@@ -24,14 +26,16 @@
     "react-router-dom": "^6.30.2"
   },
   "devDependencies": {
+    "@hey-api/client-axios": "^0.9.1",
+    "@hey-api/openapi-ts": "^0.89.2",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.5.1",
     "@types/node": "^24.10.1",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
-    "@typescript-eslint/eslint-plugin": "^6.13.1",
-    "@typescript-eslint/parser": "^6.13.1",
+    "@typescript-eslint/eslint-plugin": "^8.53.0",
+    "@typescript-eslint/parser": "^8.53.0",
     "@vitejs/plugin-react": "^5.1.2",
     "@vitest/coverage-v8": "^4.0.15",
     "@vitest/ui": "^4.0.15",

@@ -15,7 +15,7 @@ export const Home = () => {
   } = useSeriesList({
     ordering: '-id',
     page: 1,
-    page_size: 12,
+    // 注意：後端 API 目前不支持 page_size 參數，使用默認值
   })
 
   return (
@@ -71,10 +71,7 @@ export const Home = () => {
             <Loading />
           ) : latestError ? (
             // 如果發生錯誤，顯示 Error 並傳入重試函式
-            <ErrorDisplay
-              message="無法載入最新漫畫，請檢查網路連線"
-              onRetry={retryLatest}
-            />
+            <ErrorDisplay message="無法載入最新漫畫" onRetry={retryLatest} />
           ) : latestData?.results && latestData.results.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {latestData.results.slice(0, 8).map(series => (

@@ -1,108 +1,109 @@
 # Comic Scrapers
 
-Django management commands for scraping comic data from various sources.
+Django management commands and Celery tasks for scraping comic data from various sources. Please make sure to run these commands in a Docker container.
 
-## Available Commands
+## Available Management Commands
 
-### 1. `booktw_crawl`
+Use these commands for manual execution or testing specific crawls.
+
+### 1. `books_tw_new_releases`
 Crawls books.com.tw for orphan volumes (volumes not yet linked to a series).
 
 **Usage:**
 ```bash
-docker compose exec web python manage.py booktw_crawl
+python manage.py books_tw_new_releases
 ```
 
 **What it does:**
 - Scrapes the books.com.tw new releases page
 - Extracts ISBN information for Taiwanese volumes
-- Processes up to 100 book links from the new releases section
 - Uses `BooksTWSpider` to collect orphan volume data
 
 **Spider:** `BooksTWSpider` in `spiders/books_tw.py`
 
 ---
 
-### 2. `eslite_isbn_crawl`
-Crawls eslite.com to map orphan Taiwanese volumes using ISBN lookup.
+### 2. `eslite_isbn_search`
+Crawls eslite.com to map a specific orphan Taiwanese volume using ISBN lookup.
 
 **Usage:**
 ```bash
-docker compose exec web python manage.py eslite_isbn_crawl
+python manage.py eslite_isbn_search --isbn "978xxxxxxxxxx"
 ```
 
 **What it does:**
-- Searches eslite.com using ISBNs from orphan volumes (TW region)
+- Searches eslite.com using the provided ISBN
 - Extracts detailed volume and series information
-- Matches volumes with series data including titles, authors, and publishers
-- Uses Selenium for dynamic page interaction
+- Matches volume with series data including titles, authors, and publishers
 
 **Spider:** `EsliteISBNSpider` in `spiders/eslite.py`
 
-**Data extracted:**
-- Japanese title (`title_jp`)
-- Taiwanese title (`title_tw`)
-- Author (TW)
-- Publisher (TW)
-- Release date (TW)
-- Product description
-
 ---
 
-### 3. `bookjp_title_crawl`
-Crawls books.or.jp to update Japanese comic titles and author information.
+### 3. `books_jp_title_search`
+Crawls books.or.jp to update Japanese comic titles and author information for a specific series.
 
 **Usage:**
 ```bash
-docker compose exec web python manage.py bookjp_title_crawl
+python manage.py books_jp_title_search --title "Series Title JP" --last-release-date "YYYY-MM-DD"
 ```
 
 **What it does:**
-- Searches books.or.jp using existing Japanese titles from the database
+- Searches books.or.jp using the provided Japanese title
 - Updates series information with author details
-- Targets series that have Japanese titles but missing author information
-- Uses Selenium for dynamic search and navigation
+- Useful for series that have Japanese titles but missing author information
 
 **Spider:** `BooksJpTitleTwSpider` in `spiders/books_jp.py`
 
-**Data extracted:**
-- Japanese title (`title_jp`)
-- Japanese author(s) (`author_jp`)
-- Japanese publisher (`publisher_jp`)
-- Product description
-
 ---
 
-### 4. `eslite_title_crawl`
-Crawls eslite.com to search and extract volumes for specific series or all series by Taiwanese title.
+### 4. `eslite_title_search`
+Crawls eslite.com to search and extract volumes for a specific series by Taiwanese title.
 
 **Usage:**
 ```bash
-# Crawl a specific series by name
-docker compose exec web python manage.py eslite_title_crawl --series-name "排球少年"
-
-# Crawl all series with Taiwanese titles in the database
-docker compose exec web python manage.py eslite_title_crawl
+python manage.py eslite_title_search --title "Series Title TW" --last-release-date "YYYY-MM-DD"
 ```
 
 **What it does:**
-- Searches eslite.com using Taiwanese series titles
-- Extracts volume information for each series
-- Can target a specific series (with `--series-name` flag) or process all series from the database
-- Uses Selenium for dynamic page interaction and navigation
-- Filters results to Chinese books in the manga/graphic novel category
+- Searches eslite.com using the provided Taiwanese series title
+- Extracts volume information for the series
+- Can optionally filter by last release date to skip existing volumes
 
 **Spider:** `EsliteTitleTwSpider` in `spiders/eslite.py`
 
-**Options:**
-- `--series-name`: (Optional) Specific series name to crawl. If omitted, crawls all series with `title_tw` in the database.
+---
 
-**Data extracted:**
-- Japanese title (`title_jp`)
-- Taiwanese title (`title_tw`)
-- Author (TW)
-- Publisher (TW)
-- Release date (TW)
-- Product description
+## Celery Tasks (Bulk Crawling)
+
+For production and bulk updates, use the available Celery tasks. These tasks handle database querying and distribute crawling jobs.
+
+### Available Tasks
+These are defined in `tasks.py`:
+
+- **`crawl_new_volumes_bookstw`**:
+    - Wraps `books_tw_new_releases` command.
+    - Crawls new releases list.
+
+- **`crawl_orphan_volumes_eslite`**:
+    - Queries all orphan volumes (volumes with ISBN but no Series) from the database.
+    - Spawns parallel `crawl_single_isbn_eslite` tasks for each ISBN.
+
+- **`crawl_all_series_eslite`**:
+    - Queries all series with Traditional Chinese titles.
+    - Spawns parallel `crawl_single_title_eslite` tasks for each series.
+
+- **`crawl_all_series_booksjp`**:
+    - Queries all series with Japanese titles.
+    - Spawns parallel `crawl_single_title_booksjp` tasks for each series.
+
+### Triggering Tasks
+You can trigger these tasks via the Django shell:
+
+```python
+from comic_scrapers.tasks import crawl_orphan_volumes_eslite
+crawl_orphan_volumes_eslite.delay()
+```
 
 ---
 
@@ -110,13 +111,12 @@ docker compose exec web python manage.py eslite_title_crawl
 
 These commands require:
 - Docker and Docker Compose running
-- Selenium service configured (for `eslite_isbn_crawl` and `bookjp_title_crawl`)
+- Selenium service configured (for `eslite` spiders and `books_jp` spiders)
 - PostgreSQL database with the `comic` app models
 - Scrapy configured with appropriate settings
 
 ## Notes
 
-- All commands use Scrapy's `CrawlerProcess` to run spiders
-- Commands that use Selenium (`eslite_isbn_crawl`, `bookjp_title_crawl`) connect to a remote Selenium service at `http://selenium:4444/wd/hub`
-- Scraped data is processed through Scrapy pipelines defined in `pipelines.py`
-- Commands include sleep delays to respect rate limits and avoid overwhelming target sites
+- Management commands use Scrapy's `CrawlerProcess` to run spiders.
+- Commands that use Selenium connect to a remote Selenium service at `http://selenium:4444/wd/hub`.
+- Scraped data is processed through Scrapy pipelines defined in `pipelines.py`.

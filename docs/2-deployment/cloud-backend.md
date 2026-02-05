@@ -1,0 +1,503 @@
+# Deploy to Google Cloud Run
+
+## Components
+
+- Cloud Run
+- Cloud SQL
+- Artifact Registry
+- Cloud Storage
+- Secret Manager
+- Cloud Build
+
+## Variables for Setup
+
+```bash
+PROJECT_ID=$(gcloud config get-value core/project)   # GCP Project ID
+REGION=us-central1                                   # GCP Region
+SERVICE_ACCOUNT=$(gcloud iam service-accounts list \
+    --filter cloudrun-serviceaccount \
+    --format "value(email)")                         # Service Account
+INSTANCE_NAME=comic-instance                         # Cloud SQL Instance Name
+ARTIFACT_REGISTRY=${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy  # Artifact Registry URL
+GS_BUCKET_NAME=${PROJECT_ID}-media                   # Media Storage Bucket Name
+SECRET_NAME=application_settings                     # Application Settings Secret Name
+```
+
+## Steps
+
+### Enable the Cloud APIs
+
+```bash
+gcloud services enable \
+  run.googleapis.com \
+  sql-component.googleapis.com \
+  sqladmin.googleapis.com \
+  compute.googleapis.com \
+  cloudbuild.googleapis.com \
+  secretmanager.googleapis.com \
+  artifactregistry.googleapis.com
+```
+
+### Prepare the environment
+
+Clone the app:
+
+```bash
+git clone https://github.com/atwolin/ComicChase.git
+```
+
+### Set base environment variables
+
+```bash
+PROJECT_ID=$(gcloud config get-value core/project)
+REGION=us-central1
+```
+
+### Create a service account
+
+1. Create a service account (name is `cloudrun-serviceaccount`):
+
+    ```bash
+    gcloud iam service-accounts create cloudrun-serviceaccount
+    ```
+
+2. Save the account:
+
+    ```bash
+    SERVICE_ACCOUNT=$(gcloud iam service-accounts list \
+        --filter cloudrun-serviceaccount --format "value(email)")
+    ```
+
+### Create a PostgreSQL instance on Cloud SQL
+
+1. Create the PostgreSQL instance:
+
+    ```bash
+    INSTANCE_NAME=comic-instance
+    gcloud sql instances create ${INSTANCE_NAME} \
+        --project ${PROJECT_ID} \
+        --database-version POSTGRES_16 \
+        --tier db-g1-small \
+        --region ${REGION} \
+        --edition ENTERPRISE
+    ```
+
+2. Create a database:
+
+    ```bash
+    DATABASE_NAME=dj-database
+    gcloud sql databases create ${DATABASE_NAME} \
+        --instance ${INSTANCE_NAME}
+    ```
+
+3. Create a database user:
+
+    ```bash
+    DATABASE_USERNAME=dj-user
+    DATABASE_PASSWORD=$(openssl rand -base64 24)
+    gcloud sql users create ${DATABASE_USERNAME} \
+        --instance ${INSTANCE_NAME} \
+        --password ${DATABASE_PASSWORD}
+    ```
+
+### Set up Artifact Registry
+
+1. Create a repository to store the container image (repo name `cloud-run-source-deploy`):
+
+    ```bash
+    gcloud artifacts repositories create cloud-run-source-deploy \
+        --repository-format docker \
+        --location ${REGION}
+    ```
+
+2. Save the registry name:
+
+    ```bash
+    ARTIFACT_REGISTRY=${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy
+    ```
+
+### Set up a Cloud Storage bucket
+
+1. Create a Cloud Storage bucket to store static assets and user-uploaded media:
+
+    ```bash
+    GS_BUCKET_NAME=${PROJECT_ID}-media
+    gcloud storage buckets create gs://${GS_BUCKET_NAME} --location=${REGION}
+    ```
+
+### Store secret values in Secret Manager
+
+1. Add values for the database connection string, media bucket, and a new `SECRET_KEY` value:
+
+    ```bash
+    echo DATABASE_URL=\"postgres://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@//cloudsql/${PROJECT_ID}:${REGION}:${INSTANCE_NAME}/${DATABASE_NAME}\" > .env
+    echo GS_BUCKET_NAME=\"${GS_BUCKET_NAME}\" >> .env
+    echo SECRET_KEY=$(cat /dev/urandom | LC_ALL=C tr -dc '[:alpha:]'| fold -w 50 | head -n1) >> .env
+    echo DEBUG=False >> .env
+    ```
+
+    For SECRET_KEY generation, alternately use cryptographically secure methods:
+
+    ```bash
+    echo SECRET_KEY=$(python3 -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())") >> .env
+    ```
+
+    or
+
+    ```bash
+    echo SECRET_KEY=$(openssl rand -base64 32) >> .env
+    ```
+
+2. Store the secret (name is `application_settings`) in Secret Manager:
+
+    ```bash
+    SECRET_NAME=application_settings
+    gcloud secrets create ${SECRET_NAME} --data-file .env
+    ```
+
+3. Delete local file to prevent local setting overrides:
+
+    ```bash
+    rm .env
+    ```
+
+4. Create secret for Django's admin password:
+
+    ```bash
+    SUPERUSER_SECRET_NAME=superuser_password
+    echo -n "$(cat /dev/urandom | LC_ALL=C tr -dc '[:alpha:]'| fold -w 30 | head -n1)" | gcloud secrets create ${SUPERUSER_SECRET_NAME} --data-file -
+    ```
+
+5. Add email notification settings:
+
+    ```bash
+    # 1. Download the current secret to a local file
+    gcloud secrets versions access latest --secret="application_settings" > .env.cloud
+
+    # 2. Edit .env.cloud, add AWS related settings
+    # Use your preferred editor to open .env.cloud and add the following content:
+    # AWS_SES_REGION=your-ses-region
+    # AWS_DEFAULT_REGION=your-default-region
+    # AWS_SES_REGION_ENDPOINT=your-ses-region-endpoint
+    # AWS_ACCESS_KEY_ID=your-access-key-id
+    # AWS_SECRET_ACCESS_KEY=your-secret-access-key
+
+    # 3. Update secret (create new version)
+    gcloud secrets versions add application_settings --data-file=.env.cloud
+
+    # 4. Clean up sensitive file
+    rm .env.cloud
+    ```
+
+### DNS settings
+
+1. Verify via Cloud Console
+
+    ```bash
+    # 1. Add the domain for verification
+    gcloud domains verify api.comicchase.site
+
+    # This will provide you with a TXT record to add to your DNS
+    ```
+
+    Add this TXT record in Namecheap:
+
+    | Type | Host | Value |
+    | ------ | ------ | ------- |
+    | TXT | api | google-site-verification=XXXXXXXXXXXXXXXXXXXX |
+
+2. Check if verification is complete
+
+    ```bash
+    gcloud domains list-user-verified
+    ```
+
+3. Map the domain to Cloud Run
+
+    ```bash
+    gcloud beta run domain-mappings create \
+    --service comicchase-service \
+    --domain api.comicchase.site \
+    --region us-central1
+    ```
+
+4. Check the mapping status
+
+    ```bash
+    gcloud beta run domain-mappings describe \
+    --domain api.comicchase.site \
+    --region us-central1
+    ```
+
+5. Add A records in Namecheap:
+
+    ```bash
+    gcloud beta run domain-mappings describe \
+    --domain api.comicchase.site \
+    --region us-central1
+    ```
+
+6. Check the status of the mapping
+
+    ```bash
+    # Verify DNS is working
+    dig api.comicchase.site
+
+    # Check certificate status
+    gcloud beta run domain-mappings describe \
+    --domain api.comicchase.site \
+    --region us-central1
+    ```
+
+    Once you see certificateStatus: ACTIVE, the SSL certificate is ready and <https://api.comicchase.site> will work.
+
+### Setting minimum permissions
+
+1. Assign the service account to the service:
+
+    ```bash
+    # Cloud SQL Client
+    gcloud projects add-iam-policy-binding ${PROJECT_ID} \
+        --member serviceAccount:${SERVICE_ACCOUNT} \
+        --role roles/cloudsql.client
+
+    # Storage Admin, on the media bucket
+    gcloud storage buckets add-iam-policy-binding gs://${GS_BUCKET_NAME} \
+        --member=serviceAccount:${SERVICE_ACCOUNT} \
+        --role=roles/storage.objectAdmin
+
+    # Secret Accessor, on the Django settings secret.
+    gcloud secrets add-iam-policy-binding ${SECRET_NAME} \
+        --member serviceAccount:${SERVICE_ACCOUNT} \
+        --role roles/secretmanager.secretAccessor
+
+    # Secret Accessor, on the Django super user password.
+    gcloud secrets add-iam-policy-binding ${SUPERUSER_SECRET_NAME} \
+        --member serviceAccount:${SERVICE_ACCOUNT} \
+        --role roles/secretmanager.secretAccessor
+    ```
+
+    > Confirm the secret has been created by listing the secrets:
+    >
+    > ```bash
+    > gcloud secrets versions list ${SECRET_NAME}
+    > ```
+
+### Deploy the app to Cloud Run
+
+1. Use Cloud Build to build the image using `cloudmigrate.yaml`:
+
+    ```bash
+    gcloud builds submit --config cloudmigrate.yaml \
+        --substitutions _INSTANCE_NAME=${INSTANCE_NAME},_REGION=${REGION}
+    ```
+
+2. (Alternative) If you prefer to deploy manually for the first time without using `cloudmigrate.yaml`,
+   you can set the service region, base image, and connected Cloud SQL instance manually:
+
+    ```bash
+    gcloud run deploy comicchase-service \
+        --region ${REGION} \
+        --image ${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/comicchase-service \
+        --add-cloudsql-instances ${PROJECT_ID}:${REGION}:${INSTANCE_NAME} \
+        --service-account ${SERVICE_ACCOUNT} \
+        --allow-unauthenticated
+    ```
+
+    > Successful output:
+    >
+    > ```bash
+    > Service [comicchase-service] revision [comicchase-service-00001-tug] has been deployed
+    > and is serving 100 percent of traffic.
+    > Service URL: https://comicchase-service-${PROJECT_ID}.REGION.run.app
+    > ```
+
+3. Update the service to the service URLs an an environment variable:
+
+    ```bash
+    CLOUDRUN_SERVICE_URLS=$(gcloud run services describe comicchase-service \
+        --region ${REGION}  \
+        --format "value(metadata.annotations[\"run.googleapis.com/urls\"])" | tr -d '"[]')
+
+    gcloud run services update comicchase-service \
+        --region ${REGION} \
+        --update-env-vars "^##^CLOUDRUN_SERVICE_URLS=${CLOUDRUN_SERVICE_URLS}"
+    ```
+
+    > To retrieve the superuser password from Secret Manager:
+    >
+    > ```bash
+    > gcloud secrets versions access latest --secret superuser_password && echo ""
+    > ```
+
+### Updating the application
+
+1. Run the Cloud Build script, including build, migration, and deployment:
+
+    ```bash
+    gcloud builds submit --config cloudmigrate.yaml \
+        --substitutions _INSTANCE_NAME=${INSTANCE_NAME},_REGION=${REGION}
+    ```
+
+2. Only deploy the service, without build and migration:
+
+    ```bash
+    gcloud run deploy comicchase-service \
+        --region ${REGION} \
+        --image ${REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/comicchase-service
+    ```
+
+### Enable and disable the Cloud SQL instance
+
+1. Enable the Cloud SQL instance:
+
+    ```bash
+    gcloud sql instances patch ${INSTANCE_NAME} --activation-policy=always
+
+    # Or more explicitly:
+    gcloud sql instances patch ${INSTANCE_NAME} \
+        --activation-policy=always \
+        --project=${PROJECT_ID}
+    ```
+
+2. Stop the Cloud SQL instance to pause billing:
+
+    ```bash
+    gcloud sql instances patch ${INSTANCE_NAME} \
+        --activation-policy=never \
+        --project=${PROJECT_ID}
+    ```
+
+3. Check the status of the Cloud SQL instance:
+
+    ```bash
+    gcloud sql instances describe ${INSTANCE_NAME} --format="value(state)"
+
+    # Whole information
+    gcloud sql instances describe ${INSTANCE_NAME}
+    ```
+
+---
+
+## Email Notification (Google-to-AWS Federation)
+
+Send emails via AWS SES using Google Cloud Workload Identity Federation.
+
+### Architecture
+
+```text
+Google OAuth → AWS STS (AssumeRole) → AWS SES (SendEmail)
+```
+
+### Prerequisites
+
+1. AWS OIDC Provider configured (`accounts.google.com`)
+2. AWS IAM Role with SES permissions
+3. Verified email addresses in AWS SES
+
+### Set up AWS OIDC Provider
+
+> **Note**: `--client-id-list` must match the `aud` (audience) claim in Google ID tokens.
+> This is typically the **Service Account Unique ID** (a numeric ID) or the **Service Account Email**.
+> You can find the Unique ID in Google Cloud Console → IAM → Service Accounts → Click on the account → Details.
+
+```bash
+aws iam create-open-id-connect-provider \
+    --url https://accounts.google.com \
+    --client-id-list "YOUR_SERVICE_ACCOUNT_UNIQUE_ID" "YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com" \
+    --thumbprint-list "GOOGLE_CERT_THUMBPRINT"
+```
+
+### Create IAM Role with Trust Policy
+
+Create `trust-policy.json`:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": {
+      "Federated": "arn:aws:iam::YOUR_ACCOUNT_ID:oidc-provider/accounts.google.com"
+    },
+    "Action": "sts:AssumeRoleWithWebIdentity",
+    "Condition": {
+      "ForAnyValue:StringEquals": {
+        "accounts.google.com:aud": [
+          "YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com",
+          "YOUR_SERVICE_ACCOUNT_UNIQUE_ID"
+        ]
+      }
+    }
+  }]
+}
+```
+
+Create the role:
+
+```bash
+aws iam create-role \
+    --role-name GoogleFederationRole \
+    --assume-role-policy-document file://trust-policy.json
+```
+
+### Attach SES permissions
+
+```bash
+aws iam put-role-policy \
+    --role-name GoogleFederationRole \
+    --policy-name SESPolicy \
+    --policy-document '{
+      "Version": "2012-10-17",
+      "Statement": [{
+        "Effect": "Allow",
+        "Action": ["ses:SendEmail", "ses:SendRawEmail"],
+        "Resource": "*"
+      }]
+    }'
+```
+
+### Verify email addresses
+
+```bash
+aws ses verify-email-identity --email-address sender@example.com
+aws ses verify-email-identity --email-address recipient@example.com
+```
+
+### Environment variables
+
+Add to `.env`:
+
+```bash
+AWS_ROLE_ARN=arn:aws:iam::YOUR_ACCOUNT_ID:role/GoogleFederationRole
+AWS_OIDC_PROVIDER_ARN=arn:aws:iam::YOUR_ACCOUNT_ID:oidc-provider/accounts.google.com
+GOOGLE_SA_CLIENT_ID=YOUR_SERVICE_ACCOUNT_UNIQUE_ID
+GOOGLE_SERVICE_ACCOUNT=YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com
+```
+
+### Test email sending
+
+```bash
+python send_email_via_google_aws.py
+```
+
+> For detailed troubleshooting, see `email-google-to-aws-federation-guide.md`.
+
+## Update Cloud Run Jobs
+
+```bash
+# Setup environment variables
+export IMAGE_NAME="us-central1-docker.pkg.dev/comicchase/cloud-run-source-deploy/comicchase-service:v8-cache-fix"
+export REGION="us-central1"
+
+# Update Job images
+gcloud run jobs update booksjp-title-crawler --image $IMAGE_NAME --region $REGION
+gcloud run jobs update bookstw-daily-crawler --image $IMAGE_NAME --region $REGION
+gcloud run jobs update email-weekly-digest-job --image $IMAGE_NAME --region $REGION
+gcloud run jobs update eslite-orphan-crawler --image $IMAGE_NAME --region $REGION
+gcloud run jobs update eslite-title-crawler --image $IMAGE_NAME --region $REGION
+
+# Migrate and Superuser Jobs are usually single execution or built by Cloud Build, you can choose to update them
+# gcloud run jobs update migrate-job --image $IMAGE_NAME --region $REGION
+# gcloud run jobs update superuser-job --image $IMAGE_NAME --region $REGION
+```

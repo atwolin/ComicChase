@@ -1,5 +1,3 @@
-import time
-
 import scrapy
 from scrapy.http import Response
 
@@ -21,6 +19,8 @@ class BooksTWSpider(scrapy.Spider):
 
     # Custom settings for this spider
     custom_settings = {
+        "TWISTED_REACTOR": "twisted.internet.selectreactor.SelectReactor",
+        "DOWNLOAD_DELAY": 10,  # Polite crawling: 10 seconds between requests
         "RETRY_HTTP_CODES": [500, 502, 503, 504, 522, 524, 408, 429, 484],
     }
 
@@ -41,6 +41,10 @@ class BooksTWSpider(scrapy.Spider):
             urls = response.xpath("//div[@class='type02_bd-a']/h4/a/@href").getall()
             self.logger.info(f"Found {len(urls)} book urls on the page.")
             yield from response.follow_all(urls, self.parse_volume_info)
+            # TESTING
+            # for url in urls[:10]:
+            #     yield scrapy.Request(url, self.parse_volume_info)
+            # TODO: remove after email job scheduled
 
         except Exception as e:
             self.logger.error(
@@ -90,10 +94,9 @@ class BooksTWSpider(scrapy.Spider):
             self.logger.error(f"Error parsing volume info from {response.url}: {e}")
         except Exception as e:
             self.logger.error(
-                f"Failed to parse volume: {response.url}," f"error: {str(e)}",
+                f"Failed to parse volume: {response.url},error: {str(e)}",
                 exc_info=True,
             )
 
         finally:
-            time.sleep(20)
             yield item

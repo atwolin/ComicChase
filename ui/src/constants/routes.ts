@@ -1,9 +1,14 @@
 export const ROUTES = {
   HOME: '/',
-  SERIES_LIST: '/series',
-  SERIES_DETAIL: (id: number | string) => `/series/${id}`,
+  SERIES_LIST: '/comics/series/',
+  SERIES_DETAIL: (id: number | string) => `/comics/series/${id}/`,
+  SERIES_DETAIL_PATTERN: '/comics/series/:id',
+  LOGIN: '/login',
+  SIGNUP: '/signup',
+  MY_SUBSCRIPTIONS: '/my-subscriptions',
+  UNSUBSCRIBE: '/unsubscribe',
 } as const
 
 export const buildSeriesSearchUrl = (searchQuery: string) => {
-  return `/series?search=${encodeURIComponent(searchQuery.trim())}`
+  return `${ROUTES.SERIES_LIST}?search=${encodeURIComponent(searchQuery.trim())}`
 }

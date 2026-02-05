@@ -16,7 +16,7 @@ else
     $(error Invalid ENV value: $(ENV). Use 'local', 'gce', or 'gcr-test')
 endif
 
-.PHONY: all up down build rebuild logs shell manage test clean help env-info
+.PHONY: all up down restart build rebuild logs shell manage test clean help env-info
 
 all: rebuild ## Build and start everything (alias for rebuild)
 
@@ -36,6 +36,10 @@ down: ## Stop and remove the Docker containers. Usage: make down [ENV=local|gce|
 	@echo "🛑 Stopping services..."
 	$(COMPOSE) down
 
+restart: ## Restart the Docker containers. Usage: make restart [ENV=local|gce|gcr-test] [SERV=service_name]
+	@echo "🔄 Restarting $(if $(SERV),$(SERV),all services)..."
+	$(COMPOSE) restart $(SERV)
+
 build: env-info ## Build the Docker images without starting. Usage: make build [ENV=local|gce|gcr-test]
 	@echo "🔨 Building Docker images..."
 	$(COMPOSE) build
@@ -44,9 +48,9 @@ rebuild: env-info ## Rebuild and start the Docker containers. Usage: make rebuil
 	@echo "♻️ Rebuilding and starting services..."
 	$(COMPOSE) up --build -d $(UP_OPTIONS)
 
-logs: ## View logs of the Docker containers. Usage: make logs [ENV=local|gce|gcr-test]
-	@echo "📜 Viewing logs..."
-	$(COMPOSE) logs -f
+logs: ## View logs of the Docker containers. Usage: make logs [SERV=service_name] [LINES=20]
+	@echo "📜 Viewing logs for $(if $(SERV),$(SERV),all services)..."
+	$(COMPOSE) logs --tail=$(if $(LINES),$(LINES),20) $(SERV)
 
 shell: ## Access the shell of the app container. Usage: make shell [ENV=local|gce|gcr-test]
 	@echo "🐚 Accessing app container shell..."

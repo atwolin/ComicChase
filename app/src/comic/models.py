@@ -1,10 +1,17 @@
+from urllib.parse import urlparse
+
+from django.contrib.postgres.indexes import GinIndex
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
 class Publisher(models.Model):
     """
-    出版社 Model
+    Represents a publisher of comic books.
+
+    This model stores information about publishers. It is used to associate
+    each comic volume with its publisher.
     """
 
     class Region(models.TextChoices):
@@ -30,7 +37,9 @@ class Publisher(models.Model):
 
 class Series(models.Model):
     """
-    系列漫畫 Model
+    Represents a comic book series.
+
+    This model contains core information about a comic series.
     """
 
     class JapanStatus(models.TextChoices):
@@ -40,14 +49,18 @@ class Series(models.Model):
 
     title_jp = models.CharField(_("原名"), max_length=255, db_index=True, unique=True)
     title_tw = models.CharField(
-        _("譯名"), max_length=255, db_index=True, null=True, blank=True
+        _("譯名"),
+        max_length=255,
+        db_index=True,
+        blank=True,
+        default="",
     )
     author_jp = models.CharField(_("作者原名"), max_length=100)
     author_tw = models.CharField(
         _("作者譯名"),
         max_length=100,
-        null=True,
         blank=True,
+        default="",
     )
     status_jp = models.CharField(
         _("日本出版狀態"),
@@ -74,9 +87,31 @@ class Series(models.Model):
     )
 
     class Meta:
-        verbose_name = _("系列漫畫")
-        verbose_name_plural = _("系列漫畫")
+        verbose_name = _("系列")
+        verbose_name_plural = _("系列")
         ordering = ["title_tw", "title_jp"]
+        indexes = [
+            GinIndex(
+                fields=["title_tw"],
+                name="series_title_tw_trgm_idx",
+                opclasses=["gin_trgm_ops"],
+            ),
+            GinIndex(
+                fields=["title_jp"],
+                name="series_title_jp_trgm_idx",
+                opclasses=["gin_trgm_ops"],
+            ),
+            GinIndex(
+                fields=["author_tw"],
+                name="series_author_tw_trgm_idx",
+                opclasses=["gin_trgm_ops"],
+            ),
+            GinIndex(
+                fields=["author_jp"],
+                name="series_author_jp_trgm_idx",
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
 
     def __str__(self):
         return self.title_tw or self.title_jp
@@ -84,24 +119,23 @@ class Series(models.Model):
 
 class Volume(models.Model):
     """
-    單行本 Model
+    Represents a single volume of a comic book series.
+
+    Each instance corresponds to a specific physical book and stores details.
     """
 
-    # 每一列資料代表一本實體書（不論地區）
     class Region(models.TextChoices):
         JAPAN = "JP", _("Japan")
         TAIWAN = "TW", _("Taiwan")
 
-    # 關聯與卷數
     series = models.ForeignKey(
         Series,
-        verbose_name=_("關聯漫畫"),
+        verbose_name=_("系列"),
         on_delete=models.CASCADE,
         related_name="volumes",
         null=True,
         blank=True,
     )
-
     publisher = models.ForeignKey(
         Publisher,
         verbose_name=_("出版社"),
@@ -111,7 +145,7 @@ class Volume(models.Model):
         blank=True,
     )
 
-    # 基本資訊
+    # Basic volume information
     region = models.CharField(
         _("地區"),
         max_length=2,
@@ -119,12 +153,9 @@ class Volume(models.Model):
         default=Region.JAPAN,
         db_index=True,
     )
-
     volume_number = models.PositiveIntegerField(
         _("卷數"), db_index=True, blank=True, null=True
     )
-
-    # 版本資訊
     variant = models.CharField(
         _("版本備註"),
         max_length=50,
@@ -132,26 +163,39 @@ class Volume(models.Model):
         default="",
         help_text=_("如：特裝版、首刷限定。普通版留空。"),
     )
-
-    # 出版資訊
-    # 刪除 _jp / _tw ，由 region 定義了地區
     release_date = models.DateField(_("發售日期"), null=True, blank=True)
-    isbn = models.CharField(
-        _("ISBN"), max_length=13, null=True, blank=True, unique=True
-    )
+    isbn = models.CharField(_("ISBN"), max_length=13, blank=True, default="")
+    image_url = models.URLField(_("封面圖片 URL"), blank=True, default="")
 
     class Meta:
         verbose_name = _("單行本")
         verbose_name_plural = _("單行本")
-        ordering = ["series", "volume_number", "region", "release_date"]
-
-        # 確保沒重複寫入
+        ordering = ["series", "region", "volume_number", "release_date"]
         constraints = [
             models.UniqueConstraint(
                 fields=["series", "volume_number", "region", "variant"],
                 name="unique_volume_variant",
             )
         ]
+
+    def clean(self):
+        """Validate model fields to prevent security issues."""
+        super().clean()
+
+        # Validate image_url scheme to prevent XSS attacks
+        if self.image_url:
+            parsed_url = urlparse(self.image_url)
+            allowed_schemes = ["http", "https"]
+
+            if parsed_url.scheme and parsed_url.scheme.lower() not in allowed_schemes:
+                raise ValidationError(
+                    {
+                        "image_url": _(
+                            f"不安全的 URL scheme: '{parsed_url.scheme}'. "
+                            f"僅允許 {', '.join(allowed_schemes)}"
+                        )
+                    }
+                )
 
     def __str__(self):
         region_str = self.get_region_display()

@@ -97,8 +97,10 @@ __pypackages__/
 # Environments
 .env
 .env.gce
+.env.gcr-test
 .envrc
 .venv
+.venv/
 env/
 venv/
 ENV/
@@ -176,7 +178,7 @@ firebase-debug.*.log*
 .dataconnect
 
 # ==============================================================================
-# Cloud & Databases
+# Data Storage & Queues
 # ==============================================================================
 
 # Databases
@@ -198,7 +200,6 @@ activemq-data/
 # ==============================================================================
 
 # VS Code
-.vscode/
 .history/
 
 # JetBrains (PyCharm, IntelliJ, etc.)
@@ -227,3 +228,28 @@ logs/
 
 # SSL certificates
 app/src/ssl/*.key
+
+# Auto-generated API client
+ui/src/api/generated/
+
+# AWS CLI installer (large zip file)
+awscliv2.zip
+awscli-exe-*.zip
+
+# AWS CLI installation directory
+aws/
+awscli/
+
+# AWS credentials and config (should never be committed)
+.aws/
+
+# Google Cloud service account keys (NEVER commit these!)
+google-credentials.json
+
+# Local config files with real credentials (keep templates, ignore local versions)
+trust-policy.json
+aws-config.json
+
+# act (GitHub Actions local runner)
+.act
+app/bin/act
