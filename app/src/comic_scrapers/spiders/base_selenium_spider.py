@@ -102,6 +102,8 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
             chrome_options.add_argument("--headless")  # Headless mode for cloud
             chrome_options.add_argument("--disable-gpu")  # Disable GPU for headless
             chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+            # Set window size to ensure desktop layout (prevent mobile view)
+            chrome_options.add_argument("--window-size=1440,900")
             chrome_options.add_experimental_option(
                 "excludeSwitches", ["enable-automation"]
             )
@@ -109,6 +111,8 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
             self.logger.info("Using Local ChromeDriver")
             self.driver = webdriver.Chrome(options=chrome_options)
 
+        # Ensure desktop layout is loaded (required for category filters)
+        self.driver.set_window_size(1440, 900)
         self.wait = WebDriverWait(self.driver, 10)
 
         # Search configuration
@@ -621,7 +625,12 @@ class BaseSeleniumSpider(scrapy.Spider, ABC):
         page_value = None
         try:
             time.sleep(3)
-            url.click()
+            # Use JavaScript to click to avoid ElementClickInterceptedException
+            # when element is blocked by overlays (e.g., bottom tabbar)
+            self.driver.execute_script("arguments[0].scrollIntoView(true);", url)
+            time.sleep(0.5)  # Brief pause for scroll animation
+            self.driver.execute_script("arguments[0].click();", url)
+
             # Extract value from page for verification
             page_value_xpath = self.verify_element_xpath
             page_value_element = self.wait.until(

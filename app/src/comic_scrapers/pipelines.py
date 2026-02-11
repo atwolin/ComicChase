@@ -145,7 +145,10 @@ class ComicScrapersPipeline:
         if parts[-1] in ["(全)", "1"]:
             volume_number = 1
         else:
-            volume_number = int(parts[-1])
+            try:
+                volume_number = int(parts[-1])
+            except ValueError:
+                volume_number = None
 
         # Update title_tw
         series_name_tw = " ".join(parts[:-1]).strip()

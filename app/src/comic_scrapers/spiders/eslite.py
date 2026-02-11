@@ -55,19 +55,22 @@ class EsliteSpider(BaseSeleniumSpider):
         title_tw = self.driver.find_element(
             By.XPATH, "//h1[@class='sans-font-semi-bold']"
         ).text
+        # Updated XPath for author (now in a link with data-test-id)
         author_tw = self.driver.find_element(
-            By.XPATH, "//div[@class='author flex mb-1']"
+            By.XPATH, "//a[@data-test-id='author-link']"
         ).text
 
         # Volume fields
         release_date_tw = self.driver.find_element(
-            By.XPATH, "//div[@class='publicDate flex mb-1']"
+            By.XPATH,
+            "//div[contains(@class, 'books-publication-row')]"
+            "//span[contains(text(), '/')]",
         ).text
         publisher_tw = self.driver.find_element(
-            By.XPATH, "//div[@class='publisher flex mb-1']"
+            By.XPATH, "//a[@data-test-id='supplier-link']"
         ).text
         image_element = self.driver.find_element(
-            By.XPATH, "//div[@class='swiper-wrapper']//img"
+            By.XPATH, "//div[contains(@class, 'item-image-wrap')]//img"
         ).get_attribute("src")
 
         item["title_jp"] = title_jp.strip()
@@ -88,14 +91,23 @@ class EsliteSpider(BaseSeleniumSpider):
         if is_first_page:
             try:
                 category_tw = self.wait.until(
-                    EC.element_to_be_clickable((By.XPATH, "//div[@title='中文書']"))
+                    EC.presence_of_element_located(
+                        (By.XPATH, "//span[@class='desc' and text()='中文書']")
+                    )
                 )
-                category_tw.click()
+                # Use JavaScript click to avoid ElementClickInterceptedException
+                self.driver.execute_script(
+                    "arguments[0].scrollIntoView(true);", category_tw
+                )
+                self.driver.execute_script("arguments[0].click();", category_tw)
                 # Wait for filter to be applied (search results to reload)
                 self.wait.until(EC.staleness_of(category_tw))
+
             except selenium_exceptions.TimeoutException:
-                self.logger.exception(
-                    "apply_search_filters(): Timeout while applying category filter"
+                self.logger.warning(
+                    "apply_search_filters(): Timeout while applying category filter. "
+                    "This may occur if no search results are found "
+                    "or the page structure changed."
                 )
 
     def should_skip_detail_page(self, page_value: str, product_desc: str) -> bool:
