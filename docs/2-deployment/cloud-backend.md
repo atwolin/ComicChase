@@ -501,3 +501,5 @@ gcloud run jobs update eslite-title-crawler --image $IMAGE_NAME --region $REGION
 # gcloud run jobs update migrate-job --image $IMAGE_NAME --region $REGION
 # gcloud run jobs update superuser-job --image $IMAGE_NAME --region $REGION
 ```
+
+> 📝 Please refer to the complete regular maintenance process: [定期維護檢查清單](./cloud-backend-crawler-run-jobs-scheduler.md#-定期維護檢查清單)

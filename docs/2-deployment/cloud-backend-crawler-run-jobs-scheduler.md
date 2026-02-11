@@ -28,7 +28,7 @@
 │  │  Cloud Scheduler (定時觸發器)                   │     │
 │  │  ✅ bookstw-new-release-schedule (每天 02:00)  │     │
 │  │  ✅ eslite-title-schedule (每週日 03:00)        │     │
-│  │  ✅ booksjp-title-schedule (每週六 03:00)       │     │
+│  │  ✅ booksjp-title-schedule (每天 04:00)       │     │
 │  │  ✅ eslite-orphan-schedule (每月 1 號 04:00)    │     │
 │  └──────────────┬─────────────────────────────────┘     │
 │                 │ (HTTP POST 觸發)                      │
@@ -323,12 +323,12 @@ gcloud scheduler jobs create http eslite-title-schedule \
 
 ---
 
-#### **排程 3: 每週六凌晨 3 點更新所有系列（Books.jp）**
+#### **排程 3: 每天凌晨 4 點更新所有系列（Books.jp）**
 
 ```bash
 gcloud scheduler jobs create http booksjp-title-schedule \
   --location ${REGION} \
-  --schedule "0 3 * * 6" \
+  --schedule "0 4 * * *" \
   --time-zone "Asia/Taipei" \
   --uri "https://${REGION}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${PROJECT_ID}/jobs/booksjp-title-crawler:run" \
   --http-method POST \
@@ -337,7 +337,7 @@ gcloud scheduler jobs create http booksjp-title-schedule \
 
 **Cron 格式：**
 
-- `0 3 * * 6` = 每週六凌晨 3:00
+- `0 4 * * *` = 每天凌晨 4:00
 
 ---
 
@@ -614,7 +614,24 @@ gcloud run jobs update eslite-title-crawler --image ${IMAGE} --region ${REGION}
 gcloud run jobs update booksjp-title-crawler --image ${IMAGE} --region ${REGION}
 gcloud run jobs update eslite-orphan-crawler --image ${IMAGE} --region ${REGION}
 
-# 4. 手動測試執行
+# 4. 更新環境變數（如有修改）
+gcloud run jobs update bookstw-daily-crawler \
+  --region=${REGION} \
+  --set-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=bookstw_new 2>&1
+
+gcloud run jobs update eslite-title-crawler \
+  --region=${REGION} \
+  --set-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=eslite_all_series 2>&1
+
+gcloud run jobs update booksjp-title-crawler \
+  --region=${REGION} \
+  --set-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=booksjp_all_series 2>&1
+
+gcloud run jobs update eslite-orphan-crawler \
+  --region=${REGION} \
+  --set-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=eslite_orphan_volumes 2>&1
+
+# 5. 手動測試執行
 gcloud run jobs execute bookstw-daily-crawler --region ${REGION}
 ```
 
@@ -662,11 +679,11 @@ gcloud run jobs execute bookstw-daily-crawler --region ${REGION}
 | --------- | ------ | ------ | ----------------- | ------------- |
 | **books.tw 新書** | 每天 | `0 2 * * *` | 每天 02:00 | ~15 分鐘 |
 | **Eslite 所有系列** | 每週 | `0 3 * * 0` | 週日 03:00 | ~1-2 小時 |
-| **Books.jp 所有系列** | 每週 | `0 3 * * 6` | 週六 03:00 | ~1-2 小時 |
+| **Books.jp 所有系列** | 每天 | `0 4 * * *` | 每天 04:00 | ~1-2 小時 |
 | **Eslite Orphan Volumes** | 每兩週 | `0 4 1-7,15-21 * 0` | 第 1, 3 個週日 04:00 | ~30 分鐘 |
 
 ---
 
-**文件版本：** 2.0
-**最後更新：** 2026-01-06
+**文件版本：** 2.1
+**最後更新：** 2026-02-11
 **作者：** ComicChase Development Team
