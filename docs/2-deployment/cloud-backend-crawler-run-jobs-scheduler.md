@@ -617,19 +617,19 @@ gcloud run jobs update eslite-orphan-crawler --image ${IMAGE} --region ${REGION}
 # 4. 更新環境變數（如有修改）
 gcloud run jobs update bookstw-daily-crawler \
   --region=${REGION} \
-  --set-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=bookstw_new
+  --update-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=bookstw_new
 
 gcloud run jobs update eslite-title-crawler \
   --region=${REGION} \
-  --set-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=eslite_all_series
+  --update-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=eslite_all_series
 
 gcloud run jobs update booksjp-title-crawler \
   --region=${REGION} \
-  --set-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=booksjp_all_series
+  --update-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=booksjp_all_series
 
 gcloud run jobs update eslite-orphan-crawler \
   --region=${REGION} \
-  --set-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=eslite_orphan_volumes
+  --update-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=eslite_orphan_volumes
 
 # 5. 手動測試執行
 gcloud run jobs execute bookstw-daily-crawler --region ${REGION}
