@@ -144,7 +144,7 @@ class ComicScrapersPipeline:
             is_final_volume = True
             parts = parts[:-1]
             should_remove_last_part = False  # Already removed completion marker
-        elif parts[-1] == "(全)":
+        elif len(parts) > 1 and parts[-1] == "(全)":
             is_final_volume = True
             should_remove_last_part = True  # Will handle below
 
