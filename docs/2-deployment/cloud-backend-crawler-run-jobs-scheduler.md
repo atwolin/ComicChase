@@ -4,8 +4,8 @@
 
 本文件說明如何在 Google Cloud Run (GCR) 環境下，使用 **Cloud Scheduler** + **Cloud Run Jobs** 來執行定期爬蟲任務，完全無需 Celery Worker 或 RabbitMQ。
 
-**最後更新：** 2026-01-06
-**文件版本：** 2.0
+**最後更新：** 2026-02-11
+**文件版本：** 2.1
 
 ---
 
@@ -617,19 +617,19 @@ gcloud run jobs update eslite-orphan-crawler --image ${IMAGE} --region ${REGION}
 # 4. 更新環境變數（如有修改）
 gcloud run jobs update bookstw-daily-crawler \
   --region=${REGION} \
-  --set-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=bookstw_new 2>&1
+  --set-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=bookstw_new
 
 gcloud run jobs update eslite-title-crawler \
   --region=${REGION} \
-  --set-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=eslite_all_series 2>&1
+  --set-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=eslite_all_series
 
 gcloud run jobs update booksjp-title-crawler \
   --region=${REGION} \
-  --set-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=booksjp_all_series 2>&1
+  --set-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=booksjp_all_series
 
 gcloud run jobs update eslite-orphan-crawler \
   --region=${REGION} \
-  --set-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=eslite_orphan_volumes 2>&1
+  --set-env-vars=DJANGO_SETTINGS_MODULE=config.settings.gcr,CRAWLER_TASK=eslite_orphan_volumes
 
 # 5. 手動測試執行
 gcloud run jobs execute bookstw-daily-crawler --region ${REGION}
