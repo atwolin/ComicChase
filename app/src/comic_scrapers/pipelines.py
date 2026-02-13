@@ -111,6 +111,7 @@ class ComicScrapersPipeline:
             "神速零零壹 2 (完)"
             "藍色時期 16 (首刷限定版)"
             "如果30歲還是處男, 似乎就能成為魔法師 15"
+            "今日本貓依然貓威震主" (no volume number)
 
         Args:
             book_title (str): The full book title string from Books.com.tw.
@@ -130,28 +131,41 @@ class ComicScrapersPipeline:
         variant = None
         volume_number = None
 
+        # Track whether we should remove the last part
+        should_remove_last_part = False
+
         # Volume is special edition if "(特裝版)" found
-        if "版" in parts[-1]:
+        if len(parts) > 1 and "版" in parts[-1]:
             variant = parts[-1].strip("()")
             parts = parts[:-1]
+            should_remove_last_part = False  # Already removed variant
         # Volume is final if "(完)" or "(全)" found
-        elif parts[-1] == "(完)":
+        elif len(parts) > 1 and parts[-1] == "(完)":
             is_final_volume = True
             parts = parts[:-1]
+            should_remove_last_part = False  # Already removed completion marker
         elif parts[-1] == "(全)":
             is_final_volume = True
+            should_remove_last_part = True  # Will handle below
 
         # Volume number == 1 if "1" or "(全)" found
         if parts[-1] in ["(全)", "1"]:
             volume_number = 1
+            should_remove_last_part = True
         else:
             try:
                 volume_number = int(parts[-1])
+                should_remove_last_part = True
             except ValueError:
                 volume_number = None
+                should_remove_last_part = False
 
-        # Update title_tw
-        series_name_tw = " ".join(parts[:-1]).strip()
+        # Only remove last part if we found a volume number or special marker
+        if should_remove_last_part and len(parts) > 1:
+            series_name_tw = " ".join(parts[:-1]).strip()
+        else:
+            # No volume number found, use entire title as series name
+            series_name_tw = " ".join(parts).strip()
 
         return series_name_tw, variant, volume_number, is_final_volume
 
