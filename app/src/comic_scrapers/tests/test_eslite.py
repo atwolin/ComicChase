@@ -27,7 +27,7 @@ Coverage:
 """
 
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, PropertyMock, patch
 
 from scrapy.http import HtmlResponse, Request
 from selenium.common.exceptions import (
@@ -260,22 +260,26 @@ class TestEsliteSpiderParseDetailInfo(unittest.TestCase):
         field_mapping = {
             "h4": "テスト漫画",  # title_jp
             "h1": "測試漫畫",  # title_tw
-            "author": "作\n者：\n測試作者",  # author_tw
-            "publicDate": "出\n版\n日\n期：\n2025/11/18",  # release_date_tw
-            "publisher": "出\n版\n社：\n測試出版社",  # publisher_tw
-            "swiper-wrapper": "https://example.com/cover.jpg",  # image_url_tw (src)
+            "author-link": "作\n者：\n測試作者",  # author_tw
+            "books-publication-row": "出\n版\n日\n期：\n2025/11/18",  # release_date_tw
+            "supplier-link": "出\n版\n社：\n測試出版社",  # publisher_tw
+            "item-image-wrap": "https://example.com/cover.jpg",  # image_url_tw (src)
         }
 
         def mock_find_element(by, xpath):
-            mock_elem = MagicMock()
             for key, value in field_mapping.items():
                 if key in xpath:
-                    if key == "swiper-wrapper":  # Image element
+                    if key == "item-image-wrap":  # Image element uses get_attribute
+                        mock_elem = MagicMock()
                         mock_elem.get_attribute.return_value = value
                     else:
-                        mock_elem.text = value
-                    break
-            return mock_elem
+                        # Create a MagicMock where .text returns the real string
+                        # so that .text.strip() works naturally
+                        mock_elem = MagicMock()
+                        type(mock_elem).text = PropertyMock(return_value=value)
+                    return mock_elem
+            # Return a default mock if no match found
+            return MagicMock()
 
         self.spider.driver.find_element.side_effect = mock_find_element
 
