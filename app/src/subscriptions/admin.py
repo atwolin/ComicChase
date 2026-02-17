@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Subscription
+from .models import NotificationLog, Subscription
 
 
 class SubscriptionAdmin(admin.ModelAdmin):
@@ -9,4 +9,12 @@ class SubscriptionAdmin(admin.ModelAdmin):
     search_fields = ["user__username", "series__title"]
 
 
+class NotificationLogAdmin(admin.ModelAdmin):
+    list_display = ["user", "volume", "sent_at"]
+    list_filter = ["sent_at"]
+    search_fields = ["user__username", "volume__series__title_tw"]
+    readonly_fields = ["user", "volume", "sent_at"]
+
+
 admin.site.register(Subscription, SubscriptionAdmin)
+admin.site.register(NotificationLog, NotificationLogAdmin)
