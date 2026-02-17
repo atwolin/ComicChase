@@ -166,6 +166,11 @@ class Volume(models.Model):
     release_date = models.DateField(_("發售日期"), null=True, blank=True)
     isbn = models.CharField(_("ISBN"), max_length=13, blank=True, default="")
     image_url = models.URLField(_("封面圖片 URL"), blank=True, default="")
+    created_at = models.DateTimeField(
+        _("入庫時間"),
+        auto_now_add=True,
+        help_text=_("此筆資料寫入資料庫的時間"),
+    )
 
     class Meta:
         verbose_name = _("單行本")
