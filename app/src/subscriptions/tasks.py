@@ -89,9 +89,13 @@ def run_weekly_notification_flow(self, sync=False):
         return {"task_id": task_id, "status": "skipped", "reason": "no_subscriptions"}
 
     earliest_cutoff = min(all_cutoffs)
+    # 僅查詢有訂閱者的系列，減少不必要的 DB I/O
+    subscribed_series_ids = set(
+        sid for subs in user_subs_map.values() for _, sid, _ in subs
+    )
     all_volumes = list(
         Volume.objects.filter(
-            series__isnull=False,
+            series_id__in=subscribed_series_ids,
             release_date__isnull=False,
             created_at__gt=earliest_cutoff,
         ).select_related("series")
@@ -140,10 +144,11 @@ def run_weekly_notification_flow(self, sync=False):
                     sync=True,
                 )
                 success_count += 1
+                attempted = success_count + failed_count
                 logger.info(
                     f"[{task_id}] Email sent to user_id={user_id} "
                     f"with {len(user_volumes)} volumes "
-                    f"({success_count}/{len(recipients)})"
+                    f"({success_count} sent / {attempted} attempted)"
                 )
             except Exception as e:
                 failed_count += 1
@@ -259,7 +264,7 @@ def send_single_email_task(
     Returns:
         str: 執行結果訊息
     """
-    task_id = self.request.id if self and not sync else "sync-execution"
+    task_id = self.request.id if not sync else "sync-execution"
 
     subject = "【ComicChase】漫畫新出版通知"
 
