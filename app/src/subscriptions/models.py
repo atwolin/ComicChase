@@ -27,6 +27,15 @@ class Subscription(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # 通知追蹤：記錄此訂閱最後一次成功發送通知的時間
+    # 新建訂閱時為 null，首次通知流程會將其設為 created_at
+    # 之後每次成功寄信後更新為 now()
+    last_notified_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="此訂閱最後一次成功發送通知的時間",
+    )
+
     class Meta:
         constraints = [
             UniqueConstraint(fields=["user", "series"], name="unique_subscription")
@@ -37,36 +46,3 @@ class Subscription(models.Model):
 
     def __str__(self):
         return f"{self.user.username} → {self.series}"
-
-
-class NotificationLog(models.Model):
-    """
-    記錄每位使用者已被通知過的單行本。
-    用於防止重複寄信，並確保延遲入庫的書籍不會被遺漏。
-    """
-
-    user = models.ForeignKey(
-        get_user_model(),
-        on_delete=models.CASCADE,
-        related_name="notification_logs",
-    )
-    volume = models.ForeignKey(
-        "comic.Volume",
-        on_delete=models.CASCADE,
-        related_name="notification_logs",
-    )
-    sent_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        constraints = [
-            UniqueConstraint(
-                fields=["user", "volume"],
-                name="unique_notification_per_user_volume",
-            )
-        ]
-        ordering = ["-sent_at"]
-        verbose_name = "通知紀錄"
-        verbose_name_plural = "通知紀錄"
-
-    def __str__(self):
-        return f"{self.user.username} ← {self.volume} @ {self.sent_at}"
