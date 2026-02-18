@@ -9,10 +9,11 @@ from subscriptions.models import Subscription
 User = get_user_model()
 
 
-class BaseSubscriptionTestCase(TestCase):
-    """共用的測試基底類別，建立 user 和 series。"""
+class BaseSubscriptionMixin:
+    """共用的測試 mixin，建立 user 和 series。"""
 
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create_user(
             username="testuser",
             email="testuser@email.com",
@@ -26,7 +27,7 @@ class BaseSubscriptionTestCase(TestCase):
         )
 
 
-class SubscriptionModelTest(BaseSubscriptionTestCase):
+class SubscriptionModelTest(BaseSubscriptionMixin, TestCase):
     def test_create_subscription(self):
         subscription = Subscription.objects.create(
             user=self.user,
