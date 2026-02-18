@@ -1,20 +1,18 @@
 from django.contrib import admin
 
-from .models import NotificationLog, Subscription
+from .models import Subscription
 
 
 class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = ["user", "series", "receive_email", "receive_line"]
-    list_filter = ["created_at"]
-    search_fields = ["user__username", "series__title"]
-
-
-class NotificationLogAdmin(admin.ModelAdmin):
-    list_display = ["user", "volume", "sent_at"]
-    list_filter = ["sent_at"]
-    search_fields = ["user__username", "volume__series__title_tw"]
-    readonly_fields = ["user", "volume", "sent_at"]
+    list_display = [
+        "user",
+        "series",
+        "receive_email",
+        "receive_line",
+        "last_notified_at",
+    ]
+    list_filter = ["created_at", "last_notified_at"]
+    search_fields = ["user__username", "series__title_tw"]
 
 
 admin.site.register(Subscription, SubscriptionAdmin)
-admin.site.register(NotificationLog, NotificationLogAdmin)
