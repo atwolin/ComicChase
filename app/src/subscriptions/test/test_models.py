@@ -1,14 +1,17 @@
-from comic.models import Series, Volume
+from comic.models import Series
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.test import TestCase
+from django.utils import timezone
 
-from subscriptions.models import NotificationLog, Subscription
+from subscriptions.models import Subscription
 
 User = get_user_model()
 
 
-class SubscriptionModelTest(TestCase):
+class BaseSubscriptionTestCase(TestCase):
+    """共用的測試基底類別，建立 user 和 series。"""
+
     def setUp(self):
         self.user = User.objects.create_user(
             username="testuser",
@@ -22,6 +25,8 @@ class SubscriptionModelTest(TestCase):
             author_jp="テスト著者",
         )
 
+
+class SubscriptionModelTest(BaseSubscriptionTestCase):
     def test_create_subscription(self):
         subscription = Subscription.objects.create(
             user=self.user,
@@ -46,56 +51,31 @@ class SubscriptionModelTest(TestCase):
                     series=self.series,
                 )
 
-
-class NotificationLogModelTest(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username="testuser",
-            email="testuser@email.com",
-            password="testpassword123",
-        )
-        self.series = Series.objects.create(
-            title_tw="測試系列",
-            title_jp="テストシリーズ",
-            author_tw="測試作者",
-            author_jp="テスト著者",
-        )
-        self.volume = Volume.objects.create(
+    def test_last_notified_at_defaults_to_none(self):
+        """新建訂閱時 last_notified_at 預設為 None。"""
+        subscription = Subscription.objects.create(
+            user=self.user,
             series=self.series,
-            region="TW",
-            volume_number=1,
-            release_date="2026-02-01",
         )
+        self.assertIsNone(subscription.last_notified_at)
 
-    def test_create_notification_log(self):
-        """驗證可正常建立通知紀錄。"""
-        log = NotificationLog.objects.create(
+    def test_last_notified_at_can_be_updated(self):
+        """驗證 last_notified_at 可以成功更新。"""
+        subscription = Subscription.objects.create(
             user=self.user,
-            volume=self.volume,
+            series=self.series,
         )
-        self.assertEqual(log.user, self.user)
-        self.assertEqual(log.volume, self.volume)
-        self.assertIsNotNone(log.sent_at)
+        now = timezone.now()
+        Subscription.objects.filter(id=subscription.id).update(last_notified_at=now)
+        subscription.refresh_from_db()
+        self.assertEqual(subscription.last_notified_at, now)
 
-    def test_prevent_duplicate_notification_log(self):
-        """驗證 UniqueConstraint 阻止同一 (user, volume) 重複紀錄。"""
-        NotificationLog.objects.create(
+    def test_subscription_str(self):
+        """驗證 __str__ 回傳格式。"""
+        subscription = Subscription.objects.create(
             user=self.user,
-            volume=self.volume,
+            series=self.series,
         )
-        with transaction.atomic():
-            with self.assertRaises(IntegrityError):
-                NotificationLog.objects.create(
-                    user=self.user,
-                    volume=self.volume,
-                )
-
-    def test_notification_log_str(self):
-        """驗證 __str__ 輸出包含使用者與書籍資訊。"""
-        log = NotificationLog.objects.create(
-            user=self.user,
-            volume=self.volume,
-        )
-        result = str(log)
+        result = str(subscription)
         self.assertIn("testuser", result)
         self.assertIn("測試系列", result)
