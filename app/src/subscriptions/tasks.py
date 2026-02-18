@@ -324,7 +324,12 @@ def send_single_email_task(
             raise self.retry(exc=e)
 
     # 寄信成功後，更新 Subscription.last_notified_at
-    # 獨立 try/except：DB 更新失敗不應觸發重寄信件
+    # 獨立 try/except：DB 更新失敗不會導致當次重寄（不觸發 Celery retry），
+    # 但因為 last_notified_at 未更新，subscription_ids 對應的訂閱在下次排程中
+    # 可能重發同批 volumes 給 user_id。
+    # 若需絕對去重，可考慮：
+    #   1. 將 send + update 包在同一個 DB transaction 中
+    #   2. 發送前先寫入 "pending" 標記，成功後改為 "sent"
     if subscription_ids:
         try:
             now = timezone.now()
