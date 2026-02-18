@@ -341,6 +341,7 @@ def send_single_email_task(
             now = timezone.now()
             updated = Subscription.objects.filter(
                 id__in=subscription_ids,
+                user_id=user_id,
             ).update(last_notified_at=now)
             logger.info(
                 f"[{task_id}] Updated last_notified_at for {updated} subscriptions "
