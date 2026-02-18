@@ -72,7 +72,9 @@ class SubscriptionModelTest(BaseSubscriptionMixin, TestCase):
         self.assertEqual(subscription.last_notified_at, now)
 
     def test_subscription_str(self):
-        """驗證 __str__ 回傳格式。"""
+        """驗證 Subscription.__str__ 回傳格式。
+        注意：此測試隱含依賴 Series.__str__（預期回傳 title_tw）。
+        """
         subscription = Subscription.objects.create(
             user=self.user,
             series=self.series,
