@@ -116,6 +116,7 @@ def run_weekly_notification_flow(self, sync=False):
 
         for user_id, email, unsubscribe_token in recipients:
             if not email:
+                skipped_count += 1
                 continue
 
             user_subs = user_subs_map.get(user_id, [])
@@ -123,11 +124,11 @@ def run_weekly_notification_flow(self, sync=False):
                 skipped_count += 1
                 continue
 
-            user_volumes, sub_ids = _get_unsent_volumes_for_user(
+            volumes_data, sub_ids = _get_unsent_volumes_for_user(
                 volumes_by_series, user_subs
             )
 
-            if not user_volumes:
+            if not volumes_data:
                 skipped_count += 1
                 logger.info(
                     f"[{task_id}] No new volumes for user_id={user_id}, skipping."
@@ -138,7 +139,7 @@ def run_weekly_notification_flow(self, sync=False):
                 send_single_email_task(
                     user_id,
                     email,
-                    user_volumes,
+                    volumes_data,
                     subscription_ids=sub_ids,
                     unsubscribe_token=str(unsubscribe_token),
                     sync=True,
@@ -147,7 +148,7 @@ def run_weekly_notification_flow(self, sync=False):
                 attempted = success_count + failed_count
                 logger.info(
                     f"[{task_id}] Email sent to user_id={user_id} "
-                    f"with {len(user_volumes)} volumes "
+                    f"with {len(volumes_data)} volumes "
                     f"({success_count} sent / {attempted} attempted)"
                 )
             except Exception as e:
@@ -177,17 +178,17 @@ def run_weekly_notification_flow(self, sync=False):
             if not user_subs:
                 continue
 
-            user_volumes, sub_ids = _get_unsent_volumes_for_user(
+            volumes_data, sub_ids = _get_unsent_volumes_for_user(
                 volumes_by_series, user_subs
             )
 
-            if not user_volumes:
+            if not volumes_data:
                 continue
 
             send_single_email_task.delay(
                 user_id,
                 email,
-                user_volumes,
+                volumes_data,
                 subscription_ids=sub_ids,
                 unsubscribe_token=str(unsubscribe_token),
             )
