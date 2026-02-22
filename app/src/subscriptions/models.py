@@ -41,15 +41,10 @@ class Subscription(models.Model):
 
 class NotificationLog(models.Model):
     """
-    記錄每位使用者已被通知過的單行本。
-    用於防止重複寄信，並確保延遲入庫的書籍不會被遺漏。
+    全域記錄已通知過的單行本。
+    資料延遲對所有使用者一致，因此只需全域追蹤，不需 per-user 記錄。
     """
 
-    user = models.ForeignKey(
-        get_user_model(),
-        on_delete=models.CASCADE,
-        related_name="notification_logs",
-    )
     volume = models.ForeignKey(
         "comic.Volume",
         on_delete=models.CASCADE,
@@ -60,8 +55,8 @@ class NotificationLog(models.Model):
     class Meta:
         constraints = [
             UniqueConstraint(
-                fields=["user", "volume"],
-                name="unique_notification_per_user_volume",
+                fields=["volume"],
+                name="unique_notification_per_volume",
             )
         ]
         ordering = ["-sent_at"]
@@ -69,4 +64,4 @@ class NotificationLog(models.Model):
         verbose_name_plural = "通知紀錄"
 
     def __str__(self):
-        return f"{self.user.username} ← {self.volume} @ {self.sent_at}"
+        return f"{self.volume} @ {self.sent_at}"
