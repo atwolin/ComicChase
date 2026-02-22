@@ -10,10 +10,10 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
 
 class NotificationLogAdmin(admin.ModelAdmin):
-    list_display = ["user", "volume", "sent_at"]
+    list_display = ["volume", "sent_at"]
     list_filter = ["sent_at"]
-    search_fields = ["user__username", "volume__series__title_tw"]
-    readonly_fields = ["user", "volume", "sent_at"]
+    search_fields = ["volume__series__title_tw"]
+    readonly_fields = ["volume", "sent_at"]
 
 
 admin.site.register(Subscription, SubscriptionAdmin)
