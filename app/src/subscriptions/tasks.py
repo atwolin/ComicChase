@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 
 from celery import chain, shared_task
 from comic.models import Volume
@@ -47,13 +48,18 @@ def run_weekly_notification_flow(self, sync=False):
     logger.info(f"[{task_id}] Starting notification flow (sync={sync})")
 
     # ── 1. 全域查出尚未通知的 volumes ──
+    # 限制 release_date 在過去 10 天內（7 天 + 3 天 buffer），避免首次部署或
+    # NotificationLog 被清空時寄出全部歷史書籍
+    from django.utils import timezone
+
+    cutoff_date = timezone.now().date() - timedelta(days=10)
     notified_volume_ids = set(
         NotificationLog.objects.values_list("volume_id", flat=True)
     )
     new_volumes = list(
         Volume.objects.filter(
             series__isnull=False,
-            release_date__isnull=False,
+            release_date__gte=cutoff_date,
         )
         .exclude(id__in=notified_volume_ids)
         .select_related("series")
