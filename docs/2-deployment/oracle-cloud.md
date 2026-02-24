@@ -152,17 +152,21 @@ Firebase Hosting 只提供靜態前端檔案，跟後端在哪裡無關。
 }
 ```
 
-前端 API Base URL 透過 `ui/.env.vm` 設定：
+前端環境變數透過 `ui/.env.vm` 設定：
 
 ```env
 VITE_API_BASE_URL=https://api.comicchase.site
+VITE_ALLAUTH_BASE_URL=https://api.comicchase.site/_allauth/browser/v1
 ```
+
+> [!IMPORTANT]
+> `VITE_ALLAUTH_BASE_URL` 必須指向 API server 的完整路徑，否則 auth 請求會打到 Firebase（前端 domain）而非後端。
 
 ---
 
 ### Phase 3: Nginx 設定
 
-#### **與 GCE 方案完全相同**
+#### **與 GCE 方案相同**
 
 `app/src/config/nginx/default.conf.template` **不需要修改**。
 

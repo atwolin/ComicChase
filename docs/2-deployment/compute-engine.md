@@ -146,11 +146,15 @@ Firebase Hosting 的 `run` rewrite 配置：
 }
 ```
 
-**前端 API Base URL** 透過 `ui/.env.vm` 設定（已正確）：
+**前端環境變數** 透過 `ui/.env.vm` 設定：
 
 ```env
 VITE_API_BASE_URL=https://api.comicchase.site
+VITE_ALLAUTH_BASE_URL=https://api.comicchase.site/_allauth/browser/v1
 ```
+
+> [!IMPORTANT]
+> `VITE_ALLAUTH_BASE_URL` 必須指向 API server 的完整路徑，否則 auth 請求會打到 Firebase（前端 domain）而非後端。
 
 > [!NOTE]
 > GCE 部署時也可以直接使用原有的 `firebase.json`（Cloud Run rewrites 不會被觸發），`firebase.vm.json` 只是為了讓設定更乾淨明確。
@@ -226,6 +230,15 @@ server {
         proxy_read_timeout 60s;
     }
 
+    # django-allauth headless API
+    location /_allauth/ {
+        proxy_pass       http://comicchase;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+        proxy_redirect   off;
+    }
+
     # Django Admin
     location /admin/ {
         proxy_pass       http://comicchase;
@@ -257,6 +270,7 @@ server {
 
 - ✅ 移除前端 React 相關的 location（由 Firebase 提供）
 - ✅ 保留 `/api/`, `/admin/`, `/django-static/`
+- ✅ 新增 `/_allauth/` 代理（headless auth API）
 - ✅ 新增 health check endpoint
 - ✅ `/api/` 不再 rewrite（保留完整路徑給 Django）
 
