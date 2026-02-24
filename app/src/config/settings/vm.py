@@ -38,9 +38,20 @@ CORS_ALLOWED_ORIGINS = [
     "https://comicchase.site",
 ]
 
+CORS_ALLOW_CREDENTIALS = True
+
 CSRF_TRUSTED_ORIGINS = [
     "https://comicchase.site",
 ]
+
+# Cookie settings for cross-subdomain authentication
+# Frontend (comicchase.site) and API (api.comicchase.site) share cookies
+SESSION_COOKIE_DOMAIN = ".comicchase.site"
+CSRF_COOKIE_DOMAIN = ".comicchase.site"
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SECURE = True
 
 # ============================================================
 # Database Settings
