@@ -1,30 +1,20 @@
-# Firebase Hosting + GCE 部署架構
+# Firebase Hosting + GCE VM 部署架構
 
 ## 📋 文件目的
 
 本文件說明如何將 ComicChase 專案部署為：
 
-- **Frontend**: Firebase Hosting (全球 CDN)
-- **Backend**: Google Compute Engine (VM)
+- **Frontend**: Firebase Hosting（全球 CDN）
+- **Backend + Celery**: Google Compute Engine VM（4GB RAM）
 
-採用前後端分離架構，結合 Firebase 的 CDN 優勢和 GCE 的靈活性。
+採用前後端分離架構，結合 Firebase 的 CDN 優勢和 GCE VM 的靈活性。
+後端在 VM 上以 Docker Compose 運行所有服務，包含 Django、Celery workers、RabbitMQ、Selenium 等。
 
 ---
 
-> **⚠️ 重要更新（2026-01）**
->
-> **Firebase Hosting 無法直接代理到 GCE！** 本文檔中 Phase 2 的部分配置示例已過時並且無法運作。
->
-> **正確方案**：前端直接調用 GCE API + CORS 配置
->
-> **👉 請參閱最新的配置指南：[Firebase + GCE 配置完整指南](./firebase-gce-config-guide.md)**
->
-> 該指南包含：
->
-> - Firebase Hosting 限制的詳細說明
-> - 正確的 CORS 配置步驟
-> - 完整的部署流程
-> - 替代方案比較
+> [!IMPORTANT]
+> **Firebase Hosting 無法直接代理到 GCE！**
+> 前端透過 `VITE_API_BASE_URL` 直接呼叫 `https://api.comicchase.site`，無需 rewrite。
 
 ---
 
@@ -33,38 +23,37 @@
 ### **部署架構圖**
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                        使用者請求                            │
-└───────────────────────┬─────────────────────────────────────┘
-                        │
-                        ▼
-        ┌───────────────────────────────┐
-        │   Firebase Hosting (CDN)      │
-        │   https://comicchase.site  │
-        └───────────┬───────────────────┘
-                    │
-         ┌──────────┴──────────┐
-         │                     │
-         ▼                     ▼
-    ┌─────────┐         ┌──────────────┐
-    │ Static  │         │ /api/** →   │
-    │ Files   │         │ Rewrite to   │
-    │ (React) │         │ GCE          │
-    └─────────┘         └──────┬───────┘
-                               │
-                               ▼
-                    ┌──────────────────────┐
-                    │  GCE VM (台灣)        │
-                    │  Nginx Reverse Proxy │
-                    └──────────┬───────────┘
-                               │
-                ┌──────────────┼──────────────┐
-                │              │              │
-                ▼              ▼              ▼
-         ┌──────────┐  ┌──────────┐  ┌──────────┐
-         │ Django   │  │ Celery   │  │ Postgres │
-         │ (Gunicorn)  │ Worker   │  │ Database │
-         └──────────┘  └──────────┘  └──────────┘
+                          使用者請求
+                              │
+               ┌──────────────┴──────────────┐
+               ▼                             ▼
+  ┌──────────────────────┐    ┌──────────────────────────────────────────┐
+  │  Firebase Hosting    │    │  GCE VM  (api.comicchase.site)          │
+  │  (comicchase.site)   │    │  e2-medium / 24GB RAM                  │
+  │  Static React App    │    │                                        │
+  └──────────────────────┘    │  ┌────────────────────────────────────┐ │
+    前端直接呼叫 API ──────────►  │  Nginx (128m) - SSL + Reverse Proxy│ │
+    (VITE_API_BASE_URL)       │  └──────────────┬─────────────────────┘ │
+                              │                 │                       │
+                              │  ┌──────────────┼──────────────┐       │
+                              │  ▼              ▼              ▼       │
+                              │  ┌──────────┐ ┌──────────┐ ┌────────┐ │
+                              │  │ Backend  │ │ Postgres │ │Rabbit- │ │
+                              │  │ Gunicorn │ │   (1g)   │ │MQ      │ │
+                              │  │  (512m)  │ └──────────┘ │ (512m) │ │
+                              │  └──────────┘              └────────┘ │
+                              │                                       │
+                              │  ┌──────────┐ ┌────────────┐ ┌─────┐ │
+                              │  │ Celery   │ │ Celery-    │ │Beat │ │
+                              │  │ Worker   │ │ Crawler    │ │256m │ │
+                              │  │   (1g)   │ │    (2g)    │ └─────┘ │
+                              │  └──────────┘ └────────────┘         │
+                              │                                       │
+                              │  ┌──────────┐                         │
+                              │  │ Selenium │    Total: ~7.4GB        │
+                              │  │   (2g)   │                         │
+                              │  └──────────┘                         │
+                              └───────────────────────────────────────┘
 ```
 
 ### **URL 設計**
@@ -72,9 +61,9 @@
 | 請求路徑 | 處理方式 | 說明 |
 | --------- | --------- | ------ |
 | `https://comicchase.site/` | Firebase CDN | 首頁、React App |
-| `https://comicchase.site/series/123` | Firebase CDN | 前端路由 |
-| `https://comicchase.site/api/**` | Firebase Rewrite → GCE | API 請求 |
-| `https://comicchase.site/admin/` | Firebase Rewrite → GCE | Django Admin |
+| `https://comicchase.site/series/123` | Firebase CDN | 前端路由（SPA） |
+| `https://api.comicchase.site/api/**` | VM Nginx → Django | API 請求（前端直接呼叫） |
+| `https://api.comicchase.site/admin/` | VM Nginx → Django | Django Admin |
 
 ---
 
@@ -97,126 +86,9 @@
 
 ## 🔧 實作內容
 
-### Phase 1: 修改 Django Settings (gce.py)
+### Phase 1: Django Settings (vm.py)
 
-#### **檔案：`app/src/config/settings/gce.py`**
-
-```python
-# app/src/config/settings/gce.py
-from .base import *
-
-# ============================================================
-# GCE Production Settings (Firebase Frontend)
-# ============================================================
-
-# 繼承 base.py 的所有安全設定（Secure by Default）
-# - DEBUG = False
-# - SECURE_SSL_REDIRECT = True
-# - CSRF_COOKIE_SECURE = True
-# - SESSION_COOKIE_SECURE = True
-# - SECURE_HSTS_* = True
-
-# ============================================================
-# Security Settings
-# ============================================================
-
-# Nginx 反向代理設定（必須）
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
-# SECRET_KEY - 必須透過環境變數提供
-SECRET_KEY = env("SECRET_KEY")
-
-# 管理員通知
-ADMINS = [("atwolin", "tzhuchien@nlplab.cc")]
-
-# ============================================================
-# Host Configuration
-# ============================================================
-
-# 允許的 hosts：Firebase Hosting domain
-ALLOWED_HOSTS = [
-    "comicchase.site",           # Firebase Hosting
-    "comicchase.firebaseapp.com",   # Firebase 預設域名
-    ".comicchase.site",           # 如果有自訂 domain
-]
-
-# ============================================================
-# CORS & CSRF Settings
-# ============================================================
-
-# Firebase Hosting 使用 rewrite 功能，瀏覽器視為同域請求
-# 但 Backend 會收到來自 Firebase 的請求，需要設定 CSRF_TRUSTED_ORIGINS
-
-CSRF_TRUSTED_ORIGINS = [
-    "https://comicchase.site",
-    "https://comicchase.firebaseapp.com",
-]
-
-# 如果有自訂 domain
-# CSRF_TRUSTED_ORIGINS += ["https://comicchase.site"]
-
-# 雖然是同域，但建議保留 CORS 設定（防禦性編程）
-CORS_ALLOWED_ORIGINS = [
-    "https://comicchase.site",
-    "https://comicchase.firebaseapp.com",
-]
-
-CORS_ALLOW_CREDENTIALS = True  # 繼承自 base.py
-
-# ============================================================
-# Database Settings
-# ============================================================
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("POSTGRES_DB"),
-        "USER": env("POSTGRES_USER"),
-        "PASSWORD": env("POSTGRES_PASSWORD"),
-        "HOST": env("DB_HOST", default="db"),  # Docker Compose 內部網路
-        "PORT": env("DB_PORT", default=5432),
-    }
-}
-
-# ============================================================
-# Celery Settings
-# ============================================================
-
-# 繼承 base.py 的 Celery 設定
-# CELERY_BROKER_URL 等已在 base.py 設定
-
-# GCE 使用 RabbitMQ（透過環境變數設定）
-# CELERY_BROKER_URL = amqp://guest:guest@rabbitmq:5672//
-
-# ============================================================
-# Static Files
-# ============================================================
-
-# Django static files（CSS/JS/Images）由 Nginx 提供
-# React build files 由 Firebase Hosting 提供
-# 所以這裡只需設定 Django 的 static files
-
-STATIC_URL = "/django-static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# ============================================================
-# Logging (Optional)
-# ============================================================
-
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-        },
-    },
-    "root": {
-        "handlers": ["console"],
-        "level": "INFO",
-    },
-}
-```
+#### **檔案：`app/src/config/settings/vm.py`**
 
 ---
 
@@ -230,34 +102,23 @@ Firebase Hosting 的 `run` rewrite 配置：
 
 - ✅ **只能指向 Cloud Run 服務**（同一 GCP 專案）
 - ❌ **不能使用外部 URL** 或 GCE 地址
-- ❌ **`serviceId` 只接受 Cloud Run 服務名稱**
-
-**錯誤示例（無法運作）：**
-
-```json
-{
-  "rewrites": [{
-    "source": "/api/**",
-    "run": {
-      "serviceId": "https://api.comicchase.site"  // ❌ 這不會運作！
-    }
-  }]
-}
-```
 
 ---
 
-#### ✅ 正確方案：直接 API 調用 + CORS
+#### ✅ 正確方案：使用兩份 Firebase 設定檔切換部署目標
 
-對於 GCE 部署，推薦使用以下架構：
+由於 GCE 的前端透過 `VITE_API_BASE_URL` 直接呼叫 `https://api.comicchase.site`（完整 URL），瀏覽器請求**不會**經過 Firebase Hosting，因此 Cloud Run rewrites 不會被觸發。
 
-1. **Firebase Hosting** - 只託管前端靜態文件
-2. **前端直接調用 GCE API** - `https://api.comicchase.site`
-3. **CORS 配置** - 在 `gce.py` 中已配置
+兩份設定檔並存，用 `--config` 切換：
 
-**簡化配置：**
+| 設定檔 | 用途 | 部署指令 |
+|---|---|---|
+| `firebase.json` | Cloud Run（現有，不動） | `firebase deploy --only hosting` |
+| `firebase.vm.json` | GCE VM（新增） | `firebase deploy --only hosting --config firebase.vm.json` |
 
-`ui/firebase.gce.json`:
+---
+
+**新增 `ui/firebase.vm.json`（GCE 專用，移除 Cloud Run rewrites）：**
 
 ```json
 {
@@ -285,37 +146,14 @@ Firebase Hosting 的 `run` rewrite 配置：
 }
 ```
 
-**前端 API 配置：**
+**前端 API Base URL** 透過 `ui/.env.vm` 設定（已正確）：
 
-```typescript
-// ui/src/config.ts
-const API_BASE_URL = import.meta.env.PROD
-  ? 'https://api.comicchase.site'
-  : 'http://localhost:8000';
+```env
+VITE_API_BASE_URL=https://api.comicchase.site
 ```
 
-**部署：**
-
-```bash
-cd ui
-npm run build
-firebase deploy --only hosting --config firebase.gce.json
-```
-
----
-
-#### 📖 詳細配置指南
-
-完整的配置步驟、CORS 設定、替代方案和驗證方法，請參考：
-
-**👉 [Firebase + GCE 配置完整指南](./firebase-gce-config-guide.md)**
-
-該指南包含：
-
-- Firebase Hosting 限制的詳細說明
-- 完整的 CORS 配置步驟
-- 替代方案（Cloud Load Balancer、Cloud Run 代理）
-- 驗證和調試方法
+> [!NOTE]
+> GCE 部署時也可以直接使用原有的 `firebase.json`（Cloud Run rewrites 不會被觸發），`firebase.vm.json` 只是為了讓設定更乾淨明確。
 
 ---
 
@@ -363,9 +201,8 @@ server {
     access_log           /dev/stdout main;
 
     # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Content-Security-Policy "frame-ancestors 'self'" always;
     add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
 
     # Health check
     location /health {
@@ -427,13 +264,11 @@ server {
 
 ### Phase 4: 修改 Docker Compose 設定
 
-#### **檔案：`docker-compose-gce.yaml`**
+#### **檔案：`docker-compose-vm.yaml`**
 
 移除 `ui` service（前端由 Firebase 提供）：
 
 ```yaml
-# docker-compose-gce.yaml
-
 services:
   db:
     image: postgres:16.2
@@ -444,138 +279,216 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-
-  rabbitmq:
-    image: rabbitmq:3.13-management
-    restart: unless-stopped
-    ports:
-      - "5672:5672"
-      - "15672:15672"  # Management UI
-    environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-guest}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:-guest}
+    deploy:
+      resources:
+        limits:
+          memory: 1g
 
   selenium:
-    image: selenium/standalone-chrome:136.0
+    image: selenium/standalone-chromium:136.0
     restart: unless-stopped
     hostname: selenium
     ports:
       - "4444:4444"
-    shm_size: 2gb  # 增加共享記憶體，避免 Chrome 崩潰
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+
+  rabbitmq:
+    image: rabbitmq:4.2-management
+    restart: unless-stopped
+    env_file:
+      - ./.env.vm
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    deploy:
+      resources:
+        limits:
+          memory: 512m
 
   backend:
     build:
       context: .
       args:
-        USER_ID: ${UID:-1000}
-        GROUP_ID: ${GID:-1000}
-      dockerfile: ./app/Dockerfile.gce
+        USER_ID: ${UID}
+        GROUP_ID: ${GID}
+      dockerfile: ./app/Dockerfile.vm
     restart: unless-stopped
     volumes:
       - static_volume:/code/app/staticfiles
     expose:
       - "8000"
     env_file:
-      - ./.env.gce
+      - ./.env.vm
     depends_on:
       - db
       - rabbitmq
-      - selenium
+    deploy:
+      resources:
+        limits:
+          memory: 512m
 
   celery:
     build:
       context: .
       args:
-        USER_ID: ${UID:-1000}
-        GROUP_ID: ${GID:-1000}
-      dockerfile: ./app/Dockerfile.gce
+        USER_ID: ${UID}
+        GID: ${GID}
+      dockerfile: ./app/Dockerfile.vm
+    entrypoint: [""]
+    command: celery -A config worker -l INFO
     restart: unless-stopped
-    command: celery -A config worker -l info -Q crawler
     env_file:
-      - ./.env.gce
+      - ./.env.vm
     depends_on:
-      - db
+      - backend
       - rabbitmq
-      - selenium
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  celery-crawler:
+    build:
+      context: .
+      args:
+        USER_ID: ${UID}
+        GID: ${GID}
+      dockerfile: ./app/Dockerfile.vm
+    entrypoint: [""]
+    command: celery -A config worker -Q crawler -l INFO
+    restart: unless-stopped
+    env_file:
+      - ./.env.vm
+    depends_on:
+      - backend
+      - rabbitmq
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+
+  celery-beat:
+    build:
+      context: .
+      args:
+        USER_ID: ${UID}
+        GID: ${GID}
+      dockerfile: ./app/Dockerfile.vm
+    entrypoint: [""]
+    command: celery -A config beat -l INFO --schedule=/home/docker/celerybeat-schedule
+    restart: unless-stopped
+    volumes:
+      - celerybeat_data:/home/docker
+    env_file:
+      - ./.env.vm
+    depends_on:
+      - backend
+      - rabbitmq
+    deploy:
+      resources:
+        limits:
+          memory: 256m
 
   nginx:
     image: nginx:1.28.0
     restart: unless-stopped
     ports:
-      - "80:80"      # HTTP
-      - "443:443"    # HTTPS
+      - "80:80"
+      - "443:443"
     volumes:
       - ./app/src/config/nginx:/etc/nginx/templates
       - ./app/src/ssl:/code/app/ssl:ro
       - static_volume:/code/app/staticfiles:ro
     depends_on:
       - backend
+    deploy:
+      resources:
+        limits:
+          memory: 128m
 
 volumes:
   postgres_data:
   static_volume:
+  rabbitmq_data:
+  celerybeat_data:
 ```
 
-**重點變化：**
+**服務與記憶體配置：**
 
-- ❌ 移除 `ui` service（前端由 Firebase 提供）
-- ✅ 新增 `rabbitmq` service（Celery broker）
-- ✅ 新增 `celery` worker service
-- ✅ Nginx 直接暴露 80/443（作為 backend API server）
+| Service | Memory Limit | 說明 |
+|---|---|---|
+| `db` | 1g | PostgreSQL |
+| `selenium` | 2g | Chromium 瀏覽器爬蟲 |
+| `rabbitmq` | 512m | Celery message broker |
+| `backend` | 512m | Django + Gunicorn |
+| `celery` | 1g | 一般 task worker |
+| `celery-crawler` | 2g | 爬蟲專用 worker |
+| `celery-beat` | 256m | 排程器 |
+| `nginx` | 128m | SSL + 反向代理 |
+| **Total** | **~7.4GB** | 適合 24GB VM |
+
+**與舊版的差異：**
+
+- ❌ 移除 `ui` service（前端由 Firebase Hosting 提供）
+- ✅ 新增 `rabbitmq`（Celery broker）
+- ✅ 新增 `celery`、`celery-crawler`、`celery-beat`
+- ✅ 所有服務加上 `deploy.resources.limits.memory`
+- ✅ Nginx 直接暴露 `80:80` / `443:443`
 
 ---
 
 ### Phase 5: 環境變數設定
 
-#### **檔案：`.env.gce`（範例）**
+#### **檔案：`.env.vm`（範例）**
 
-建立 `.env.gce.example` 作為模板：
+建立 `.env.vm.example` 作為模板：
 
 ```bash
-# .env.gce.example
+# .env.vm.example
 
 # Django Settings
-DJANGO_SETTINGS_MODULE=config.settings.gce
-SECRET_KEY=your-production-secret-key-here-change-this
+DEBUG=False
+DJANGO_ALLOWED_HOSTS=comicchase.site,api.comicchase.site
+DJANGO_SETTINGS_MODULE=config.settings.vm
+FRONTEND_URL=https://comicchase.site
+SECRET_KEY=change-this-to-a-secure-random-key-in-production
 
 # Database
 DB_HOST=db
 DB_PORT=5432
 POSTGRES_DB=comicchase_db
-POSTGRES_PASSWORD=your-secure-password-here
+POSTGRES_PASSWORD=change-this-secure-password
 POSTGRES_USER=comicchase_user
 
-# Celery
-CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+# Celery + RabbitMQ
+CELERY_BROKER_URL=amqp://admin:admin@rabbitmq:5672/comicchase_vhost
+RABBITMQ_DEFAULT_USER=admin
+RABBITMQ_DEFAULT_PASS=admin
+RABBITMQ_DEFAULT_VHOST=comicchase_vhost
 
 # Selenium
-SELENIUM_HOST=selenium
-SELENIUM_PORT=4444
+SELENIUM_HUB_URL=http://selenium:4444/wd/hub
 
-# Optional: Email settings (for production)
-# EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-# EMAIL_HOST=smtp.gmail.com
-# EMAIL_PORT=587
-# EMAIL_USE_TLS=True
-# EMAIL_HOST_USER=your-email@gmail.com
-# EMAIL_HOST_PASSWORD=your-app-password
-
-# Optional: Sentry (error tracking)
-# SENTRY_DSN=https://your-sentry-dsn
-
-# Optional: Override security settings (不建議)
-# DEBUG=False
-# DJANGO_SECURE_SSL_REDIRECT=True
+# Email (AWS SES)
+AWS_ACCESS_KEY_ID=your-aws-access-key
+AWS_SECRET_ACCESS_KEY=your-aws-secret-key
+AWS_DEFAULT_REGION=ap-northeast-1
+AWS_SES_REGION=ap-northeast-1
+AWS_SES_REGION_ENDPOINT=email.ap-northeast-1.amazonaws.com
+DEFAULT_FROM_EMAIL=your-email@example.com
+EMAIL_BACKEND=django_ses.SESBackend
 ```
 
 **使用方式：**
 
 ```bash
 # 複製範例檔案
-cp .env.gce.example .env.gce
+cp .env.vm.example .env.vm
 
 # 編輯實際的環境變數
-vim .env.gce
+vim .env.vm
 ```
 
 ---
@@ -658,10 +571,10 @@ cd ComicChase
 
 ```bash
 # 複製範例檔案
-cp .env.gce.example .env.gce
+cp .env.vm.example .env.vm
 
 # 編輯環境變數
-nano .env.gce
+nano .env.vm
 ```
 
 **必須修改的項目：**
@@ -739,7 +652,7 @@ cp /etc/letsencrypt/live/api.comicchase.site/fullchain.pem /home/$(logname)/Comi
 cp /etc/letsencrypt/live/api.comicchase.site/privkey.pem /home/$(logname)/ComicChase/app/src/ssl/
 
 # 重啟 Nginx 容器以載入新憑證
-docker compose -f /home/$(logname)/ComicChase/docker-compose-gce.yaml restart nginx
+docker compose -f /home/$(logname)/ComicChase/docker-compose-vm.yaml restart nginx
 
 # 記錄更新
 echo "$(date): SSL certificate renewed and nginx restarted" >> /var/log/ssl-renewal.log
@@ -759,7 +672,7 @@ sudo certbot renew --dry-run
 
 ---
 
-##### 方法 2：使用 cron job（備選
+##### 方法 2：使用 cron job（備選）
 
 如果因為某些原因不想用 systemd timer，可以手動設定 cron job：
 
@@ -771,7 +684,7 @@ sudo crontab -e
 
 ```bash
 # 每天凌晨 2 點檢查憑證（只在成功更新時才複製憑證並重啟 nginx）
-0 2 * * * certbot renew --quiet --deploy-hook "cp /etc/letsencrypt/live/api.comicchase.site/*.pem /home/your-username/ComicChase/app/src/ssl/ && docker compose -f /home/your-username/ComicChase/docker-compose-gce.yaml restart nginx"
+0 2 * * * certbot renew --quiet --deploy-hook "cp /etc/letsencrypt/live/api.comicchase.site/*.pem /home/your-username/ComicChase/app/src/ssl/ && docker compose -f /home/your-username/ComicChase/docker-compose-vm.yaml restart nginx"
 ```
 
 **注意：** 記得將 `your-username` 替換為實際的用戶名。
@@ -799,29 +712,19 @@ export UID=$(id -u)
 export GID=$(id -g)
 
 # 啟動所有服務
-docker compose -f docker-compose-gce.yaml up -d --build
+docker compose -f docker-compose-vm.yaml up -d --build
 
 # 查看日誌
-docker compose -f docker-compose-gce.yaml logs -f
+docker compose -f docker-compose-vm.yaml logs -f
 ```
 
 #### 3.6 執行資料庫遷移
 
+> `entrypoint.vm.sh` 會自動執行 `migrate` 和 `collectstatic`，正常啟動後只需要建立 superuser：
+
 ```bash
-# 進入 backend container
-docker compose -f docker-compose-gce.yaml exec backend bash
-
-# 執行 migration
-python manage.py migrate
-
 # 建立 superuser
-python manage.py createsuperuser
-
-# 收集 static files
-python manage.py collectstatic --noinput
-
-# 退出 container
-exit
+docker compose -f docker-compose-vm.yaml exec backend python manage.py createsuperuser
 ```
 
 ---
@@ -836,26 +739,17 @@ cd ui
 # 安裝依賴
 npm install
 
-# 建置 production build
-npm run build
+# 建置 GCE production build（使用 ui/.env.vm，VITE_API_BASE_URL=https://api.comicchase.site）
+npm run build:vm
 ```
 
-#### 4.2 部署到 Firebase
+#### 4.2 部署到 Firebase Hosting
 
 ```bash
 # 確保已登入 Firebase
 firebase login
 
-# 部署
-firebase deploy --only hosting
-```
-
-#### 4.3 部署 Firebase Hosting
-
-由於 Firebase Hosting 無法代理到 GCE，前端將直接調用 GCE API。
-確保前端 API 配置指向 `https://api.comicchase.site`，然後部署：
-
-```bash
+# 部署（使用 ui/firebase.json）
 firebase deploy --only hosting
 ```
 
@@ -863,7 +757,17 @@ firebase deploy --only hosting
 
 ### Step 5: 驗證部署
 
-#### 5.1 測試 Backend API
+#### 5.1 檢查所有 Container
+
+```bash
+# 確認所有 8 個 container 都在運行
+docker ps
+
+# 確認記憶體限制是否生效
+docker stats --no-stream
+```
+
+#### 5.2 測試 Backend API
 
 ```bash
 # 測試 health check
@@ -873,21 +777,29 @@ curl https://api.comicchase.site/health
 curl https://api.comicchase.site/api/comics/series/
 ```
 
-#### 5.2 測試 Frontend
+#### 5.3 測試 Celery
+
+```bash
+# 查看 Celery worker 日誌
+docker compose -f docker-compose-vm.yaml logs celery celery-crawler celery-beat
+
+# 確認 RabbitMQ 可用
+docker compose -f docker-compose-vm.yaml exec rabbitmq rabbitmqctl list_queues
+```
+
+#### 5.4 測試 Frontend
 
 訪問：`https://comicchase.site`
 
 確認：
 
 - ✅ 首頁正常載入
-- ✅ API 請求成功（檢查 Network tab）
+- ✅ API 請求成功（Network tab 確認打到 `api.comicchase.site`）
 - ✅ 登入功能正常
 
-#### 5.3 測試 Django Admin
+#### 5.5 測試 Django Admin
 
-訪問：`https://comicchase.site/admin/`
-
-確認可以登入 Django Admin
+訪問：`https://api.comicchase.site/admin/`
 
 ---
 
@@ -897,22 +809,22 @@ curl https://api.comicchase.site/api/comics/series/
 
 ```bash
 # 查看所有服務日誌
-docker compose -f docker-compose-gce.yaml logs -f
+docker compose -f docker-compose-vm.yaml logs -f
 
 # 查看特定服務
-docker compose -f docker-compose-gce.yaml logs -f backend
-docker compose -f docker-compose-gce.yaml logs -f celery
-docker compose -f docker-compose-gce.yaml logs -f nginx
+docker compose -f docker-compose-vm.yaml logs -f backend
+docker compose -f docker-compose-vm.yaml logs -f celery
+docker compose -f docker-compose-vm.yaml logs -f nginx
 ```
 
 ### 重啟服務
 
 ```bash
 # 重啟所有服務
-docker compose -f docker-compose-gce.yaml restart
+docker compose -f docker-compose-vm.yaml restart
 
 # 重啟特定服務
-docker compose -f docker-compose-gce.yaml restart backend
+docker compose -f docker-compose-vm.yaml restart backend
 ```
 
 ### 更新部署
@@ -923,10 +835,10 @@ git pull
 
 # 重新建置並啟動
 export UID=$(id -u) GID=$(id -g)
-docker compose -f docker-compose-gce.yaml up -d --build
+docker compose -f docker-compose-vm.yaml up -d --build
 
 # 執行 migration（如果有）
-docker compose -f docker-compose-gce.yaml exec backend python manage.py migrate
+docker compose -f docker-compose-vm.yaml exec backend python manage.py migrate
 ```
 
 ---
@@ -941,6 +853,8 @@ docker compose -f docker-compose-gce.yaml exec backend python manage.py migrate
 | Persistent Disk | 30GB SSD | ~$5.10 |
 | External IP | 固定 IP | ~$2.88 |
 | **總計** | | **~$32.25/月** |
+
+> 服務記憶體分配總計 ~3.2GB，適合 4GB VM。若 Celery worker 經常 OOM，考慮升級到 e2-standard-2（8GB）。
 
 *價格為台灣區域（asia-east1）估算，實際價格可能變動
 
@@ -975,7 +889,7 @@ gcloud compute backend-services create comicchase-backend \
 
 ```bash
 # 每天備份資料庫
-docker compose -f docker-compose-gce.yaml exec db pg_dump -U comicchase_user comicchase_db > backup_$(date +%Y%m%d).sql
+docker compose -f docker-compose-vm.yaml exec db pg_dump -U comicchase_user comicchase_db > backup_$(date +%Y%m%d).sql
 ```
 
 ### 3. 監控與告警
@@ -1016,7 +930,7 @@ sudo nano /etc/docker/daemon.json
 **解決：**
 
 ```python
-# gce.py
+# vm.py
 CORS_ALLOWED_ORIGINS = [
     "https://comicchase.site",
 ]
@@ -1029,7 +943,7 @@ CORS_ALLOWED_ORIGINS = [
 **解決：**
 
 ```python
-# gce.py
+# vm.py
 CSRF_TRUSTED_ORIGINS = [
     "https://comicchase.site",
 ]
@@ -1047,7 +961,7 @@ sudo certbot renew
 sudo cp /etc/letsencrypt/live/api.comicchase.site/*.pem ~/ComicChase/app/src/ssl/
 
 # 重啟 nginx
-docker compose -f docker-compose-gce.yaml restart nginx
+docker compose -f docker-compose-vm.yaml restart nginx
 ```
 
 ### 問題 4: Celery Worker 沒有執行任務
@@ -1056,10 +970,10 @@ docker compose -f docker-compose-gce.yaml restart nginx
 
 ```bash
 # 查看 Celery logs
-docker compose -f docker-compose-gce.yaml logs -f celery
+docker compose -f docker-compose-vm.yaml logs -f celery
 
 # 檢查 RabbitMQ
-docker compose -f docker-compose-gce.yaml exec rabbitmq rabbitmqctl list_queues
+docker compose -f docker-compose-vm.yaml exec rabbitmq rabbitmqctl list_queues
 ```
 
 ---
@@ -1074,6 +988,6 @@ docker compose -f docker-compose-gce.yaml exec rabbitmq rabbitmqctl list_queues
 
 ---
 
-**文件版本：** 1.0
-**最後更新：** 2026-01-06
+**文件版本：** 2.0
+**最後更新：** 2026-02-21
 **作者：** ComicChase Development Team

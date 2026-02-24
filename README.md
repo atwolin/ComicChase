@@ -120,13 +120,13 @@ ComicChase/
 │   │   ├── scrapy.cfg            # Scrapy 設定
 │   │   ├── supervisord.conf      # Supervisor 設定
 │   │   ├── entrypoint.sh         # Docker 進入點腳本
-│   │   ├── entrypoint.gce.sh     # GCE 進入點腳本
+│   │   ├── entrypoint.vm.sh     # GCE 進入點腳本
 │   │   ├── entrypoint.gcr.sh     # GCR 進入點腳本
 │   │   ├── run_crawler.sh        # 爬蟲執行腳本
 │   │   ├── run_email.sh          # Email 發送腳本
 │   │   └── wait-for-it.sh        # 資料庫等待腳本
 │   ├── Dockerfile                # 後端 Local Docker 設定
-│   ├── Dockerfile.gce            # Google Compute Engine 部署 Docker 設定
+│   ├── Dockerfile.vm            # Google Compute Engine / Oracle Cloud VM 部署 Docker 設定
 │   ├── Dockerfile.gcr            # Google Cloud Run 部署 Docker 設定
 │   ├── requirements.txt          # Python 依賴套件
 │   └── requirements-gcr.txt      # GCR Python 依賴套件
@@ -145,7 +145,7 @@ ComicChase/
 │   │   ├── App.tsx               # 主要應用程式元件
 │   │   └── main.tsx              # 應用程式進入點
 │   ├── Dockerfile                # 前端 Local Docker 設定
-│   ├── Dockerfile.gce            # Google Compute Engine 部署 Docker 設定
+│   ├── Dockerfile.vm            # Google Compute Engine / Oracle Cloud VM 部署 Docker 設定
 │   ├── Dockerfile.prod           # Google Cloud Run Docker 設定
 │   ├── firebase.json             # Firebase 設定
 │   ├── vite.config.ts            # Vite 設定
@@ -159,7 +159,7 @@ ComicChase/
 │   └── check_zombie_processes.sh
 ├── assets/                       # 專案資源（logo 等）
 ├── docker-compose.yml            # Docker 服務編排
-├── docker-compose-gce.yaml       # GCE Docker 編排
+├── docker-compose-vm.yaml       # GCE Docker 編排
 ├── docker-compose-gcr-test.yaml  # GCR 測試 Docker 編排
 ├── cloudmigrate.yaml             # GCR 遷移設定
 ├── Makefile                      # Make 指令
@@ -197,8 +197,8 @@ ComicChase/
    2. Google Compute Engine 部署
 
       ```bash
-      # 修改 .env.gce 檔案裡的環境變數
-      nano .env.gce
+      # 修改 .env.vm 檔案裡的環境變數
+      nano .env.vm
       ```
 
 3. 啟動 Docker

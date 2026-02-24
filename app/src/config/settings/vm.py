@@ -1,7 +1,7 @@
 from .base import *
 
 # ============================================================
-# GCE Production Settings (Firebase Frontend)
+# VM Production Settings (Firebase Frontend)
 # ============================================================
 
 # Inherit from base settings includes

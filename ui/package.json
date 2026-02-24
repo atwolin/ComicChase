@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "build:gcr": "tsc && vite build --mode gcr",
-    "build:gce": "tsc && vite build --mode gce",
+    "build:vm": "tsc && vite build --mode vm",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix",

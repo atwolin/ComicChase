@@ -8,7 +8,7 @@ services:
     env_file:
       - ./.env
     ports:
-      - "5432:5432"
+      - "5434:5432"
 
   selenium:
     image: selenium/standalone-chrome:136.0
@@ -120,7 +120,7 @@ services:
     volumes:
       - ./app/src:/code/app
     ports:
-      - "8000:8000"
+      - "8002:8000"
     env_file:
       - ./.env
     depends_on:
@@ -142,7 +142,7 @@ services:
       - ./ui/tsconfig.json:/code/ui/tsconfig.json
       - ./ui/vite-env.d.ts:/code/ui/vite-env.d.ts
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
       - backend
     environment:
