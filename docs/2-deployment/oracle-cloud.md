@@ -155,7 +155,7 @@ Firebase Hosting 只提供靜態前端檔案，跟後端在哪裡無關。
 前端 API Base URL 透過 `ui/.env.vm` 設定：
 
 ```env
-VITE_API_BASE_URL=https://api.comicchase.site/api
+VITE_API_BASE_URL=https://api.comicchase.site
 ```
 
 ---
@@ -544,8 +544,86 @@ docker compose -f docker-compose-vm.yaml logs -f
 
 ```bash
 # 建立 superuser
-docker compose -f docker-compose-vm.yaml exec backend python manage.py createsuperuser
+docker compose -f docker-compose-vm.yaml exec -it backend python manage.py createsuperuser
 ```
+
+#### 3.8 從 Cloud SQL 搬移資料（如需要）
+
+如果需要從 GCP Cloud SQL 搬移現有資料到 Oracle Cloud VM：
+
+##### Step 1：在本地取得 Cloud SQL 連線資訊
+
+```bash
+# 查看 DATABASE_URL（存在 GCP Secret Manager）
+gcloud secrets versions access latest --secret=application_settings
+# 從輸出找到：
+# DATABASE_URL="postgres://USER:PASSWORD@//cloudsql/PROJECT:REGION:INSTANCE/DB_NAME"
+```
+
+##### Step 2：用 Cloud SQL Auth Proxy 匯出
+
+```bash
+# 下載 Cloud SQL Auth Proxy
+curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.15.2/cloud-sql-proxy.linux.amd64
+chmod +x cloud-sql-proxy
+
+# 啟動 proxy（在另一個 terminal）
+./cloud-sql-proxy comicchase:us-central1:comic-instance --port 5433
+
+# 匯出資料庫（-F c = custom 壓縮格式）
+pg_dump -h 127.0.0.1 -p 5433 -U dj-user -d dj-database -F c -f cloud_sql_backup.dump
+# 輸入密碼（從 DATABASE_URL 取得）
+```
+
+##### Step 3：傳到 Oracle VM 並還原
+
+```bash
+# 傳到 VM
+scp -i ~/.ssh/id_ed25519 cloud_sql_backup.dump ubuntu@<VM-PUBLIC-IP>:~/
+
+# SSH 到 VM
+ssh -i ~/.ssh/id_ed25519 ubuntu@<VM-PUBLIC-IP>
+
+# 複製進 db 容器
+docker cp cloud_sql_backup.dump comicchase-db-1:/tmp/
+
+# 還原資料
+cd ~/ComicChase
+docker compose -f docker-compose-vm.yaml exec db \
+  pg_restore -U comicchase_user -d comicchase_db --clean --if-exists --no-owner /tmp/cloud_sql_backup.dump
+
+# 重啟 backend
+docker compose -f docker-compose-vm.yaml restart backend
+```
+
+> [!NOTE]
+> **還原時可能出現的正常警告：**
+>
+> ```text
+> pg_restore: error: could not execute query: ERROR: role "cloudsqlsuperuser" does not exist
+> pg_restore: warning: errors ignored on restore: 1
+> ```
+>
+> 這是 Cloud SQL 專有的 role，本地 PostgreSQL 沒有，**不影響資料還原**。
+
+##### Step 4：驗證資料
+
+```bash
+# 確認資料表存在
+docker compose -f docker-compose-vm.yaml exec db \
+  psql -U comicchase_user -d comicchase_db -c "\dt"
+
+# 確認資料筆數
+docker compose -f docker-compose-vm.yaml exec db \
+  psql -U comicchase_user -d comicchase_db -c "SELECT COUNT(*) FROM comic_series;"
+```
+
+> [!IMPORTANT]
+> **pg_restore 參數說明：**
+>
+> - `--clean`：先刪除現有 tables 再還原
+> - `--if-exists`：搭配 `--clean`，table 不存在時不報錯
+> - `--no-owner`：忽略原本的 owner（Cloud SQL 和 VM 的用戶名不同）
 
 ---
 
@@ -605,7 +683,7 @@ docker stats --no-stream
 
 ```bash
 # 測試 health check
-curl https://api.comicchase.site/health
+curl https://api.comicchase.site/admin/health
 
 # 測試 API
 curl https://api.comicchase.site/api/comics/series/
