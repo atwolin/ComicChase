@@ -30,4 +30,8 @@ app.conf.beat_schedule = {
         "task": "subscriptions.tasks.run_weekly_notification_flow",
         "schedule": crontab(hour=12, minute=0, day_of_week="friday"),
     },
+    "cleanup-old-notification-logs": {
+        "task": "subscriptions.tasks.cleanup_old_notification_logs",
+        "schedule": crontab(hour=6, minute=0, day_of_week="sunday"),
+    },
 }

@@ -268,9 +268,17 @@ def send_single_email_task(
             )
             msg.attach_alternative(html_content, "text/html")
             msg.send(fail_silently=False)
+    except Exception as e:
+        logger.error(f"[{task_id}] SES Send Error for user_id={user_id}: {str(e)}")
+        if sync:
+            raise
+        else:
+            raise self.retry(exc=e)
 
-        # 異步模式：寄信成功後寫入 NotificationLog
-        if volume_ids and not sync:
+    # 寄信成功後寫入 NotificationLog（獨立於寄信的 try/except，
+    # 避免 DB 寫入失敗觸發 retry 導致重複寄信）
+    if volume_ids and not sync:
+        try:
             NotificationLog.objects.bulk_create(
                 [NotificationLog(volume_id=vid) for vid in volume_ids],
                 ignore_conflicts=True,
@@ -278,14 +286,11 @@ def send_single_email_task(
             logger.info(
                 f"[{task_id}] Logged {len(volume_ids)} volumes to NotificationLog"
             )
+        except Exception as e:
+            logger.error(
+                f"[{task_id}] Failed to write NotificationLog "
+                f"for user_id={user_id}: {str(e)}"
+            )
 
-        logger.info(f"[{task_id}] Email sent successfully to user_id={user_id}")
-        return f"Email sent to user_id={user_id}"
-    except Exception as e:
-        logger.error(f"[{task_id}] SES Send Error for user_id={user_id}: {str(e)}")
-        if sync:
-            # 同步模式：直接拋出異常
-            raise
-        else:
-            # 異步模式：使用 Celery 重試機制
-            raise self.retry(exc=e)
+    logger.info(f"[{task_id}] Email sent successfully to user_id={user_id}")
+    return f"Email sent to user_id={user_id}"
