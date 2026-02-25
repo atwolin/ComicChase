@@ -53,22 +53,17 @@ def run_weekly_notification_flow(self, sync=False):
     from django.utils import timezone
 
     cutoff_date = timezone.now().date() - timedelta(days=10)
-    notified_volume_ids = set(
-        NotificationLog.objects.values_list("volume_id", flat=True)
-    )
+    notified_volume_qs = NotificationLog.objects.values_list("volume_id", flat=True)
     new_volumes = list(
         Volume.objects.filter(
             series__isnull=False,
             release_date__gte=cutoff_date,
         )
-        .exclude(id__in=notified_volume_ids)
+        .exclude(id__in=notified_volume_qs)
         .select_related("series")
     )
 
-    logger.info(
-        f"[{task_id}] New volumes to notify: {len(new_volumes)} "
-        f"(already notified: {len(notified_volume_ids)})"
-    )
+    logger.info(f"[{task_id}] New volumes to notify: {len(new_volumes)}")
 
     if not new_volumes:
         result = {
@@ -135,8 +130,20 @@ def run_weekly_notification_flow(self, sync=False):
                 logger.error(
                     f"[{task_id}] Failed to send email to user_id={user_id}: {str(e)}"
                 )
+
+        # ── 5a. 同步模式：全域寫入 NotificationLog ──
+        # 同步模式下所有信件已確認發送完畢，可安全標記
+        NotificationLog.objects.bulk_create(
+            [NotificationLog(volume_id=vid) for vid in new_volume_ids],
+            ignore_conflicts=True,
+        )
+        logger.info(
+            f"[{task_id}] Logged {len(new_volume_ids)} volumes to NotificationLog"
+        )
     else:
         # 異步模式：使用 Celery（適用於本機開發）
+        # 注意：異步模式下 NotificationLog 由 send_single_email_task 在寄信成功後寫入，
+        # 避免在尚未確認送達前就標記為已通知
         skipped_count = 0
         success_count = 0
         failed_count = 0
@@ -150,16 +157,10 @@ def run_weekly_notification_flow(self, sync=False):
                 user_id,
                 email,
                 volumes_data,
+                volume_ids=new_volume_ids,
                 unsubscribe_token=str(unsubscribe_token),
             )
             success_count += 1
-
-    # ── 5. 全域寫入 NotificationLog（所有使用者共用） ──
-    NotificationLog.objects.bulk_create(
-        [NotificationLog(volume_id=vid) for vid in new_volume_ids],
-        ignore_conflicts=True,
-    )
-    logger.info(f"[{task_id}] Logged {len(new_volume_ids)} volumes to NotificationLog")
 
     result = {
         "task_id": task_id,
@@ -180,6 +181,7 @@ def send_single_email_task(
     user_id,
     user_email,
     volumes_data,
+    volume_ids=None,
     unsubscribe_token=None,
     sync=False,
 ):
@@ -190,13 +192,15 @@ def send_single_email_task(
     - Federation 模式（Cloud Run）
     - django-ses 模式（本機開發）
 
-    注意：NotificationLog 由上層 run_weekly_notification_flow 統一寫入，
-    此 task 僅負責寄信。
+    同步模式下，NotificationLog 由上層 run_weekly_notification_flow 統一寫入。
+    異步模式下，本 task 在寄信成功後自行寫入 NotificationLog，
+    確保只有成功送達的信件才會被標記為已通知。
 
     Args:
         user_id (int): 使用者 ID（用於日誌記錄）
         user_email (str): 收件人郵件地址
         volumes_data (list): 新書資料列表
+        volume_ids (list[int]): 對應的 Volume PK 列表（異步模式用於寫入 NotificationLog)
         unsubscribe_token (str): 用戶的取消訂閱唯一 token
         sync (bool): 是否使用同步模式執行
 
@@ -256,6 +260,16 @@ def send_single_email_task(
             )
             msg.attach_alternative(html_content, "text/html")
             msg.send(fail_silently=False)
+
+        # 異步模式：寄信成功後寫入 NotificationLog
+        if volume_ids and not sync:
+            NotificationLog.objects.bulk_create(
+                [NotificationLog(volume_id=vid) for vid in volume_ids],
+                ignore_conflicts=True,
+            )
+            logger.info(
+                f"[{task_id}] Logged {len(volume_ids)} volumes to NotificationLog"
+            )
 
         logger.info(f"[{task_id}] Email sent successfully to user_id={user_id}")
         return f"Email sent to user_id={user_id}"
