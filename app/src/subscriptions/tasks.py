@@ -1,9 +1,8 @@
 import logging
 from datetime import timedelta
 
-from celery import chain, shared_task
+from celery import shared_task
 from comic.models import Volume
-from comic_scrapers.tasks import crawl_new_volumes_bookstw, crawl_orphan_volumes_eslite
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMultiAlternatives
@@ -16,17 +15,15 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
-def master_weekly_update_job():
+def cleanup_old_notification_logs():
     """
-    串聯爬蟲與通知流程
+    清理超過 30 天的 NotificationLog 紀錄。
+    因為新書查詢只看過去 10 天，舊紀錄不會再被查到，定期清理避免 DB 膨脹。
     """
-    job = chain(
-        crawl_new_volumes_bookstw.si(),
-        crawl_orphan_volumes_eslite.si(),
-        run_weekly_notification_flow.si(),
-    )
-    job.apply_async()
-    return "Master workflow triggered."
+    cutoff = timezone.now() - timedelta(days=30)
+    deleted, _ = NotificationLog.objects.filter(sent_at__lt=cutoff).delete()
+    logger.info(f"Deleted {deleted} old NotificationLog entries")
+    return {"deleted_count": deleted}
 
 
 @shared_task(bind=True)
