@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
+from django.utils import timezone
 
 from subscriptions.models import NotificationLog
 
@@ -50,8 +51,6 @@ def run_weekly_notification_flow(self, sync=False):
     # ── 1. 全域查出尚未通知的 volumes ──
     # 限制 release_date 在過去 10 天內（7 天 + 3 天 buffer），避免首次部署或
     # NotificationLog 被清空時寄出全部歷史書籍
-    from django.utils import timezone
-
     cutoff_date = timezone.now().date() - timedelta(days=10)
     notified_volume_qs = NotificationLog.objects.values_list("volume_id", flat=True)
     new_volumes = list(
@@ -132,14 +131,19 @@ def run_weekly_notification_flow(self, sync=False):
                 )
 
         # ── 5a. 同步模式：全域寫入 NotificationLog ──
-        # 同步模式下所有信件已確認發送完畢，可安全標記
-        NotificationLog.objects.bulk_create(
-            [NotificationLog(volume_id=vid) for vid in new_volume_ids],
-            ignore_conflicts=True,
-        )
-        logger.info(
-            f"[{task_id}] Logged {len(new_volume_ids)} volumes to NotificationLog"
-        )
+        # 僅在至少有一封信成功寄出時才標記，避免全部失敗卻標記為已通知
+        if success_count > 0:
+            NotificationLog.objects.bulk_create(
+                [NotificationLog(volume_id=vid) for vid in new_volume_ids],
+                ignore_conflicts=True,
+            )
+            logger.info(
+                f"[{task_id}] Logged {len(new_volume_ids)} volumes to NotificationLog"
+            )
+        else:
+            logger.warning(
+                f"[{task_id}] All sends failed, skipping NotificationLog write"
+            )
     else:
         # 異步模式：使用 Celery（適用於本機開發）
         # 注意：異步模式下 NotificationLog 由 send_single_email_task 在寄信成功後寫入，
@@ -153,14 +157,21 @@ def run_weekly_notification_flow(self, sync=False):
                 skipped_count += 1
                 continue
 
-            send_single_email_task.delay(
-                user_id,
-                email,
-                volumes_data,
-                volume_ids=new_volume_ids,
-                unsubscribe_token=str(unsubscribe_token),
-            )
-            success_count += 1
+            try:
+                send_single_email_task.delay(
+                    user_id,
+                    email,
+                    volumes_data,
+                    volume_ids=new_volume_ids,
+                    unsubscribe_token=str(unsubscribe_token),
+                )
+                success_count += 1
+            except Exception as e:
+                failed_count += 1
+                logger.error(
+                    f"[{task_id}] Failed to dispatch email task "
+                    f"for user_id={user_id}: {str(e)}"
+                )
 
     result = {
         "task_id": task_id,
@@ -207,7 +218,7 @@ def send_single_email_task(
     Returns:
         str: 執行結果訊息
     """
-    task_id = self.request.id if self and not sync else "sync-execution"
+    task_id = self.request.id if not sync else "sync-execution"
 
     subject = "【ComicChase】漫畫新出版通知"
 
