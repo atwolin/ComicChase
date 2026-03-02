@@ -6,6 +6,7 @@ from comic.models import Volume
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMultiAlternatives
+from django.db import connection
 from django.template.loader import render_to_string
 from django.utils import timezone
 
@@ -45,142 +46,164 @@ def run_weekly_notification_flow(self, sync=False):
     task_id = self.request.id if self.request.id else "sync-execution"
     logger.info(f"[{task_id}] Starting notification flow (sync={sync})")
 
-    # ── 1. 全域查出尚未通知的 volumes ──
-    # 限制 release_date 在過去 10 天內（7 天 + 3 天 buffer），避免首次部署或
-    # NotificationLog 被清空時寄出全部歷史書籍
-    cutoff_date = timezone.now().date() - timedelta(days=10)
-    notified_volume_qs = NotificationLog.objects.values_list("volume_id", flat=True)
-    new_volumes = list(
-        Volume.objects.filter(
-            series__isnull=False,
-            release_date__gte=cutoff_date,
+    # ── 0. 分散鎖：防止多個 worker 同時執行導致重複寄信 ──
+    # pg_try_advisory_lock 是 session 級別，worker crash 後 PostgreSQL 自動釋放
+    ADVISORY_LOCK_ID = 8_675_309  # 任意固定整數，作為此 task 的唯一 lock ID
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT pg_try_advisory_lock(%s)", [ADVISORY_LOCK_ID])
+        acquired = cursor.fetchone()[0]
+
+    if not acquired:
+        logger.warning(
+            f"[{task_id}] Another instance of run_weekly_notification_flow "
+            "is already running. Skipping to prevent duplicate emails."
         )
-        .exclude(id__in=notified_volume_qs)
-        .select_related("series")
-    )
+        return {"task_id": task_id, "status": "skipped", "reason": "lock_held"}
 
-    logger.info(f"[{task_id}] New volumes to notify: {len(new_volumes)}")
+    try:
+        # ── 1. 全域查出尚未通知的 volumes ──
+        # 限制 release_date 在過去 10 天內（7 天 + 3 天 buffer），避免首次部署或
+        # NotificationLog 被清空時寄出全部歷史書籍
+        cutoff_date = timezone.now().date() - timedelta(days=10)
+        notified_volume_qs = NotificationLog.objects.values_list("volume_id", flat=True)
+        new_volumes = list(
+            Volume.objects.filter(
+                series__isnull=False,
+                release_date__gte=cutoff_date,
+            )
+            .exclude(id__in=notified_volume_qs)
+            .select_related("series")
+        )
 
-    if not new_volumes:
+        logger.info(f"[{task_id}] New volumes to notify: {len(new_volumes)}")
+
+        if not new_volumes:
+            result = {
+                "task_id": task_id,
+                "status": "no_new_volumes",
+                "message": "No new volumes to notify.",
+            }
+            logger.info(f"[{task_id}] {result}")
+            return result
+
+        # ── 2. 準備通知資料（所有使用者共用） ──
+        volumes_data = [
+            {
+                "title": v.series.title_tw or v.series.title_jp,
+                "volume_number": v.volume_number,
+                "region": v.get_region_display(),
+                "release_date": v.release_date.strftime("%Y-%m-%d"),
+                "image_url": v.image_url,
+            }
+            for v in new_volumes
+        ]
+        new_volume_ids = [v.id for v in new_volumes]
+
+        # ── 3. 取得所有有效收件人 ──
+        User = get_user_model()
+        recipients = list(
+            User.objects.filter(
+                is_active=True,
+                receive_email=True,
+                unsubscribe_token__isnull=False,
+            ).values_list("id", "email", "unsubscribe_token")
+        )
+
+        logger.info(f"[{task_id}] Found {len(recipients)} active recipients")
+
+        # ── 4. 寄送郵件 ──
+        if sync:
+            # 同步模式：直接循環發送（適用於 Cloud Run Jobs）
+            success_count = 0
+            failed_count = 0
+            skipped_count = 0
+
+            for user_id, email, unsubscribe_token in recipients:
+                if not email:
+                    skipped_count += 1
+                    continue
+
+                try:
+                    send_single_email_task(
+                        user_id,
+                        email,
+                        volumes_data,
+                        unsubscribe_token=str(unsubscribe_token),
+                        sync=True,
+                    )
+                    success_count += 1
+                    logger.info(
+                        f"[{task_id}] Email sent to user_id={user_id} "
+                        f"with {len(volumes_data)} volumes "
+                        f"({success_count}/{len(recipients)})"
+                    )
+                except Exception as e:
+                    failed_count += 1
+                    logger.error(
+                        f"[{task_id}] Failed to send email "
+                        f"to user_id={user_id}: {str(e)}"
+                    )
+
+            # ── 5a. 同步模式：全域寫入 NotificationLog ──
+            # 僅在至少有一封信成功寄出時才標記，避免全部失敗卻標記為已通知
+            if success_count > 0:
+                NotificationLog.objects.bulk_create(
+                    [NotificationLog(volume_id=vid) for vid in new_volume_ids],
+                    ignore_conflicts=True,
+                )
+                logger.info(
+                    f"[{task_id}] Logged {len(new_volume_ids)} "
+                    "volumes to NotificationLog"
+                )
+            else:
+                logger.warning(
+                    f"[{task_id}] All sends failed, skipping NotificationLog write"
+                )
+        else:
+            # 異步模式：使用 Celery（適用於本機開發）
+            # 異步模式下 NotificationLog 由 send_single_email_task 在寄信成功後寫入，
+            # 避免在尚未確認送達前就標記為已通知
+            skipped_count = 0
+            success_count = 0
+            failed_count = 0
+
+            for user_id, email, unsubscribe_token in recipients:
+                if not email:
+                    skipped_count += 1
+                    continue
+
+                try:
+                    send_single_email_task.delay(
+                        user_id,
+                        email,
+                        volumes_data,
+                        volume_ids=new_volume_ids,
+                        unsubscribe_token=str(unsubscribe_token),
+                    )
+                    success_count += 1
+                except Exception as e:
+                    failed_count += 1
+                    logger.error(
+                        f"[{task_id}] Failed to dispatch email task "
+                        f"for user_id={user_id}: {str(e)}"
+                    )
+
         result = {
             "task_id": task_id,
-            "status": "no_new_volumes",
-            "message": "No new volumes to notify.",
+            "status": "completed" if sync else "dispatched",
+            "total_recipients": len(recipients),
+            "success_count": success_count,
+            "failed_count": failed_count,
+            "skipped_count": skipped_count,
+            "new_volumes_count": len(new_volume_ids),
         }
-        logger.info(f"[{task_id}] {result}")
+        logger.info(f"[{task_id}] Completed: {result}")
         return result
 
-    # ── 2. 準備通知資料（所有使用者共用） ──
-    volumes_data = [
-        {
-            "title": v.series.title_tw or v.series.title_jp,
-            "volume_number": v.volume_number,
-            "region": v.get_region_display(),
-            "release_date": v.release_date.strftime("%Y-%m-%d"),
-            "image_url": v.image_url,
-        }
-        for v in new_volumes
-    ]
-    new_volume_ids = [v.id for v in new_volumes]
-
-    # ── 3. 取得所有有效收件人 ──
-    User = get_user_model()
-    recipients = list(
-        User.objects.filter(
-            is_active=True,
-            receive_email=True,
-            unsubscribe_token__isnull=False,
-        ).values_list("id", "email", "unsubscribe_token")
-    )
-
-    logger.info(f"[{task_id}] Found {len(recipients)} active recipients")
-
-    # ── 4. 寄送郵件 ──
-    if sync:
-        # 同步模式：直接循環發送（適用於 Cloud Run Jobs）
-        success_count = 0
-        failed_count = 0
-        skipped_count = 0
-
-        for user_id, email, unsubscribe_token in recipients:
-            if not email:
-                skipped_count += 1
-                continue
-
-            try:
-                send_single_email_task(
-                    user_id,
-                    email,
-                    volumes_data,
-                    unsubscribe_token=str(unsubscribe_token),
-                    sync=True,
-                )
-                success_count += 1
-                logger.info(
-                    f"[{task_id}] Email sent to user_id={user_id} "
-                    f"with {len(volumes_data)} volumes "
-                    f"({success_count}/{len(recipients)})"
-                )
-            except Exception as e:
-                failed_count += 1
-                logger.error(
-                    f"[{task_id}] Failed to send email to user_id={user_id}: {str(e)}"
-                )
-
-        # ── 5a. 同步模式：全域寫入 NotificationLog ──
-        # 僅在至少有一封信成功寄出時才標記，避免全部失敗卻標記為已通知
-        if success_count > 0:
-            NotificationLog.objects.bulk_create(
-                [NotificationLog(volume_id=vid) for vid in new_volume_ids],
-                ignore_conflicts=True,
-            )
-            logger.info(
-                f"[{task_id}] Logged {len(new_volume_ids)} volumes to NotificationLog"
-            )
-        else:
-            logger.warning(
-                f"[{task_id}] All sends failed, skipping NotificationLog write"
-            )
-    else:
-        # 異步模式：使用 Celery（適用於本機開發）
-        # 注意：異步模式下 NotificationLog 由 send_single_email_task 在寄信成功後寫入，
-        # 避免在尚未確認送達前就標記為已通知
-        skipped_count = 0
-        success_count = 0
-        failed_count = 0
-
-        for user_id, email, unsubscribe_token in recipients:
-            if not email:
-                skipped_count += 1
-                continue
-
-            try:
-                send_single_email_task.delay(
-                    user_id,
-                    email,
-                    volumes_data,
-                    volume_ids=new_volume_ids,
-                    unsubscribe_token=str(unsubscribe_token),
-                )
-                success_count += 1
-            except Exception as e:
-                failed_count += 1
-                logger.error(
-                    f"[{task_id}] Failed to dispatch email task "
-                    f"for user_id={user_id}: {str(e)}"
-                )
-
-    result = {
-        "task_id": task_id,
-        "status": "completed" if sync else "dispatched",
-        "total_recipients": len(recipients),
-        "success_count": success_count,
-        "failed_count": failed_count,
-        "skipped_count": skipped_count,
-        "new_volumes_count": len(new_volume_ids),
-    }
-    logger.info(f"[{task_id}] Completed: {result}")
-    return result
+    finally:
+        # 確保無論正常結束、提前 return 或例外，分散鎖都會被釋放
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT pg_advisory_unlock(%s)", [ADVISORY_LOCK_ID])
 
 
 @shared_task(bind=True, max_retries=3)
