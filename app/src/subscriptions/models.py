@@ -37,3 +37,31 @@ class Subscription(models.Model):
 
     def __str__(self):
         return f"{self.user.username} → {self.series}"
+
+
+class NotificationLog(models.Model):
+    """
+    全域記錄已通知過的單行本。
+    資料延遲對所有使用者一致，因此只需全域追蹤，不需 per-user 記錄。
+    """
+
+    volume = models.ForeignKey(
+        "comic.Volume",
+        on_delete=models.CASCADE,
+        related_name="notification_logs",
+    )
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=["volume"],
+                name="unique_notification_per_volume",
+            )
+        ]
+        ordering = ["-sent_at"]
+        verbose_name = "通知紀錄"
+        verbose_name_plural = "通知紀錄"
+
+    def __str__(self):
+        return f"{self.volume} @ {self.sent_at}"
