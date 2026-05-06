@@ -297,6 +297,8 @@ class ComicScrapersPipeline:
                     )
                 )
             ):
+                # if is_final_volume:
+                #     series.is_final_volume_tw = True
                 series.latest_volume_tw = volume
                 series.save()
                 spider.logger.info(f"Updated Series latest_volume_tw: {series}")

@@ -4,9 +4,7 @@ from django.db.models.constraints import UniqueConstraint
 
 
 class Subscription(models.Model):
-    """
-    Represents a user's subscription to a comic series.
-    """
+    """Represents a user's subscription to a comic series"""
 
     # Relationships
     user = models.ForeignKey(
@@ -40,10 +38,7 @@ class Subscription(models.Model):
 
 
 class NotificationLog(models.Model):
-    """
-    全域記錄已通知過的單行本。
-    資料延遲對所有使用者一致，因此只需全域追蹤，不需 per-user 記錄。
-    """
+    """Record all notified single volumes in the global database"""
 
     volume = models.ForeignKey(
         "comic.Volume",

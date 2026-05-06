@@ -1,0 +1,143 @@
+
+services:
+  db:
+    image: postgres:16.2
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - ./.env.vm
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  selenium:
+    image: selenium/standalone-chromium:136.0
+    restart: unless-stopped
+    hostname: selenium
+    ports:
+      - "4444:4444"
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+
+  rabbitmq:
+    image: rabbitmq:4.2-management
+    restart: unless-stopped
+    env_file:
+      - ./.env.vm
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  backend:
+    build:
+      context: .
+      args:
+        USER_ID: ${UID}
+        GROUP_ID: ${GID}
+      dockerfile: ./app/Dockerfile.vm
+    restart: unless-stopped
+    volumes:
+      - static_volume:/code/app/staticfiles
+    expose:
+      - "8000"
+    env_file:
+      - ./.env.vm
+    depends_on:
+      - db
+      - rabbitmq
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  celery:
+    build:
+      context: .
+      args:
+        USER_ID: ${UID}
+        GID: ${GID}
+      dockerfile: ./app/Dockerfile.vm
+    entrypoint: [""]
+    command: celery -A config worker -l INFO
+    restart: unless-stopped
+    env_file:
+      - ./.env.vm
+    depends_on:
+      - backend
+      - rabbitmq
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  celery-crawler:
+    build:
+      context: .
+      args:
+        USER_ID: ${UID}
+        GID: ${GID}
+      dockerfile: ./app/Dockerfile.vm
+    entrypoint: [""]
+    command: celery -A config worker -Q crawler -l INFO
+    restart: unless-stopped
+    env_file:
+      - ./.env.vm
+    depends_on:
+      - backend
+      - rabbitmq
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+
+  celery-beat:
+    build:
+      context: .
+      args:
+        USER_ID: ${UID}
+        GID: ${GID}
+      dockerfile: ./app/Dockerfile.vm
+    entrypoint: [""]
+    command: celery -A config beat -l INFO --schedule=/home/docker/celerybeat-schedule
+    restart: unless-stopped
+    volumes:
+      - celerybeat_data:/home/docker
+    env_file:
+      - ./.env.vm
+    depends_on:
+      - backend
+      - rabbitmq
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+  nginx:
+    image: nginx:1.28.0
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./app/src/config/nginx:/etc/nginx/templates
+      - ./app/src/ssl:/code/app/ssl:ro
+      - static_volume:/code/app/staticfiles:ro
+    depends_on:
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+
+volumes:
+  postgres_data:
+  static_volume:
+  rabbitmq_data:
+  celerybeat_data:

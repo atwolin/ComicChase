@@ -26,8 +26,6 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
 
     serializer_class = SubscriptionSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwner]
-    # 使用全域預設分頁 (PageNumberPagination, PAGE_SIZE=12)
-    # 前端可透過 ?page=N 進行翻頁，或 ?all=true 關閉分頁
 
     def get_queryset(self):
         """
